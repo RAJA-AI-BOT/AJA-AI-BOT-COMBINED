@@ -8,12 +8,12 @@ COPY src ./src
 RUN mvn -q -DskipTests package
 
 
-FROM python:3.12-slim
+FROM python:3.12-bookworm
 
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends openjdk-21-jre-headless \
+    && apt-get install -y --no-install-recommends openjdk-17-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
