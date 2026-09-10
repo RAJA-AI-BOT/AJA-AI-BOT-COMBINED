@@ -1,0 +1,16 @@
+RAJA AI V28 · SK25 STRATEGY ONLY
+
+Replace: app.py, index.html, telegram_bot.py, manifest.json, sw.js, requirements.txt.
+Add: chart_scanner.html. runtime.txt is optional if your host is already pinned to Python 3.12.
+KEEP your existing native_broker_feed.py and image assets unchanged.
+
+Signal policy:
+- Pattern Type 1-25 ONLY.
+- No RSI/EMA/MACD/Bollinger/Stochastic/ADX/ATR signal logic.
+- Live batch scan evaluates every configured pair in the selected market in one backend batch.
+- Closed candles only; forming candle excluded by build_timeframe().
+- Exact setup = signal; no exact setup = NO SIGNAL; UP/DOWN conflict = NO TRADE.
+- Type 12/13 = 2m only. Type 11 needs a true 30s feed, so live Yahoo/Twelve mode does not fake it; camera scanner supports 30s.
+- Chart Scanner is /chart-scanner and reuses RAJA AI login/session.
+- Movement % is informational only and never gates a signal.
+- No automatic real-money order placement.

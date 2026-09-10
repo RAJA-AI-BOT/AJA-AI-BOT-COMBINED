@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#050b16">
+<title>RAJA AI · Live Screen Scanner</title>
+<style>
+:root{--bg:#020713;--card:#07111e;--line:rgba(96,239,255,.22);--cyan:#60efff;--green:#00ff87;--red:#ff426a;--gold:#f6c85f;--muted:#91a8bc}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% -8%,#11274b,#050913 42%,#010308 82%);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}body{padding:12px;padding-bottom:max(18px,env(safe-area-inset-bottom))}.app{width:min(920px,100%);margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.back{color:var(--cyan);text-decoration:none;font-size:11px;font-weight:900}.pill{font-size:8px;font-weight:950;border:1px solid rgba(0,255,135,.35);color:#9affc8;border-radius:999px;padding:5px 8px}.card{background:linear-gradient(180deg,rgba(8,18,34,.97),rgba(3,9,18,.98));border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:10px;box-shadow:0 14px 38px rgba(0,0,0,.28)}h1{font-size:19px;margin:0 0 5px}p{margin:0;color:#a9bbca;font-size:10px;line-height:1.45}.notice{margin-top:9px;padding:9px;border-radius:10px;background:rgba(246,200,95,.06);border:1px solid rgba(246,200,95,.22);color:#e8d9a7;font-size:9px;line-height:1.45}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}label{display:block;margin:7px 0 4px;color:var(--cyan);font-size:8px;font-weight:950;letter-spacing:.45px;text-transform:uppercase}select,input{width:100%;height:40px;border-radius:9px;border:1px solid var(--line);background:#030812;color:#fff;padding:0 10px;outline:none}input:focus,select:focus{border-color:var(--cyan)}.btn{border:0;border-radius:10px;min-height:42px;padding:9px 10px;font-weight:950;font-size:9px;letter-spacing:.2px;cursor:pointer;background:linear-gradient(135deg,#00ff87,#60efff);color:#01100b}.btn.alt{background:#0c1828;color:#d4f8ff;border:1px solid rgba(96,239,255,.25)}.btn.gold{background:#231e0d;color:#ffe59a;border:1px solid rgba(246,200,95,.35)}.btn.danger{background:#251018;color:#ff9aae;border:1px solid rgba(255,66,106,.35)}.btn:disabled{opacity:.48;cursor:not-allowed}.modebar{margin-top:10px}.stage{position:relative;display:none;width:100%;margin-top:10px;background:#000;border:1px solid rgba(96,239,255,.28);border-radius:13px;overflow:hidden;min-height:220px;max-height:64vh;aspect-ratio:16/9;touch-action:none}.stage video{width:100%;height:100%;display:block;object-fit:contain;background:#000}.hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;gap:6px;pointer-events:none}.hud span{background:rgba(0,0,0,.76);border:1px solid rgba(96,239,255,.25);border-radius:999px;padding:5px 8px;font-size:8px;font-weight:900;color:#c8f8ff}.crop{position:absolute;border:2px solid var(--green);box-shadow:0 0 0 9999px rgba(0,0,0,.24),0 0 20px rgba(0,255,135,.28);display:none;pointer-events:none}.dragbox{position:absolute;border:2px dashed var(--cyan);background:rgba(96,239,255,.08);display:none;pointer-events:none}.stage.crop-mode{cursor:crosshair}.stage.crop-mode:after{content:'DRAG OVER ONLY THE CANDLE CHART AREA';position:absolute;bottom:9px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:1px solid var(--cyan);color:var(--cyan);font-size:8px;font-weight:950;padding:6px 9px;border-radius:999px;white-space:nowrap;pointer-events:none}.statusbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:9px}.metric{border:1px solid rgba(96,239,255,.16);border-radius:9px;padding:7px;background:#040a13;text-align:center;min-width:0}.metric small{display:block;color:#7892a8;font-size:7px;font-weight:900}.metric strong{display:block;color:#fff;font-size:10px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric strong.live{color:var(--green)}.status{min-height:18px;margin-top:8px;font-size:9px;color:var(--gold);line-height:1.45}.preview{margin-top:7px;display:none}.preview img{width:100%;max-height:180px;object-fit:contain;background:#000;border-radius:9px;border:1px solid rgba(96,239,255,.2)}.result{display:none}.hero{text-align:center;border-radius:12px;padding:13px;background:#020710;border:1px solid rgba(246,200,95,.35)}.hero.up{border-color:rgba(0,255,135,.65)}.hero.down{border-color:rgba(255,66,106,.65)}.big{font-size:22px;font-weight:1000}.sub{font-size:9px;color:#a8bdce;margin-top:5px;line-height:1.45}.watch{margin-top:9px;padding:10px;border-radius:10px;background:#050d18;border:1px solid rgba(96,239,255,.18)}.watch strong{display:block;color:var(--cyan);font-size:9px}.watch div{margin-top:4px;font-size:10px;line-height:1.4;color:#d2dde6}.entry{display:none;margin-top:9px;padding:11px;text-align:center;border-radius:10px;border:1px solid rgba(0,255,135,.42);background:rgba(0,255,135,.05)}.entry strong{font-size:17px;color:var(--green)}.entry div{font-size:9px;margin-top:5px;color:#c9d6df}.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.chip{font-size:8px;border:1px solid rgba(96,239,255,.2);border-radius:999px;padding:4px 7px;color:#a9c1d1}.chip.good{color:#8dffc4;border-color:rgba(0,255,135,.3)}.rules{font-size:9px;color:#c8d5df;line-height:1.5;padding-left:18px;margin:8px 0 0}.switchrow{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:9px;color:#b7c7d4}.switchrow input{width:18px;height:18px}.compat{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.compat span{font-size:7px;padding:4px 6px;border-radius:999px;border:1px solid rgba(96,239,255,.18);color:#a7bdca}.compat .ok{border-color:rgba(0,255,135,.28);color:#8dffc4}.compat .warn{border-color:rgba(246,200,95,.28);color:#f6d98d}.pair-search-wrap{position:relative;display:flex;align-items:center}.pair-search-input{padding-left:34px;padding-right:38px}.pair-search-icon{position:absolute;left:11px;color:var(--cyan);font-size:16px;font-weight:950;pointer-events:none}.pair-search-clear{position:absolute;right:5px;width:30px;height:30px;border:0;border-radius:7px;background:#0c1828;color:#d4f8ff;font-weight:950;cursor:pointer}.pair-search-count{min-height:14px;margin-top:4px;font-size:8px;color:#8fa6bc}.pair-search-count.empty{color:var(--gold)}@media(max-width:600px){body{padding:8px}.grid3{grid-template-columns:1fr}.stage{aspect-ratio:9/13;max-height:58vh}.statusbar{grid-template-columns:repeat(2,minmax(0,1fr))}.btn{min-height:44px}.card{padding:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><a class="back" href="/">← RAJA AI HOME</a><span class="pill">V40 · LIVE VISUAL FEED · FULL PAIRS</span></div>
+  <section class="card">
+    <h1>🎥 RAJA Live Screen Scanner</h1>
+    <p>Continuously watches the visible chart, sends lightweight snapshots to the RAJA 24-strategy visual engine, and performs a priority scan exactly at each selected candle boundary.</p>
+    <div class="compat" id="compat"></div>
+    <div class="notice">For trade integrity, forming-candle frames are WATCH only. A directional entry can be armed only from the boundary frame after the candle closes. On iPhone/iPad, another app's screen may not be shareable from a browser; use Live Camera or Screenshot mode there.</div>
+  </section>
+
+  <section class="card">
+    <div class="grid">
+      <div><label>Broker</label><select id="broker"><option>Quotex</option><option>Pocket Option</option></select></div>
+      <div><label>Market</label><select id="market"><option value="OTC" selected>OTC</option><option value="LIVE">LIVE</option></select></div>
+    </div>
+    <div class="grid">
+      <div>
+        <label>Pair / Asset</label>
+        <div class="pair-search-wrap">
+          <span class="pair-search-icon">⌕</span>
+          <input id="pairSearch" class="pair-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search pair — EUR/USD, BTC, OTC" aria-label="Search live scanner pair">
+          <button id="pairSearchClear" class="pair-search-clear" type="button" aria-label="Clear pair search">✕</button>
+        </div>
+        <div id="pairSearchCount" class="pair-search-count">Search or choose a pair below</div>
+        <select id="pair"></select>
+      </div>
+      <div><label>Timeframe</label><select id="tf"><option value="30s">30s</option><option value="1m" selected>1m</option><option value="2m">2m</option><option value="5m">5m</option><option value="10m">10m</option><option value="15m">15m</option><option value="30m">30m</option></select></div>
+    </div>
+    <div class="grid">
+      <div><label>Live watch interval</label><select id="interval"><option value="2">2 sec</option><option value="3" selected>3 sec</option><option value="5">5 sec</option><option value="8">8 sec</option></select></div>
+      <div><label>Capture quality</label><select id="quality"><option value="0.68">FAST</option><option value="0.78" selected>BALANCED</option><option value="0.9">HIGH</option></select></div>
+    </div>
+    <div class="grid3 modebar">
+      <button class="btn" id="shareBtn">🖥 SHARE SCREEN / TAB</button>
+      <button class="btn alt" id="cameraBtn">📷 LIVE CAMERA</button>
+      <button class="btn alt" id="shotBtn">🖼 SCREENSHOT</button>
+    </div>
+    <div class="grid" style="margin-top:8px">
+      <button class="btn gold" id="cropBtn" disabled>▣ SET CHART AREA</button>
+      <button class="btn danger" id="stopBtn" disabled>■ STOP LIVE SCANNER</button>
+    </div>
+    <div class="switchrow"><input type="checkbox" id="autoScan" checked><label for="autoScan" style="margin:0;color:#d6e1e9;text-transform:none;font-size:9px">Live WATCH scans between candle closes</label></div>
+    <input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+    <input id="legacyCamera" type="file" accept="image/*" capture="environment" hidden>
+
+    <div id="stage" class="stage">
+      <video id="video" autoplay playsinline muted></video>
+      <div id="crop" class="crop"></div><div id="dragbox" class="dragbox"></div>
+      <div class="hud"><span id="modeHud">SOURCE: --</span><span id="closeHud">NEXT CLOSE: --:--</span></div>
+    </div>
+
+    <div class="statusbar">
+      <div class="metric"><small>CAPTURE</small><strong id="captureState">OFF</strong></div>
+      <div class="metric"><small>SCAN ENGINE</small><strong id="engineState">READY</strong></div>
+      <div class="metric"><small>LAST FRAME</small><strong id="lastFrame">--</strong></div>
+      <div class="metric"><small>CHART AREA</small><strong id="cropState">FULL FRAME</strong></div>
+    </div>
+    <div id="status" class="status">Ready. Choose Screen Share, Live Camera, or Screenshot.</div>
+    <div id="preview" class="preview"><img id="previewImg" alt="Last scanned chart frame"></div>
+  </section>
+
+  <section id="result" class="card result">
+    <div id="hero" class="hero"><div id="big" class="big">WATCHING</div><div id="meta" class="sub"></div></div>
+    <div class="watch"><strong>RAJA 24 STRATEGY ENGINE</strong><div id="strategy">Waiting for a readable chart frame.</div></div>
+    <div id="entry" class="entry"><strong id="entryMain"></strong><div id="entrySub"></div></div>
+    <div class="chips"><span class="chip" id="qualityChip">QUALITY --</span><span class="chip" id="candlesChip">CANDLES --</span><span class="chip" id="matchChip">MATCH --</span><span class="chip" id="timingChip">WATCH</span></div>
+    <ul id="rules" class="rules"></ul>
+  </section>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const TF_MS={"30s":30000,"1m":60000,"2m":120000,"5m":300000,"10m":600000,"15m":900000,"30m":1800000};
+const LIVE_PAIR_DATA={
+  Quotex:{
+    LIVE:[
+      'BTC-USD','ETH-USD','SOL-USD','LTC-USD','XRP-USD','ADA-USD','DOGE-USD',
+      'EUR/USD','GBP/USD','USD/JPY','AUD/USD','USD/CAD','USD/CHF','NZD/USD','EUR/GBP','EUR/JPY','GBP/JPY',
+      'AUD/JPY','EUR/AUD','GBP/AUD','CAD/JPY','EUR/CAD','GBP/CAD','NZD/JPY','AUD/NZD','EUR/CHF','GBP/CHF','XAUUSD'
+    ],
+    OTC:[
+      'Zcash (OTC)','Chainlink (OTC)','Bitcoin (OTC)','Binance Coin (OTC)','Ethereum (OTC)','Bitcoin Cash (OTC)',
+      'Cosmos (OTC)','Ethereum Classic (OTC)','Axie Infinity (OTC)','Trump (OTC)','Dash (OTC)','Solana (OTC)',
+      'Toncoin (OTC)','Litecoin (OTC)','Avalanche (OTC)','Polkadot (OTC)','Ripple (OTC)',
+      'USD/BRL (OTC)','NZD/CHF (OTC)','NZD/JPY (OTC)','USD/COP (OTC)','USD/MXN (OTC)','AUD/NZD (OTC)',
+      'USD/BDT (OTC)','USD/DZD (OTC)','USD/NGN (OTC)','USD/PHP (OTC)','USD/PKR (OTC)','USD/ZAR (OTC)',
+      'USD/INR (OTC)','USD/EGP (OTC)','USD/IDR (OTC)','USD/ARS (OTC)','GBP/NZD (OTC)','EUR/NZD (OTC)',
+      'NZD/USD (OTC)','NZD/CAD (OTC)','CAD/CHF (OTC)'
+    ]
+  },
+  'Pocket Option':{
+    LIVE:[
+      'BTC-USD','ETH-USD','SOL-USD','LTC-USD','XRP-USD','ADA-USD','DOGE-USD',
+      'EUR/USD','GBP/USD','USD/JPY','AUD/USD','USD/CAD','USD/CHF','NZD/USD','EUR/GBP','EUR/JPY','GBP/JPY',
+      'AUD/JPY','EUR/AUD','GBP/AUD','CAD/JPY','EUR/CAD','GBP/CAD','NZD/JPY','AUD/NZD','EUR/CHF','GBP/CHF','XAUUSD'
+    ],
+    OTC:[
+      'BNB (OTC)','Polkadot (OTC)','Ethereum (OTC)','Toncoin (OTC)','Cardano (OTC)','Polygon (OTC)','TRON (OTC)',
+      'Avalanche (OTC)','Bitcoin (OTC)','Bitcoin ETF (OTC)','Solana (OTC)','Chainlink (OTC)','Litecoin (OTC)','Dogecoin (OTC)',
+      'EUR/USD (OTC)','GBP/USD (OTC)','USD/JPY (OTC)','AUD/USD (OTC)','USD/CAD (OTC)','USD/CHF (OTC)',
+      'EUR/JPY (OTC)','GBP/JPY (OTC)','AUD/JPY (OTC)','CAD/JPY (OTC)','EUR/CHF (OTC)','EUR/GBP (OTC)',
+      'AUD/CAD (OTC)','AUD/CHF (OTC)','CAD/CHF (OTC)','NZD/JPY (OTC)','AUD/NZD (OTC)','EUR/NZD (OTC)',
+      'GBP/AUD (OTC)','CHF/JPY (OTC)','USD/MXN (OTC)','USD/BRL (OTC)','USD/INR (OTC)','USD/SGD (OTC)',
+      'USD/CNH (OTC)','USD/IDR (OTC)','USD/PHP (OTC)','USD/MYR (OTC)','USD/COP (OTC)','EUR/TRY (OTC)',
+      'Apple (OTC)','American Express (OTC)','Boeing Company (OTC)','Cisco (OTC)','Facebook Inc (OTC)','Intel (OTC)',
+      'Johnson & Johnson (OTC)',"McDonald's (OTC)",'Microsoft (OTC)','Pfizer Inc (OTC)','Tesla (OTC)','ExxonMobil (OTC)',
+      'Advanced Micro Devices (OTC)'
+    ]
+  }
+};
+
+let stream=null,sourceMode='',watchTimer=null,clockTimer=null,busy=false,currentKind='',nextCloseMs=0,pendingBoundary=null,cropMode=false,dragStart=null,roi=null,lastObjectUrl='',lastSignalKey='',entryTimer=null;
+function auth(){const key=localStorage.getItem('raja_active_key')||'';return{key,user:localStorage.getItem('raja_active_user')||'',device:localStorage.getItem('raja_device_uid')||'',session_token:key?(localStorage.getItem('raja_token_'+key)||''):''};}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function tfMs(){return TF_MS[$('tf').value]||60000;}
+function boundaryAfter(now=Date.now()){const d=tfMs();return (Math.floor(now/d)+1)*d;}
+function fmtLeft(ms){const s=Math.max(0,Math.ceil(ms/1000)),m=Math.floor(s/60);return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function setStatus(t){$('status').textContent=t;}
+function setEngine(t,live=false){$('engineState').textContent=t;$('engineState').classList.toggle('live',live);}
+function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function renderCompat(){const canShare=!!navigator.mediaDevices?.getDisplayMedia,canCam=!!navigator.mediaDevices?.getUserMedia;const rows=[];rows.push(`<span class="${canShare?'ok':'warn'}">SCREEN SHARE ${canShare?'✓':'FALLBACK'}</span>`);rows.push(`<span class="${canCam?'ok':'warn'}">LIVE CAMERA ${canCam?'✓':'FALLBACK'}</span>`);rows.push(`<span class="ok">SCREENSHOT ✓</span>`);if(isIOS())rows.push('<span class="warn">iPhone/iPad: external-app screen sharing depends on iOS browser permissions</span>');$('compat').innerHTML=rows.join('');}
+function pairUniverse(){
+  const broker=$('broker').value,market=$('market').value;
+  const rows=LIVE_PAIR_DATA[broker]?.[market];
+  return Array.isArray(rows)?rows.slice():[];
+}
+function filterLivePairs(query='',preferred=''){
+  const select=$('pair'),count=$('pairSearchCount'),all=pairUniverse();
+  const needle=String(query||'').trim().toLowerCase(),compactNeedle=needle.replace(/[^a-z0-9]/g,'');
+  const rows=all.filter(x=>{
+    if(!needle)return true;
+    const t=String(x).toLowerCase(),compact=t.replace(/[^a-z0-9]/g,'');
+    return t.includes(needle)||(compactNeedle&&compact.includes(compactNeedle));
+  });
+  const current=preferred||select.value;
+  select.innerHTML='';
+  if(!rows.length){
+    const o=document.createElement('option');o.value='';o.textContent='No matching pair';o.disabled=true;o.selected=true;select.appendChild(o);
+    if(count){count.textContent=`0 matches for “${String(query||'').trim()}”`;count.classList.add('empty');}
+    return;
+  }
+  rows.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;select.appendChild(o);});
+  if(current&&rows.includes(current))select.value=current;else select.selectedIndex=0;
+  if(count){
+    count.textContent=needle?`${rows.length} matching pair${rows.length===1?'':'s'} · ${all.length} total`:`${all.length} pairs available · search above`;
+    count.classList.remove('empty');
+  }
+}
+function refreshLivePairs(preferred=''){
+  if($('pairSearch'))$('pairSearch').value='';
+  filterLivePairs('',preferred);
+}
+function savePrefs(){
+  localStorage.setItem('raja_live_scanner_prefs',JSON.stringify({
+    broker:$('broker').value,market:$('market').value,pair:$('pair').value,tf:$('tf').value,
+    interval:$('interval').value,quality:$('quality').value,auto:$('autoScan').checked
+  }));
+}
+function loadPrefs(){
+  let p={};
+  try{p=JSON.parse(localStorage.getItem('raja_live_scanner_prefs')||'{}')||{};}catch(_){}
+  ['broker','market','tf','interval','quality'].forEach(k=>{if(p[k]!=null&&$(k))$(k).value=p[k];});
+  if(typeof p.auto==='boolean')$('autoScan').checked=p.auto;
+  refreshLivePairs(p.pair||'');
+}
+$('broker').addEventListener('change',()=>{refreshLivePairs();savePrefs();});
+$('market').addEventListener('change',()=>{refreshLivePairs();savePrefs();});
+$('pair').addEventListener('change',savePrefs);
+$('pairSearch').addEventListener('input',()=>filterLivePairs($('pairSearch').value,$('pair').value));
+$('pairSearch').addEventListener('search',()=>filterLivePairs($('pairSearch').value,$('pair').value));
+$('pairSearch').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const p=$('pair');
+    if(p.options.length&&!p.options[0].disabled){p.selectedIndex=0;p.focus();savePrefs();}
+  }
+});
+$('pairSearchClear').addEventListener('click',()=>{
+  $('pairSearch').value='';filterLivePairs('',$('pair').value);$('pairSearch').focus();
+});
+['tf','interval','quality','autoScan'].forEach(id=>$(id).addEventListener('change',()=>{
+  savePrefs();
+  if(id==='tf'&&stream)nextCloseMs=boundaryAfter();
+}));
+function contentRect(){const stage=$('stage'),v=$('video'),r=stage.getBoundingClientRect();if(!v.videoWidth||!v.videoHeight)return{x:0,y:0,w:r.width,h:r.height};const va=v.videoWidth/v.videoHeight,sa=r.width/r.height;let w,h,x,y;if(va>sa){w=r.width;h=w/va;x=0;y=(r.height-h)/2;}else{h=r.height;w=h*va;y=0;x=(r.width-w)/2;}return{x,y,w,h};}
+function drawRoi(){const box=$('crop');if(!roi){box.style.display='none';$('cropState').textContent='FULL FRAME';return;}const c=contentRect();box.style.display='block';box.style.left=(c.x+roi.x*c.w)+'px';box.style.top=(c.y+roi.y*c.h)+'px';box.style.width=(roi.w*c.w)+'px';box.style.height=(roi.h*c.h)+'px';$('cropState').textContent='CHART CROPPED';}
+window.addEventListener('resize',drawRoi);
+function pointerPos(ev){const r=$('stage').getBoundingClientRect(),c=contentRect();return{x:Math.max(c.x,Math.min(c.x+c.w,ev.clientX-r.left)),y:Math.max(c.y,Math.min(c.y+c.h,ev.clientY-r.top)),c};}
+$('stage').addEventListener('pointerdown',ev=>{if(!cropMode)return;ev.preventDefault();const p=pointerPos(ev);dragStart=p;$('stage').setPointerCapture?.(ev.pointerId);$('dragbox').style.display='block';});
+$('stage').addEventListener('pointermove',ev=>{if(!cropMode||!dragStart)return;const p=pointerPos(ev),x=Math.min(dragStart.x,p.x),y=Math.min(dragStart.y,p.y),w=Math.abs(p.x-dragStart.x),h=Math.abs(p.y-dragStart.y),b=$('dragbox');b.style.left=x+'px';b.style.top=y+'px';b.style.width=w+'px';b.style.height=h+'px';});
+$('stage').addEventListener('pointerup',ev=>{if(!cropMode||!dragStart)return;const p=pointerPos(ev),c=p.c,x=Math.min(dragStart.x,p.x),y=Math.min(dragStart.y,p.y),w=Math.abs(p.x-dragStart.x),h=Math.abs(p.y-dragStart.y);dragStart=null;$('dragbox').style.display='none';if(w<50||h<50){setStatus('Chart area too small. Drag around the complete candle chart.');return;}roi={x:(x-c.x)/c.w,y:(y-c.y)/c.h,w:w/c.w,h:h/c.h};cropMode=false;$('stage').classList.remove('crop-mode');$('cropBtn').textContent='↺ RESET / SET CHART AREA';drawRoi();setStatus('Chart area locked. Live scanner will analyse only this crop.');});
+$('cropBtn').onclick=()=>{if(!stream)return;if(roi){roi=null;drawRoi();}cropMode=true;$('stage').classList.add('crop-mode');setStatus('Drag a box around ONLY the candle chart area (include enough historical candles).');};
+async function startSource(mode){stopSource();const a=auth();if(!a.key||!a.user||!a.device||!a.session_token){setStatus('Login to RAJA AI first, then reopen Live Scanner.');return;}try{if(mode==='screen'){if(!navigator.mediaDevices?.getDisplayMedia){setStatus('This browser cannot share the screen. Use LIVE CAMERA or SCREENSHOT.');return;}stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:10,max:15}},audio:false});sourceMode='SCREEN';}else{if(!navigator.mediaDevices?.getUserMedia){$('legacyCamera').click();return;}stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:15,max:30}},audio:false});sourceMode='CAMERA';}const v=$('video');v.srcObject=stream;$('stage').style.display='block';await v.play().catch(()=>{});const track=stream.getVideoTracks()[0];track?.addEventListener('ended',()=>stopSource('Screen/camera sharing ended.'));$('modeHud').textContent='SOURCE: '+sourceMode;$('captureState').textContent='LIVE';$('captureState').classList.add('live');$('cropBtn').disabled=false;$('stopBtn').disabled=false;nextCloseMs=boundaryAfter();startLoops();setStatus(sourceMode==='SCREEN'?'Live screen received. Set CHART AREA, then keep the broker chart visible.':'Live camera received. Point at the broker chart and set CHART AREA.');setTimeout(drawRoi,100);}catch(e){stopSource();setStatus((mode==='screen'?'Screen share':'Camera')+' unavailable: '+(e.message||e));if(mode==='camera'&&isIOS())$('legacyCamera').click();}}
+function stopSource(msg='Live scanner stopped.'){if(watchTimer)clearInterval(watchTimer);if(clockTimer)clearInterval(clockTimer);watchTimer=clockTimer=null;pendingBoundary=null;busy=false;try{stream?.getTracks().forEach(t=>t.stop());}catch(_){}stream=null;sourceMode='';$('video').srcObject=null;$('stage').style.display='none';$('captureState').textContent='OFF';$('captureState').classList.remove('live');$('cropBtn').disabled=true;$('stopBtn').disabled=true;roi=null;cropMode=false;$('stage').classList.remove('crop-mode');drawRoi();$('closeHud').textContent='NEXT CLOSE: --:--';setEngine('READY');if(msg)setStatus(msg);}
+$('shareBtn').onclick=()=>startSource('screen');$('cameraBtn').onclick=()=>startSource('camera');$('stopBtn').onclick=()=>stopSource();$('shotBtn').onclick=()=>$('file').click();
+function startLoops(){if(watchTimer)clearInterval(watchTimer);if(clockTimer)clearInterval(clockTimer);const cadence=Math.max(2,Number($('interval').value)||3)*1000;watchTimer=setInterval(()=>{if(!$('autoScan').checked||!stream||busy)return;const left=nextCloseMs-Date.now();if(left<1400)return;captureAndQueue(false,0);},cadence);clockTimer=setInterval(()=>{if(!stream)return;const now=Date.now();if(!nextCloseMs)nextCloseMs=boundaryAfter(now);$('closeHud').textContent='NEXT CLOSE: '+fmtLeft(nextCloseMs-now);if(now>=nextCloseMs){const epoch=nextCloseMs;nextCloseMs=boundaryAfter(now+250);captureAndQueue(true,epoch);}},160);}
+$('interval').addEventListener('change',()=>{if(stream)startLoops();});
+async function captureBlob(){const v=$('video');if(!v.videoWidth||!v.videoHeight)throw new Error('Video frame is not ready.');let sx=0,sy=0,sw=v.videoWidth,sh=v.videoHeight;if(roi){sx=Math.round(roi.x*v.videoWidth);sy=Math.round(roi.y*v.videoHeight);sw=Math.max(80,Math.round(roi.w*v.videoWidth));sh=Math.max(80,Math.round(roi.h*v.videoHeight));}const maxW=1280,scale=Math.min(1,maxW/sw),cw=Math.max(80,Math.round(sw*scale)),ch=Math.max(80,Math.round(sh*scale));const c=document.createElement('canvas');c.width=cw;c.height=ch;const ctx=c.getContext('2d',{alpha:false});ctx.drawImage(v,sx,sy,sw,sh,0,0,cw,ch);const q=Math.max(.55,Math.min(.94,Number($('quality').value)||.78));return new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Frame capture failed.')),'image/jpeg',q));}
+async function captureAndQueue(atClose,epoch){try{const blob=await captureBlob();if(atClose&&busy){pendingBoundary={blob,epoch};setStatus('Candle-close frame captured; waiting for current WATCH request to finish.');return;}if(!atClose&&busy)return;await scanBlob(blob,atClose,epoch);}catch(e){setStatus('Capture error: '+(e.message||e));}}
+function previewBlob(blob){if(lastObjectUrl)URL.revokeObjectURL(lastObjectUrl);lastObjectUrl=URL.createObjectURL(blob);$('previewImg').src=lastObjectUrl;$('preview').style.display='block';}
+async function scanBlob(blob,atClose,epoch){const a=auth();if(!a.key||!a.user||!a.device||!a.session_token){setStatus('RAJA AI login session missing.');return;}busy=true;currentKind=atClose?'CLOSE':'WATCH';setEngine(atClose?'CLOSE SCAN':'WATCH SCAN',true);$('lastFrame').textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});if(atClose)previewBlob(blob);const fd=new FormData();fd.append('image',blob,'raja-live-frame.jpg');fd.append('broker',$('broker').value);fd.append('market',$('market').value);fd.append('pair',$('pair').value.trim()||'SCREEN CHART');fd.append('timeframe',$('tf').value);fd.append('captured_at_close',atClose?'1':'0');fd.append('captured_at_epoch_ms',String(epoch||0));fd.append('source','RAJA_LIVE_SCREEN_SCANNER');Object.entries(a).forEach(([k,v])=>fd.append(k,v));try{const r=await fetch('/chart-scan',{method:'POST',body:fd,cache:'no-store'}),j=await r.json();if(!r.ok||j.status!=='success')throw new Error(j.message||'Visual scan failed');renderResult(j.result,atClose);setStatus(atClose?'Closed-candle priority scan complete. Live watching continues.':'Live chart WATCH updated.');}catch(e){if(String(e.name)!=='AbortError')setStatus('Scan error: '+(e.message||e));}finally{busy=false;currentKind='';setEngine('LIVE',!!stream);if(pendingBoundary){const p=pendingBoundary;pendingBoundary=null;scanBlob(p.blob,true,p.epoch);}}}
+function speak(text){try{if(!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance(text);u.rate=1.03;u.pitch=.9;u.volume=1;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(_){}}
+function startEntry(x){if(entryTimer)clearInterval(entryTimer);const box=$('entry');if(!x.entry_epoch){box.style.display='none';return;}const entryMs=Number(x.entry_epoch)*1000,grace=Math.max(5,Number(x.entry_window_seconds||30))*1000,bias=String(x.bias||'').toUpperCase(),dir=bias.startsWith('UP')?'UP CALL':bias.startsWith('DOWN')?'DOWN PUT':'';if(!dir){box.style.display='none';return;}box.style.display='block';const tick=()=>{const now=Date.now(),d=now-entryMs;if(d<0){$('entryMain').textContent='TRADE IN '+Math.ceil(-d/1000)+' SEC · '+dir;$('entrySub').textContent='Wait for the target candle open.';}else if(d<=grace){$('entryMain').textContent='TAKE '+dir+' NOW';$('entrySub').textContent=Math.max(0,Math.ceil((grace-d)/1000))+' sec remains in the allowed entry window.';}else{$('entryMain').textContent='ENTRY WINDOW PASSED';$('entrySub').textContent='Do not chase this candle. Keep Live Scanner running for a fresh close.';}};tick();entryTimer=setInterval(tick,250);}
+function renderResult(x,atClose){$('result').style.display='block';const bias=String(x.bias||'NO TRADE').toUpperCase(),up=bias.startsWith('UP'),down=bias.startsWith('DOWN'),hero=$('hero');hero.className='hero '+(up?'up':down?'down':'');$('big').textContent=up?'⬆ UP / CALL':down?'⬇ DOWN / PUT':atClose?'⏸ NO TRADE · CLOSE SCANNED':'👁 LIVE WATCH';const timing=atClose?'CLOSED-CANDLE FRAME':'FORMING CANDLE EXCLUDED';$('meta').innerHTML=`${esc($('broker').value)} · ${esc($('pair').value||'SCREEN CHART')} · ${esc($('tf').value.toUpperCase())}<br>${timing}`;$('strategy').textContent=x.selected_pattern||x.selected_strategy||x.scan_gate_reason||'No exact active setup yet.';const q=Math.round(Number(x.image_quality_score||0)),c=Number(x.detected_candles||x.closed_candles_analyzed||0),m=Math.round(Number(x.setup_match||x.pattern_score||0));$('qualityChip').textContent='QUALITY '+q+'/100';$('candlesChip').textContent='CANDLES '+c;$('matchChip').textContent='MATCH '+m+'%';$('timingChip').textContent=atClose?'CLOSE VERIFIED':'WATCH';$('timingChip').classList.toggle('good',atClose);const rules=Array.isArray(x.setup_rules)?x.setup_rules:Array.isArray(x.rules)?x.rules:[];$('rules').innerHTML=rules.slice(0,8).map(r=>`<li>${r.ok?'✓':'✕'} ${esc(r.name||'Rule')}</li>`).join('');startEntry(x);if(atClose&&(up||down)){const key=[x.pattern_type,x.selected_pattern,x.entry_epoch,bias].join('|');if(key!==lastSignalKey){lastSignalKey=key;speak(`RAJA AI. ${$('pair').value}. ${up?'UP CALL':'DOWN PUT'} signal. Take trade now.`);}}}
+$('file').onchange=e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;previewBlob(f);scanBlob(f,false,0);};
+$('legacyCamera').onchange=e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;previewBlob(f);scanBlob(f,false,0);};
+renderCompat();loadPrefs();nextCloseMs=boundaryAfter();
+</script>
+</body>
+</html>

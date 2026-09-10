@@ -1,0 +1,19 @@
+RAJA AI V28 FINAL VALIDATION
+
+PASS: Python syntax app.py
+PASS: Python syntax telegram_bot.py
+PASS: manifest JSON
+PASS: main index inline JavaScript syntax
+PASS: chart_scanner inline JavaScript syntax
+PASS: Pattern Type IDs 1 through 25 present
+PASS: RSI/EMA/MACD/Bollinger/Stochastic/ADX/ATR calculation functions removed from signal backend
+PASS: batch scan still uses one /scan-batch request for all configured pairs in selected market
+PASS: live signal function uses one selected closed-candle timeframe + exact SK25 rules
+PASS: conflict gate returns NO SIGNAL when exact UP and DOWN setups conflict
+PASS: Type 6 recovery requires previous LOSS
+PASS: Type 11 is not faked on the 1-minute live feed; camera scanner supports 30s
+PASS: Type 12/13 have 2m-only rules
+PASS: separate /chart-scanner page reuses RAJA AI local login/session
+PASS: service worker cache bumped to V28 and /chart-scan excluded from caching
+
+Runtime note: native_broker_feed.py was not supplied in this chat. Keep the existing project copy unchanged so broker-native OTC remains available. The app already fails safely if that optional module is unavailable.

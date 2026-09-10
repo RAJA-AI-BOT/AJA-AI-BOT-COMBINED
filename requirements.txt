@@ -1,0 +1,12 @@
+Flask
+flask-cors
+gunicorn
+requests
+numpy
+Pillow
+pandas
+yfinance
+psycopg[binary]
+git+https://github.com/cleitonleonel/pyquotex.git
+git+https://github.com/chema-creator/PocketOptionApi.git
+websocket-client
