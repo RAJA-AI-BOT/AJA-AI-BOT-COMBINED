@@ -17509,13 +17509,81 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   document.addEventListener('fullscreenchange',syncRajaLiveFullscreen);
   document.addEventListener('webkitfullscreenchange',syncRajaLiveFullscreen);
   function liveTfSeconds(tf){return({'1m':60,'2m':120,'5m':300,'10m':600,'15m':900,'30m':1800})[String(tf||'1m').toLowerCase()]||60}
+  // Signal arrows are EVENT markers, not persistent status markers.
+  // The first signal state seen after opening/switching a pair is treated as
+  // the baseline. An arrow is drawn only when a genuinely new signal event
+  // appears afterwards (new candle/signal/pattern key).
+  const liveSignalBaselineByPair = Object.create(null);
+  let liveSignalMarkerKey = '';
   function applyLiveSignalMarker(data,clean){
-    signalMarkers=null;if(!candleSeries||!Array.isArray(clean)||!clean.length)return;const sig=String(data?.signal||'').toUpperCase();if(sig!=='CALL'&&sig!=='PUT')return;
-    const tf=String(data?.selected_expiry||liveLocal.expiry||'1m').toLowerCase();const sum=data?.timeframe_summary&&data.timeframe_summary[tf];const closed=Number(data?.closed_candle_epoch||sum?.closed_candle_epoch||0);if(!Number.isFinite(closed)||closed<=0)return;
-    const entry=closed+liveTfSeconds(tf);let target=clean.find(c=>Number(c.time)===entry)||clean.find(c=>Number(c.time)===closed);
-    if(!target){const near=[...clean].sort((a,b)=>Math.abs(Number(a.time)-entry)-Math.abs(Number(b.time)-entry))[0];if(near&&Math.abs(Number(near.time)-entry)<=liveTfSeconds(tf))target=near}
-    if(!target)return;const marker={time:target.time,position:sig==='CALL'?'belowBar':'aboveBar',color:sig==='CALL'?'#00ff87':'#ff426a',shape:sig==='CALL'?'arrowUp':'arrowDown',text:`${sig}${data?.pattern_type?` · T${Number(data.pattern_type)}`:''}`};
-    try{if(typeof LightweightCharts.createSeriesMarkers==='function')signalMarkers=LightweightCharts.createSeriesMarkers(candleSeries,[marker]);else if(typeof candleSeries.setMarkers==='function')candleSeries.setMarkers([marker])}catch(_){}
+    if(!candleSeries||!Array.isArray(clean)||!clean.length)return;
+    const pairKey=String(data?.pair||selected()?.pair||'').replace(/[-_]/g,'/').toUpperCase();
+    const sig=String(data?.signal||'').toUpperCase();
+    const tf=String(data?.selected_expiry||liveLocal.expiry||'1m').toLowerCase();
+    const sum=data?.timeframe_summary&&data.timeframe_summary[tf];
+    const closed=Number(data?.closed_candle_epoch||sum?.closed_candle_epoch||0);
+    const pattern=String(data?.pattern_type||'');
+    const eventKey=`${pairKey}|${tf}|${sig}|${closed}|${pattern}`;
+
+    // Never show arrows for NO TRADE / WAIT states.
+    if(sig!=='CALL'&&sig!=='PUT'){
+      liveSignalMarkerKey='';
+      try{
+        if(typeof LightweightCharts.createSeriesMarkers==='function' && signalMarkers){
+          signalMarkers.setMarkers([]);
+        }else if(typeof candleSeries.setMarkers==='function'){
+          candleSeries.setMarkers([]);
+        }
+      }catch(_){}
+      signalMarkers=null;
+      return;
+    }
+
+    // First state for a pair is the baseline — it is not a new signal.
+    if(!liveSignalBaselineByPair[pairKey]){
+      liveSignalBaselineByPair[pairKey]=eventKey;
+      liveSignalMarkerKey='';
+      try{
+        if(typeof LightweightCharts.createSeriesMarkers==='function' && signalMarkers){
+          signalMarkers.setMarkers([]);
+        }else if(typeof candleSeries.setMarkers==='function'){
+          candleSeries.setMarkers([]);
+        }
+      }catch(_){}
+      signalMarkers=null;
+      return;
+    }
+
+    // Same signal event: keep the chart clean, no repeated arrow.
+    if(liveSignalBaselineByPair[pairKey]===eventKey)return;
+
+    // A new signal event has appeared.
+    liveSignalBaselineByPair[pairKey]=eventKey;
+    liveSignalMarkerKey=eventKey;
+
+    if(!Number.isFinite(closed)||closed<=0)return;
+    const entry=closed+liveTfSeconds(tf);
+    let target=clean.find(c=>Number(c.time)===entry)||clean.find(c=>Number(c.time)===closed);
+    if(!target){
+      const near=[...clean].sort((a,b)=>Math.abs(Number(b.time)-entry)-Math.abs(Number(a.time)-entry))[0];
+      if(near&&Math.abs(Number(near.time)-entry)<=liveTfSeconds(tf))target=near;
+    }
+    if(!target)return;
+
+    const marker={
+      time:target.time,
+      position:sig==='CALL'?'belowBar':'aboveBar',
+      color:sig==='CALL'?'#00ff87':'#ff426a',
+      shape:sig==='CALL'?'arrowUp':'arrowDown',
+      text:`${sig}${pattern?` · T${Number(pattern)}`:''}`
+    };
+    try{
+      if(typeof LightweightCharts.createSeriesMarkers==='function'){
+        signalMarkers=LightweightCharts.createSeriesMarkers(candleSeries,[marker]);
+      }else if(typeof candleSeries.setMarkers==='function'){
+        candleSeries.setMarkers([marker]);
+      }
+    }catch(_){}
   }
   function renderChart(data){
     if(!data)return;const canvas=document.getElementById('rajaLiveChartCanvas');if(!canvas)return;const raw=Array.isArray(data.chart_preview)?data.chart_preview:[];const clean=raw.map((c,i)=>({time:Number(c?.t??c?.time??i),open:Number(c?.o),high:Number(c?.h),low:Number(c?.l),close:Number(c?.c)})).filter(c=>Number.isFinite(c.time)&&Number.isFinite(c.open)&&Number.isFinite(c.high)&&Number.isFinite(c.low)&&Number.isFinite(c.close));if(clean.length<2)return;
@@ -17626,19 +17694,42 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     if(lastLiveBucket&&bucket!==lastLiveBucket){setTimeout(()=>{if(auto&&!busy)refresh(true)},350)}
     lastLiveBucket=bucket;
   }
+  let liveDirectTickController=null;
   async function refreshLiveTick(){
     if(!auto||tickBusy||!lastData||!candleSeries)return;
     if(biQuoteStreamReady)return;
     if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;
-    const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)||/OTC/i.test(String(x.pair)))return;
+    const x=selected();
+    if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)||/OTC/i.test(String(x.pair)))return;
+    const symbol=biQuoteSymbol(x.pair);
+    if(!symbol)return;
     tickBusy=true;
+    const controller=new AbortController();
+    liveDirectTickController=controller;
+    const timeoutId=setTimeout(()=>controller.abort(),900);
     try{
-      const payload={pair:x.pair,broker:x.broker,market:x.market,...(typeof getAuthPayload==='function'?getAuthPayload():{})};
-      const r=await fetch('/live-chart-tick',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify(payload)});
-      const j=await r.json();const t=j?.data||{};
-      if(r.ok&&j?.status==='success'&&t.tick_supported&&Number.isFinite(Number(t.bid))){mergeLiveTickIntoPreview(t)}
-      else tickState(t.reason?'LIVE TICK: '+String(t.reason).slice(0,80):'LIVE TICK: waiting for BiQuote stream',false);
-    }catch(e){tickState('LIVE TICK: reconnecting…',false)}finally{tickBusy=false}
+      // Direct BiQuote latest-tick fallback. This keeps the forming candle moving
+      // even when the SignalR browser connection is temporarily unavailable.
+      const r=await fetch(`https://biquote.io/api/${encodeURIComponent(symbol)}?allowStale=false&_=${Date.now()}`,{
+        method:'GET',cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'},signal:controller.signal
+      });
+      const q=await r.json();
+      const price=Number(q?.mid??q?.bid??q?.ask);
+      const stamp=Date.parse(String(q?.timestamp||''));
+      const epoch=Number.isFinite(stamp)?Math.floor(stamp/1000):Math.floor(Date.now()/1000);
+      if(r.ok&&Number.isFinite(price)&&price>0){
+        mergeLiveTickIntoPreview({pair:x.pair,bid:price,time:epoch,age_ms:Number(q?.quoteAgeSeconds||0)*1000,source:'BiQuote',source_mode:'biquote_rest_live_tick',tick_supported:true});
+        tickState(`LIVE TICK: BIQUOTE · ${symbol} · live fallback`,true);
+        return;
+      }
+      tickState(q?.marketState==='closed'?'LIVE TICK: market closed':'LIVE TICK: waiting for BiQuote tick',false);
+    }catch(e){
+      if(e?.name!=='AbortError')tickState('LIVE TICK: BiQuote fallback reconnecting…',false);
+    }finally{
+      clearTimeout(timeoutId);
+      if(liveDirectTickController===controller)liveDirectTickController=null;
+      tickBusy=false;
+    }
   }
   function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st)st.textContent=data.pattern_type?`TYPE ${data.pattern_type}`:'--';const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>{ensureBiQuoteStream(pair);refreshLiveTick()},120)}
   function cancelRajaLiveChartRequest(){
@@ -17694,7 +17785,7 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
       if(requestSeq===liveChartRequestSeq)busy=false;
     }
   }
-  function boot(){ensure();setTimeout(()=>refresh(true),1200);timer=setInterval(()=>{if(document.hidden||!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},2000);tickTimer=setInterval(()=>{if(!document.hidden&&!biQuoteStreamReady)refreshLiveTick()},2500);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
+  function boot(){ensure();setTimeout(()=>refresh(true),1200);timer=setInterval(()=>{if(document.hidden||!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},2000);tickTimer=setInterval(()=>{if(!document.hidden&&!biQuoteStreamReady)refreshLiveTick()},1000);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
   document.addEventListener('DOMContentLoaded',boot);window.refreshRajaLiveOpenChart=()=>refresh(true);
 })();
 </script>
