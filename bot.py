@@ -6165,7 +6165,7 @@ def _finnhub_live_base_df(pair, count=1800):
 # that crypto symbol via /pairs; otherwise the existing Twelve Data crypto
 # path remains active. OTC routing is unchanged.
 # =========================================================
-DUKASCOPY_ENABLED = str(os.environ.get("DUKASCOPY_ENABLED", "false")).strip().lower() in {"1", "true", "yes", "on"}
+DUKASCOPY_ENABLED = False  # HARD OFF: do not run Dukascopy on Railway
 DUKASCOPY_BRIDGE_URL = (os.environ.get("DUKASCOPY_BRIDGE_URL") or "").strip().rstrip("/")
 DUKASCOPY_BRIDGE_TIMEOUT = max(2.0, min(15.0, float(os.environ.get("DUKASCOPY_BRIDGE_TIMEOUT", "7"))))
 DUKASCOPY_PAIRS_CACHE_SECONDS = max(15, min(600, int(os.environ.get("DUKASCOPY_PAIRS_CACHE_SECONDS", "60"))))
@@ -7241,12 +7241,11 @@ def signals_history():
     if error:
         return error
 
-    # Do one on-demand resolution pass before returning history. This prevents
-    # WIN/LOSS from appearing stuck when the background worker has not ticked yet.
+    # Do not resolve market data inside the HTTP request. The background
+    # signal_outcome_worker handles result resolution so BiQuote latency can
+    # never block the web page/API response.
     with signals_lock:
         items = load_signals()
-        if resolve_due_signals(items):
-            save_signals(items)
 
     user_items = [x for x in items if normalize_user_id(x.get("user", "")) == auth["user"]]
     # Backward compatibility: include old same-device history records that predate user tagging.
@@ -7286,8 +7285,6 @@ def signals_stats():
 
     with signals_lock:
         all_items = load_signals()
-        if resolve_due_signals(all_items):
-            save_signals(all_items)
 
     items = [x for x in all_items if normalize_user_id(x.get("user", "")) == auth["user"]]
     return jsonify({"status": "success", "stats": signal_stats(items)})
@@ -7301,9 +7298,7 @@ def strategy_stats_endpoint():
         return error
     with signals_lock:
         items = load_signals()
-        if resolve_due_signals(items):
-            save_signals(items)
-    # refresh cache after on-demand result resolution
+    # refresh cache after background result resolution
     with performance_history_cache_lock:
         performance_history_cache.pop(auth["user"], None)
     rows = strategy_learning_summary(auth["user"])
@@ -7327,7 +7322,6 @@ def adaptive_stats_endpoint():
     if error: return error
     with signals_lock:
         items=load_signals()
-        if resolve_due_signals(items): save_signals(items)
     with performance_history_cache_lock:
         performance_history_cache.pop(auth["user"], None)
     rows=adaptive_context_summary(auth["user"])
@@ -10035,33 +10029,27 @@ def get_market_data(pair, bridge_user=None, broker=None):
             biquote_reason = "BiQuote returned no usable candles."
         except Exception as exc:
             biquote_reason = f"BiQuote: {type(exc).__name__}: {exc}"
-        data, age, symbol, info = _v73_get_dukascopy(clean, count=1500)
-        info = dict(info or {})
-        info["biquote_attempted"] = True
-        info["biquote_fallback_reason"] = biquote_reason
-        return data, age, symbol, info
+        # Dukascopy is intentionally OFF on Railway. Never fall back to it here.
+        return _v73_dukascopy_unavailable(
+            clean,
+            _v73_normalize_dukascopy_pair(clean) or "",
+            f"BiQuote unavailable; Dukascopy is disabled on Railway. {biquote_reason}",
+        )
 
     # Existing crypto policy is preserved.
     if upper in TWELVE_DATA_CRYPTO_LIVE_PAIRS:
-        bridge_pair = _v73_normalize_dukascopy_pair(upper)
-        supported = _dukascopy_bridge_pairs(force=False) if DUKASCOPY_ENABLED and DUKASCOPY_BRIDGE_URL else set()
-        dukascopy_reason = None
-        if bridge_pair and bridge_pair in supported:
-            data, age, symbol, info = _v73_get_dukascopy(upper, count=1500)
-            if data is not None and not getattr(data, "empty", True):
-                info = dict(info or {})
-                info["crypto_source_policy"] = RAJA_CRYPTO_SOURCE_POLICY
-                return data, age, symbol, info
-            dukascopy_reason = str((info or {}).get("unavailable_reason") or "Dukascopy crypto candles unavailable")
-        elif bridge_pair:
-            dukascopy_reason = f"{bridge_pair} is not advertised by the connected Dukascopy bridge."
+        # Crypto keeps its existing Twelve Data path. Dukascopy is OFF.
         data, age, symbol, info = _v74_crypto_twelve_data_market_data(upper, force=False)
         info = dict(info or {})
-        if dukascopy_reason:
-            info["dukascopy_attempt_reason"] = dukascopy_reason
+        info["dukascopy_disabled"] = True
         return data, age, symbol, info
 
-    return _v73_get_dukascopy(clean, count=1500)
+    # No Dukascopy fallback anywhere in the live market-data path.
+    return _v73_dukascopy_unavailable(
+        clean,
+        _v73_normalize_dukascopy_pair(clean) or "",
+        "Dukascopy is disabled on Railway and no alternate live feed is configured for this pair.",
+    )
 
 
 @app.route("/live-chart-tick", methods=["POST"])
