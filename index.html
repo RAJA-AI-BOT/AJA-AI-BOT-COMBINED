@@ -17459,7 +17459,17 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     const updateBadge=()=>{if(badge)badge.textContent=`${liveLocal.broker==='PocketOption'?'POCKET OPTION':'QUOTEX'} · ${liveLocal.market==='CryptoLive'?'CRYPTO LIVE':'FOREX LIVE'}`};updateBadge();
     broker.onchange=()=>{liveLocal.broker=broker.value;liveLocal.pair='';if(search)search.value='';persistLiveLocal();liveRenderPairs('',false);updateBadge();refresh(true)};
     market.onchange=()=>{liveLocal.market=market.value;liveLocal.pair='';if(search)search.value='';persistLiveLocal();liveRenderPairs('',false);updateBadge();refresh(true)};
-    pair.onchange=()=>{liveLocal.pair=String(pair.value||'');persistLiveLocal();liveDispatch();refresh(true)};
+    pair.onchange=()=>{
+      const nextPair=String(pair.value||'').trim();
+      liveLocal.pair=nextPair;
+      persistLiveLocal();
+      liveDispatch();
+      // Cancel any old pair request immediately so the newly selected pair never waits for it.
+      try{if(typeof window.cancelRajaLiveChartRequest==='function')window.cancelRajaLiveChartRequest()}catch(_){}
+      // Force the chart to switch visually at once while the new pair loads.
+      try{if(typeof window.prepareRajaLivePairSwitch==='function')window.prepareRajaLivePairSwitch(nextPair)}catch(_){}
+      refresh(true);
+    };
     search.oninput=()=>liveRenderPairs(search.value,true);search.onsearch=()=>liveRenderPairs(search.value,true);
     clear.onclick=()=>{search.value='';liveRenderPairs('',true);search.focus()};
   }
@@ -17547,6 +17557,8 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   function normalizePreviewCandle(c){return {time:Number(c?.t??c?.time),open:Number(c?.o??c?.open),high:Number(c?.h??c?.high),low:Number(c?.l??c?.low),close:Number(c?.c??c?.close)}}
   function biQuoteSymbol(v){return String(v||'').replace(/\(OTC\)/ig,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase()}
   let biQuoteHub=null,biQuoteStreamSymbol='',biQuoteStreamStarting=false,biQuoteStreamReady=false;
+  let liveChartAbortController=null;
+  let liveChartRequestSeq=0;
   function biQuoteTickToLocal(t){
     if(!t||typeof t!=='object')return null;
     const symbol=biQuoteSymbol(t.symbol||t.provider_pair);
@@ -17629,8 +17641,60 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     }catch(e){tickState('LIVE TICK: reconnecting…',false)}finally{tickBusy=false}
   }
   function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st)st.textContent=data.pattern_type?`TYPE ${data.pattern_type}`:'--';const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>{ensureBiQuoteStream(pair);refreshLiveTick()},120)}
-  async function refresh(force=false){const card=ensure();if(!card||busy)return;if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}busy=true;try{const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),_live_refresh_ts:Date.now(),...(typeof getAuthPayload==='function'?getAuthPayload():{})};const controller=new AbortController(); const timeoutId=setTimeout(()=>controller.abort(),5000); try { const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'},cache:'no-store',body:JSON.stringify(payload),signal:controller.signal});const j=await r.json();if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');paint(j.data||{});lastPair=x.pair} finally { clearTimeout(timeoutId); } } catch(e){const s=document.getElementById('rajaLiveStatus');if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses BiQuote 1M only; Dukascopy is disabled. Crypto Live uses its configured feed.'}}finally{busy=false}}
-  function boot(){ensure();setTimeout(()=>refresh(true),1200);timer=setInterval(()=>{if(document.hidden||!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},5000);tickTimer=setInterval(()=>{if(!document.hidden&&!biQuoteStreamReady)refreshLiveTick()},2500);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
+  function cancelRajaLiveChartRequest(){
+    liveChartRequestSeq++;
+    if(liveChartAbortController){try{liveChartAbortController.abort()}catch(_){} liveChartAbortController=null}
+    busy=false;
+  }
+  function prepareRajaLivePairSwitch(pair){
+    lastPair='';
+    lastData=null;
+    lastLiveBucket=null;
+    biQuoteStreamReady=false;
+    biQuoteStreamStarting=false;
+    const st=document.getElementById('rajaLiveStatus');
+    if(st){st.className='raja-live-status warn';st.textContent=`Loading ${pair||'pair'} live chart…`}
+    const age=document.getElementById('rajaLiveAge');if(age)age.textContent='--';
+    const dir=document.getElementById('rajaLiveSignalDir');if(dir){dir.textContent='LOADING';dir.className='dir wait'}
+    try{if(candleSeries){candleSeries.setData([])}}catch(_){}
+  }
+  window.cancelRajaLiveChartRequest=cancelRajaLiveChartRequest;
+  window.prepareRajaLivePairSwitch=prepareRajaLivePairSwitch;
+  async function refresh(force=false){
+    const card=ensure();
+    if(!card)return;
+    if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;
+    const x=selected();
+    if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}
+    // A forced refresh (pair change) always wins: abort the previous HTTP request.
+    if(force)cancelRajaLiveChartRequest();
+    else if(busy)return;
+    busy=true;
+    const requestSeq=++liveChartRequestSeq;
+    const controller=new AbortController();
+    liveChartAbortController=controller;
+    const timeoutId=setTimeout(()=>controller.abort(),5000);
+    try{
+      const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),_live_refresh_ts:Date.now(),...(typeof getAuthPayload==='function'?getAuthPayload():{})};
+      const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'},cache:'no-store',body:JSON.stringify(payload),signal:controller.signal});
+      const j=await r.json();
+      // Ignore a late response belonging to an older pair.
+      if(requestSeq!==liveChartRequestSeq||String(selected()?.pair||'')!==String(x.pair||''))return;
+      if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');
+      paint(j.data||{});
+      lastPair=x.pair;
+    }catch(e){
+      if(e?.name==='AbortError')return;
+      if(requestSeq!==liveChartRequestSeq)return;
+      const s=document.getElementById('rajaLiveStatus');
+      if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses BiQuote 1M only; Dukascopy is disabled. Crypto Live uses its configured feed.'}
+    }finally{
+      clearTimeout(timeoutId);
+      if(liveChartAbortController===controller)liveChartAbortController=null;
+      if(requestSeq===liveChartRequestSeq)busy=false;
+    }
+  }
+  function boot(){ensure();setTimeout(()=>refresh(true),1200);timer=setInterval(()=>{if(document.hidden||!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},2000);tickTimer=setInterval(()=>{if(!document.hidden&&!biQuoteStreamReady)refreshLiveTick()},2500);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
   document.addEventListener('DOMContentLoaded',boot);window.refreshRajaLiveOpenChart=()=>refresh(true);
 })();
 </script>
