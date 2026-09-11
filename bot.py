@@ -2271,9 +2271,16 @@ def resolve_due_signals(items, now=None):
 def signal_outcome_worker():
     while True:
         try:
+            # Snapshot under the lock, then release it before any market-data
+            # request. BiQuote latency must never block /, /signals/history,
+            # scanner pages, or other signal endpoints.
             with signals_lock:
                 items = load_signals()
-                if resolve_due_signals(items):
+
+            changed = resolve_due_signals(items)
+
+            if changed:
+                with signals_lock:
                     save_signals(items)
         except Exception as e:
             print(f"Signal outcome worker error: {e}")
@@ -5177,14 +5184,20 @@ def news_locked_no_signal(pair, news_lock):
 # ROUTES
 # =========================================================
 
+_RAJA_INDEX_HTML_CACHE = None
+_RAJA_INDEX_HTML_CACHE_LOCK = threading.RLock()
+
 @app.route("/")
 @app.route("/index.html")
 def home():
+    global _RAJA_INDEX_HTML_CACHE
     index_path = BASE_DIR / "index.html"
     if index_path.exists():
         try:
-            html = index_path.read_text(encoding="utf-8")
-            html = html.replace(APP_BUILD_TOKEN, APP_BUILD_ID)
+            with _RAJA_INDEX_HTML_CACHE_LOCK:
+                if _RAJA_INDEX_HTML_CACHE is None:
+                    _RAJA_INDEX_HTML_CACHE = index_path.read_text(encoding="utf-8")
+                html = _RAJA_INDEX_HTML_CACHE.replace(APP_BUILD_TOKEN, APP_BUILD_ID)
             response = app.response_class(html, mimetype="text/html")
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
@@ -6502,12 +6515,21 @@ def _finnhub_preload_all_pairs():
     except Exception:
         pass
 
-_finnhub_preload_thread = threading.Thread(
-    target=_finnhub_preload_all_pairs,
-    name="finnhub-persistent-preload",
-    daemon=True,
-)
-_finnhub_preload_thread.start()
+# Optional legacy live-feed preload is OFF by default on Railway.
+# BiQuote is the selected normal LIVE Forex/metals source; do not preload
+# Finnhub/Yahoo/OANDA data during web-process startup.
+RAJA_ENABLE_FINNHUB_PRELOAD = str(
+    os.environ.get("RAJA_ENABLE_FINNHUB_PRELOAD", "false")
+).strip().lower() in {"1", "true", "yes", "on"}
+
+_finnhub_preload_thread = None
+if RAJA_ENABLE_FINNHUB_PRELOAD:
+    _finnhub_preload_thread = threading.Thread(
+        target=_finnhub_preload_all_pairs,
+        name="finnhub-persistent-preload",
+        daemon=True,
+    )
+    _finnhub_preload_thread.start()
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -10018,8 +10040,8 @@ def get_market_data(pair, bridge_user=None, broker=None):
     upper = clean.upper()
     is_otc = "(OTC)" in upper
 
-    # BiQuote primary for normal LIVE Forex/metals. OTC stays on the existing
-    # broker-native path. Dukascopy remains a temporary fallback.
+    # BiQuote is the ONLY normal LIVE Forex/metals market-data source on Railway.
+    # OTC stays on the existing broker-native/reference path. Dukascopy is OFF.
     is_normal_live = (not is_otc and "/" in upper and upper not in set(DUKASCOPY_CRYPTO_CANDIDATES.values())) or upper == "XAUUSD"
     if is_normal_live and BIQUOTE_ENABLED:
         try:
