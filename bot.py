@@ -3570,7 +3570,7 @@ def build_timeframe_display(base_df, minutes):
 # Indicators never create a trade by themselves; they can only confirm or block an SK25 setup.
 # =========================================================
 
-SK25_ENGINE_VERSION = "RAJA_AI_V83_BB_RSI_WICK_3_STRATEGIES"
+SK25_ENGINE_VERSION = "RAJA_AI_V84_BB_RSI_WICK_3_STRATEGIES_EMA20_50_ADX14"
 SK25_PATTERN_LIBRARY_SIZE = 3
 SK25_LIVE_MIN_CANDLES = 10
 
@@ -4713,9 +4713,27 @@ def _v46_indicator_snapshot(df):
         macd_signal = macd_line.ewm(span=9, adjust=False).mean()
         macd_hist = macd_line - macd_signal
 
+        # V84: ADX(14) trend-strength confirmation. ADX measures strength,
+        # while +DI/-DI provide the directional side. This is intentionally
+        # separate from the three entry strategies.
+        up_move = high.diff()
+        down_move = -low.diff()
+        plus_dm = up_move.where((up_move > down_move) & (up_move > 0.0), 0.0)
+        minus_dm = down_move.where((down_move > up_move) & (down_move > 0.0), 0.0)
+
         prev_close = close.shift(1)
         tr = pd.concat([(high-low).abs(), (high-prev_close).abs(), (low-prev_close).abs()], axis=1).max(axis=1)
         atr = tr.ewm(alpha=1.0/V46_ATR_PERIOD, adjust=False, min_periods=V46_ATR_PERIOD).mean()
+        # Wilder-style directional movement smoothing for ADX(14).
+        dm_plus_smoothed = plus_dm.ewm(alpha=1.0/V46_RSI_PERIOD, adjust=False, min_periods=V46_RSI_PERIOD).mean()
+        dm_minus_smoothed = minus_dm.ewm(alpha=1.0/V46_RSI_PERIOD, adjust=False, min_periods=V46_RSI_PERIOD).mean()
+        di_eps = 1e-12
+        plus_di = (100.0 * dm_plus_smoothed / atr.where(atr > di_eps, di_eps))
+        minus_di = (100.0 * dm_minus_smoothed / atr.where(atr > di_eps, di_eps))
+        di_sum = (plus_di + minus_di).where((plus_di + minus_di) > di_eps, di_eps)
+        dx = (100.0 * (plus_di - minus_di).abs() / di_sum)
+        adx = dx.ewm(alpha=1.0/V46_RSI_PERIOD, adjust=False, min_periods=V46_RSI_PERIOD).mean()
+
         atr_pct = (atr / close.abs().where(close.abs() > eps, eps)) * 100.0
         atr_ref = atr_pct.rolling(50, min_periods=15).median()
         atr_ref = atr_ref.where(atr_ref.notna(), atr_pct)
@@ -4725,6 +4743,7 @@ def _v46_indicator_snapshot(df):
             "ema_fast_prev": ema_fast.shift(1), "rsi": rsi,
             "macd": macd_line, "macd_signal": macd_signal,
             "macd_hist": macd_hist, "macd_hist_prev": macd_hist.shift(1),
+            "adx": adx, "plus_di": plus_di, "minus_di": minus_di,
             "atr_pct": atr_pct, "atr_pct_median": atr_ref,
         }).replace([np.inf, -np.inf], np.nan).dropna()
 
@@ -4742,7 +4761,10 @@ def _v46_indicator_snapshot(df):
             "ema_slow": float(row["ema_slow"]), "ema_fast_prev": float(row["ema_fast_prev"]),
             "rsi": float(row["rsi"]), "macd": float(row["macd"]),
             "macd_signal": float(row["macd_signal"]), "macd_hist": float(row["macd_hist"]),
-            "macd_hist_prev": float(row["macd_hist_prev"]), "atr_pct": float(row["atr_pct"]),
+            "macd_hist_prev": float(row["macd_hist_prev"]),
+            "adx": float(row["adx"]), "plus_di": float(row["plus_di"]),
+            "minus_di": float(row["minus_di"]),
+            "atr_pct": float(row["atr_pct"]),
             "atr_pct_median": float(row["atr_pct_median"]),
         }
         return vals
@@ -4757,14 +4779,17 @@ def _v46_direction_checks(snapshot, signal):
     """Score direction-specific confirmation without pretending it is win probability."""
     up = str(signal).upper() == "CALL"
     if not snapshot.get("ready"):
-        return {"ema":False,"rsi":False,"macd":False,"volatility":False,"opposition":False}
+        return {"ema":False,"rsi":False,"macd":False,"adx":False,"di":False,"volatility":False,"opposition":False}
 
     close=float(snapshot["close"]); ef=float(snapshot["ema_fast"]); es=float(snapshot["ema_slow"])
     ef_prev=float(snapshot["ema_fast_prev"]); rsi=float(snapshot["rsi"])
     macd=float(snapshot["macd"]); ms=float(snapshot["macd_signal"]); hist=float(snapshot["macd_hist"])
     hist_prev=float(snapshot["macd_hist_prev"]); atr=float(snapshot["atr_pct"]); atr_med=max(float(snapshot["atr_pct_median"]),1e-12)
+    adx=float(snapshot.get("adx", 0.0)); plus_di=float(snapshot.get("plus_di", 0.0)); minus_di=float(snapshot.get("minus_di", 0.0))
 
     ema_ok = (close >= ef >= es and ef >= ef_prev) if up else (close <= ef <= es and ef <= ef_prev)
+    adx_ok = adx >= 25.0
+    di_ok = (plus_di > minus_di) if up else (minus_di > plus_di)
     # Momentum confirmation while avoiding chasing an already stretched move.
     # V76 balanced bands: still directional, but less likely to reject a valid
     # setup just because momentum sits a few points outside the old narrow window.
@@ -4775,7 +4800,9 @@ def _v46_direction_checks(snapshot, signal):
     volatility_ok = 0.45 <= atr_ratio <= 2.10
     ema_opposes = (ef < es and close < ef) if up else (ef > es and close > ef)
     macd_opposes = (macd < ms and hist < 0.0) if up else (macd > ms and hist > 0.0)
-    return {"ema":ema_ok,"rsi":rsi_ok,"macd":macd_ok,"volatility":volatility_ok,
+    return {"ema":ema_ok,"rsi":rsi_ok,"macd":macd_ok,"adx":adx_ok,"di":di_ok,
+            "adx_value":round(adx,2),"plus_di":round(plus_di,2),"minus_di":round(minus_di,2),
+            "volatility":volatility_ok,
             "opposition":bool(ema_opposes and macd_opposes),"atr_ratio":round(atr_ratio,3)}
 
 
@@ -4867,20 +4894,36 @@ def _v46_apply_technical_confirmation(strategy, base_df, tf_df, timeframe):
         return strategy
 
     signal=str(strategy.get("signal")).upper()
-    # V83: the only active strategies are Bollinger, RSI and Wick Rejection.
-    # Do not impose the old EMA/MACD/ATR confirmation engine as a hard blocker;
-    # those were responsible for suppressing valid setups and are not separate
-    # active strategies anymore.
+    # V84: active strategies remain exactly the three chosen entry strategies.
+    # EMA20/50 + ADX14 are confirmation filters only; they do not create trades.
     if int(strategy.get("pattern_type") or 0) in RAJA_ACTIVE_STRATEGY_IDS:
+        snap = _v46_indicator_snapshot(tf_df)
+        checks = _v46_direction_checks(snap, signal)
+        confirmed = bool(checks.get("ema") and checks.get("adx") and checks.get("di"))
         strategy["v46_technical_filter"] = {
-            "enabled": False,
-            "applied": False,
-            "mode": "V83 THREE-STRATEGY MODE",
-            "reason": "Only Bollinger Bands, RSI Reversal and Wick Rejection rules are active."
+            "enabled": True,
+            "applied": True,
+            "mode": "V84 EMA20/50 + ADX14 CONFIRMATION",
+            "required": ["EMA20/50", "ADX14 >= 25", "DI direction"],
+            "checks": checks,
+            "confirmed": confirmed,
         }
+        strategy["v46_technical_blocked"] = not confirmed
+        if not confirmed:
+            strategy["signal"] = "NO TRADE"
+            strategy["no_trade"] = True
+            strategy["reason"] = (
+                f"V84 confirmation failed · EMA20/50={checks.get('ema')} · "
+                f"ADX14={checks.get('adx_value', 0):.1f} (need >=25) · "
+                f"DI={checks.get('di')} ."
+            )
+        else:
+            strategy["reason"] = (
+                f"V84 confirmed · EMA20/50 aligned + ADX14 {checks.get('adx_value', 0):.1f} "
+                f"with {'+DI' if signal == 'CALL' else '-DI'} direction."
+            )
         strategy["model_confidence"] = float(strategy.get("score") or 0.0)
         strategy["calibrated_confidence"] = float(strategy.get("score") or 0.0)
-        strategy["v46_technical_blocked"] = False
         return strategy
     snap=_v46_indicator_snapshot(tf_df)
     checks=_v46_direction_checks(snap,signal)
