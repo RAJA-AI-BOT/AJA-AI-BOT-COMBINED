@@ -3813,7 +3813,7 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
             "Support + bullish wick rejection / pinbar",
             "CALL only after a completed bullish pinbar rejects recent support.",
             family="S/R + Price Action",
-            tf_rule="1M"
+            tf_rule="ANY"
         )
         add(
             1, -1,
@@ -3827,7 +3827,7 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
             "Resistance + bearish wick rejection / pinbar",
             "PUT only after a completed bearish pinbar rejects recent resistance.",
             family="S/R + Price Action",
-            tf_rule="1M"
+            tf_rule="ANY"
         )
 
 
