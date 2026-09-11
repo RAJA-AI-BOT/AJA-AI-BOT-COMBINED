@@ -9858,17 +9858,117 @@ def _v74_crypto_twelve_data_market_data(pair, force=False):
     }
 
 
+
+# =========================================================
+# BIQUOTE LIVE 1-MINUTE FOREX FEED
+# Public read API; no API key required. BiQuote is primary for normal
+# live Forex/metals while Dukascopy remains as temporary fallback.
+# =========================================================
+BIQUOTE_API_URL = (os.environ.get("BIQUOTE_API_URL") or "https://biquote.io/api").strip().rstrip("/")
+BIQUOTE_ENABLED = str(os.environ.get("BIQUOTE_ENABLED", "1")).strip().lower() not in {"0", "false", "off", "no"}
+BIQUOTE_REQUEST_TIMEOUT_SECONDS = max(3.0, min(15.0, float(os.environ.get("BIQUOTE_REQUEST_TIMEOUT", "8"))))
+BIQUOTE_CANDLE_LIMIT = max(25, min(1000, int(os.environ.get("BIQUOTE_CANDLE_LIMIT", "1000"))))
+BIQUOTE_CACHE_SECONDS = max(1.0, min(15.0, float(os.environ.get("BIQUOTE_CACHE_SECONDS", "3"))))
+_biquote_cache = {}
+_biquote_cache_lock = threading.RLock()
+
+
+def _biquote_symbol(pair):
+    raw = str(pair or "").strip().upper()
+    if "(OTC)" in raw or not raw:
+        return None
+    return raw.replace("/", "").replace("-", "")
+
+
+def _biquote_json(path, params=None):
+    if not BIQUOTE_ENABLED or not BIQUOTE_API_URL:
+        raise RuntimeError("BiQuote is disabled or BIQUOTE_API_URL is not configured")
+    query = urlencode(params or {})
+    url = f"{BIQUOTE_API_URL}/{str(path).lstrip('/')}"
+    if query:
+        url += "?" + query
+    req = UrlRequest(url, headers={"User-Agent": "RAJA-AI-BiQuote/1.0", "Accept": "application/json"}, method="GET")
+    with urlopen(req, timeout=BIQUOTE_REQUEST_TIMEOUT_SECONDS) as response:
+        return json.loads(response.read().decode("utf-8", errors="replace"))
+
+
+def _biquote_market_data(pair, count=1000):
+    """Fetch BiQuote 1m OHLC candles and normalize them to RAJA columns."""
+    symbol = _biquote_symbol(pair)
+    if not symbol:
+        return None, None, None, {"source": "BiQuote", "source_mode": "biquote_unsupported_pair", "provider_symbol": None}
+    now = time.time()
+    key = (symbol, int(count))
+    with _biquote_cache_lock:
+        cached = _biquote_cache.get(key)
+        if cached and now - float(cached.get("ts") or 0) <= BIQUOTE_CACHE_SECONDS:
+            df = cached["df"].copy()
+            return df, _source_candle_age_seconds(df), symbol, dict(cached["info"])
+    payload = _biquote_json(f"{symbol}/ohlc", {"interval": "1m", "limit": max(25, min(1000, int(count)))})
+    bars = payload.get("bars") if isinstance(payload, dict) else None
+    if not bars:
+        raise RuntimeError(f"BiQuote returned no 1-minute candles for {symbol}")
+    pd = _get_pandas()
+    rows=[]
+    for bar in bars:
+        if not isinstance(bar, dict):
+            continue
+        try:
+            ts=pd.to_datetime(bar.get("openTime"), utc=True)
+            rows.append({"time":ts,"Open":float(bar["open"]),"High":float(bar["high"]),"Low":float(bar["low"]),"Close":float(bar["close"]),"Volume":float(bar.get("tickVolume") or bar.get("volume") or 0)})
+        except Exception:
+            continue
+    if len(rows)<20:
+        raise RuntimeError(f"BiQuote returned only {len(rows)} usable 1-minute candles for {symbol}")
+    df=pd.DataFrame(rows).set_index("time").sort_index()
+    df=df[["Open","High","Low","Close","Volume"]]
+    age=_source_candle_age_seconds(df)
+    info={"source":"BiQuote","source_mode":"biquote_1m_live","provider_symbol":symbol,"feed_quality":_market_candle_quality(df),"backup_used":False,"exact_broker_feed":False,"credentials_required":False,"biquote_api":True,"biquote_interval":"1m"}
+    with _biquote_cache_lock:
+        _biquote_cache[key]={"ts":now,"df":df.copy(),"info":dict(info)}
+    return df, age, symbol, info
+
+
+def _biquote_tick(pair):
+    symbol=_biquote_symbol(pair)
+    if not symbol:
+        return None
+    payload=_biquote_json(symbol)
+    if not isinstance(payload, dict):
+        return None
+    payload["provider_pair"]=symbol
+    payload["tick_supported"]=True
+    payload["source"]="BiQuote"
+    payload["source_mode"]="biquote_live_tick"
+    return payload
+
 def get_market_data(pair, bridge_user=None, broker=None):
     clean = str(pair or "").strip()
     upper = clean.upper()
+    is_otc = "(OTC)" in upper
 
-    # V74: Crypto Live first uses Dukascopy when that exact crypto instrument is
-    # advertised and serving candles; otherwise it falls back to Twelve Data.
+    # BiQuote primary for normal LIVE Forex/metals. OTC stays on the existing
+    # broker-native path. Dukascopy remains a temporary fallback.
+    is_normal_live = (not is_otc and "/" in upper and upper not in set(DUKASCOPY_CRYPTO_CANDIDATES.values())) or upper == "XAUUSD"
+    if is_normal_live and BIQUOTE_ENABLED:
+        try:
+            data, age, symbol, info = _biquote_market_data(clean, count=BIQUOTE_CANDLE_LIMIT)
+            if data is not None and not getattr(data, "empty", True):
+                return data, age, symbol, info
+            biquote_reason = "BiQuote returned no usable candles."
+        except Exception as exc:
+            biquote_reason = f"BiQuote: {type(exc).__name__}: {exc}"
+        data, age, symbol, info = _v73_get_dukascopy(clean, count=1500)
+        info = dict(info or {})
+        info["biquote_attempted"] = True
+        info["biquote_fallback_reason"] = biquote_reason
+        return data, age, symbol, info
+
+    # Existing crypto policy is preserved.
     if upper in TWELVE_DATA_CRYPTO_LIVE_PAIRS:
         bridge_pair = _v73_normalize_dukascopy_pair(upper)
         supported = _dukascopy_bridge_pairs(force=False) if DUKASCOPY_BRIDGE_URL else set()
         dukascopy_reason = None
-
         if bridge_pair and bridge_pair in supported:
             data, age, symbol, info = _v73_get_dukascopy(upper, count=1500)
             if data is not None and not getattr(data, "empty", True):
@@ -9878,101 +9978,67 @@ def get_market_data(pair, bridge_user=None, broker=None):
             dukascopy_reason = str((info or {}).get("unavailable_reason") or "Dukascopy crypto candles unavailable")
         elif bridge_pair:
             dukascopy_reason = f"{bridge_pair} is not advertised by the connected Dukascopy bridge."
-
         data, age, symbol, info = _v74_crypto_twelve_data_market_data(upper, force=False)
         info = dict(info or {})
         if dukascopy_reason:
             info["dukascopy_attempt_reason"] = dukascopy_reason
         return data, age, symbol, info
 
-    # Normal Forex/metal/other live routing remains exactly V73 Dukascopy-only.
     return _v73_get_dukascopy(clean, count=1500)
 
 
 @app.route("/live-chart-tick", methods=["POST"])
 def live_chart_tick():
-    """V78 lightweight live-price proxy for the RAJA chart.
-
-    This endpoint NEVER runs SK25/indicator strategy logic. It only proxies the
-    current Dukascopy BID tick/forming 1-minute candle so the browser can move
-    the visible candle second-by-second without doing a heavy scan every second.
-    Crypto pairs that are currently using Twelve Data return tick_supported=false
-    because that fallback is minute-candle data, not a Dukascopy tick stream.
-    """
+    """Live tick proxy: BiQuote primary for normal LIVE Forex/metals."""
     payload = request.get_json(silent=True) or {}
     auth, error = _auth_session(payload)
     if error:
         return error
-
     pair = str(payload.get("pair") or "").strip()
     if not pair or "Auto Scan Best Pair" in pair:
-        return jsonify({"status": "error", "message": "Choose a specific pair for live ticks."}), 400
+        return jsonify({"status":"error","message":"Choose a specific pair for live ticks."}), 400
+    upper=pair.upper()
+    is_normal_live=(not "(OTC)" in upper and "/" in upper) or upper=="XAUUSD"
+    biquote_error="BiQuote tick not used for this pair."
+    if is_normal_live and BIQUOTE_ENABLED:
+        try:
+            tick=_biquote_tick(pair)
+            if tick:
+                return jsonify({"status":"success","data":tick})
+            biquote_error="BiQuote returned no tick."
+        except Exception as exc:
+            biquote_error=f"BiQuote tick: {type(exc).__name__}: {exc}"
 
-    bridge_pair = _v73_normalize_dukascopy_pair(pair)
+    bridge_pair=_v73_normalize_dukascopy_pair(pair)
     if not bridge_pair:
-        return jsonify({"status": "error", "message": "Invalid pair."}), 400
-
-    # Crypto falls back to Twelve Data when the bridge does not advertise it.
-    # In that case keep the normal 6-second chart refresh, but do not pretend a
-    # second-by-second tick exists.
-    upper = pair.upper()
+        return jsonify({"status":"success","data":{"pair":pair,"provider_pair":None,"tick_supported":False,"source":"BiQuote","reason":biquote_error}})
     if upper in TWELVE_DATA_CRYPTO_LIVE_PAIRS:
-        supported = _dukascopy_bridge_pairs(force=False) if DUKASCOPY_BRIDGE_URL else set()
+        supported=_dukascopy_bridge_pairs(force=False) if DUKASCOPY_BRIDGE_URL else set()
         if bridge_pair not in supported:
-            return jsonify({
-                "status": "success",
-                "data": {
-                    "pair": pair,
-                    "provider_pair": bridge_pair,
-                    "tick_supported": False,
-                    "source": "Twelve Data minute fallback",
-                    "reason": "This crypto pair is not on the connected Dukascopy tick bridge; minute refresh remains active.",
-                },
-            })
-
+            return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"Twelve Data minute fallback","reason":biquote_error}})
     if not DUKASCOPY_BRIDGE_URL:
-        return jsonify({
-            "status": "success",
-            "data": {
-                "pair": pair,
-                "provider_pair": bridge_pair,
-                "tick_supported": False,
-                "source": "Dukascopy JForex BID",
-                "reason": "DUKASCOPY_BRIDGE_URL is not configured.",
-            },
-        })
-
+        return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"Dukascopy JForex BID","reason":biquote_error}})
     try:
-        tick = _dukascopy_bridge_json("/tick", {"pair": bridge_pair})
-        if not isinstance(tick, dict):
+        tick=_dukascopy_bridge_json("/tick", {"pair":bridge_pair})
+        if not isinstance(tick,dict):
             raise RuntimeError("Bridge returned an invalid tick payload")
-        tick["tick_supported"] = True
-        tick["provider_pair"] = bridge_pair
-        return jsonify({"status": "success", "data": tick})
-    except HTTPError as exc:
-        code = getattr(exc, "code", 503)
-        # 503 is normal for the first moments after bridge startup/subscription.
-        return jsonify({
-            "status": "success",
-            "data": {
-                "pair": pair,
-                "provider_pair": bridge_pair,
-                "tick_supported": False,
-                "source": "Dukascopy JForex BID",
-                "reason": f"Live tick is warming up (bridge HTTP {code}).",
-            },
-        })
+        tick["tick_supported"]=True
+        tick["provider_pair"]=bridge_pair
+        tick["fallback_after_biquote"]=True
+        return jsonify({"status":"success","data":tick})
     except Exception as exc:
-        return jsonify({
-            "status": "success",
-            "data": {
-                "pair": pair,
-                "provider_pair": bridge_pair,
-                "tick_supported": False,
-                "source": "Dukascopy JForex BID",
-                "reason": f"Live tick temporarily unavailable: {type(exc).__name__}: {exc}",
-            },
-        })
+        return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"Dukascopy JForex BID","reason":f"BiQuote unavailable ({biquote_error}); Dukascopy tick unavailable: {type(exc).__name__}: {exc}"}})
+
+
+@app.route("/biquote-status", methods=["GET"])
+def biquote_status():
+    return jsonify({
+        "status": "configured" if BIQUOTE_ENABLED and BIQUOTE_API_URL else "disabled",
+        "enabled": bool(BIQUOTE_ENABLED),
+        "api_url": BIQUOTE_API_URL,
+        "interval": "1m",
+        "api_key_required": False,
+    }), 200
 
 
 # Legacy-provider hard kill switches.
@@ -10110,7 +10176,7 @@ def dukascopy_only_status():
         "status": "success" if health else "error",
         "build": "V73",
         "market_source_policy": RAJA_MARKET_SOURCE_POLICY,
-        "market_source": "Dukascopy JForex BID ONLY",
+        "market_source": "BiQuote 1M primary + Dukascopy fallback",
         "configured": bool(DUKASCOPY_BRIDGE_URL),
         "health": health,
         "pair_count": len(pairs),
