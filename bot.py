@@ -3570,14 +3570,16 @@ def build_timeframe_display(base_df, minutes):
 # Indicators never create a trade by themselves; they can only confirm or block an SK25 setup.
 # =========================================================
 
-SK25_ENGINE_VERSION = "RAJA_AI_V82_SR_PINBAR_EMA20_EMA50_RSI14"
-SK25_PATTERN_LIBRARY_SIZE = 25
+SK25_ENGINE_VERSION = "RAJA_AI_V83_BB_RSI_WICK_3_STRATEGIES"
+SK25_PATTERN_LIBRARY_SIZE = 3
 SK25_LIVE_MIN_CANDLES = 10
 
 # RAJA policy: only Strategy 1 is active. Other historical strategies remain in source but are ignored.
-RAJA_ACTIVE_STRATEGY_IDS = frozenset({1})
+RAJA_ACTIVE_STRATEGY_IDS = frozenset({1, 2, 3})
 RAJA_STRATEGY_NAMES = {
-    1: "⭐ Wick Rejection / Pinbar + S/R",
+    1: "⭐ Candlestick Wick Rejection / Pinbar + S/R",
+    2: "⭐ Bollinger Bands Rejection + S/R",
+    3: "⭐ RSI Reversal + S/R",
     2: "RAJA Type 2 · Resistance Reversal",
     3: "RAJA Type 3 · Sideways Wick Sweep",
     4: "RAJA Type 4 · Long-Wick Rejection",
@@ -3831,17 +3833,120 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
         )
 
 
-    # Type 2 — two green at respected resistance + confirmed red rejection -> next red.
-    a,b,c=candles[-3:]
-    resistance_touch=abs(a["high"]-b["high"]) <= tol*1.55
-    rejection=c["dir"]<0 and c["close"] < (b["open"]+b["close"])/2.0 and (long_upper(c) or c["body"]>=med_body*0.55)
-    add(2,-1,[("GREEN, GREEN, RED setup",seq_is([a,b,c],[1,1,-1])),("Recent highs respect one resistance area",resistance_touch),("RED closes through prior GREEN midpoint / rejects high",rejection)],"2 GREEN + confirmed RED rejection at resistance","Resistance reversal targets next RED only after a meaningful rejection close.","Resistance")
+    # Strategy 2 — Bollinger Bands rejection + Support/Resistance.
+    # Price must test an outer band and reclaim it on the CLOSED candle.
+    if count >= 22:
+        closes = [float(x["close"]) for x in candles]
+        window = closes[-20:]
+        bb_mid = sum(window) / 20.0
+        variance = sum((v - bb_mid) ** 2 for v in window) / 20.0
+        bb_std = max(variance ** 0.5, tol * 0.10)
+        bb_upper = bb_mid + 2.0 * bb_std
+        bb_lower = bb_mid - 2.0 * bb_std
+        last = candles[-1]
+        prior20 = candles[-21:-1]
+        bb_support = min(float(x["low"]) for x in prior20)
+        bb_resistance = max(float(x["high"]) for x in prior20)
+        bb_buffer = max(med_range * 0.35, tol * 1.25)
 
-    # Type 3 — sideways wick sweep must reclaim the swept lows before fading.
-    wick_level=min(a["low"],b["low"])
-    wick_break=c["dir"]>0 and c["low"] < wick_level-tol*0.15 and long_lower(c)
-    wick_reclaim=c["close"] > wick_level+tol*0.05
-    add(3,-1,[("GREEN, RED, GREEN setup",seq_is([a,b,c],[1,-1,1])),("3rd GREEN lower wick sweeps prior lows",wick_break),("3rd GREEN closes back above swept lows",wick_reclaim),("Sideways/mixed context",abs(trend)<0.60)],"GREEN-RED-GREEN downside sweep + reclaim","Next candle RED only after a completed sweep-and-reclaim.","Sideways")
+        bb_near_lower = float(last["low"]) <= bb_lower + bb_buffer
+        bb_near_upper = float(last["high"]) >= bb_upper - bb_buffer
+        bb_call_reclaim = float(last["close"]) > bb_lower and float(last["close"]) >= float(last["open"])
+        bb_put_reclaim = float(last["close"]) < bb_upper and float(last["close"]) <= float(last["open"])
+        bb_call_sr = float(last["low"]) <= bb_support + bb_buffer
+        bb_put_sr = float(last["high"]) >= bb_resistance - bb_buffer
+
+        add(
+            2, 1,
+            [
+                ("Lower Bollinger Band test", bb_near_lower),
+                ("Bullish close reclaims lower band", bb_call_reclaim),
+                ("Lower-band test is near support", bb_call_sr),
+            ],
+            "Bollinger lower-band rejection + support",
+            "CALL after a CLOSED bullish rejection/reclaim from the lower Bollinger Band near support.",
+            family="Bollinger Bands",
+            tf_rule="ANY"
+        )
+        add(
+            2, -1,
+            [
+                ("Upper Bollinger Band test", bb_near_upper),
+                ("Bearish close reclaims below upper band", bb_put_reclaim),
+                ("Upper-band test is near resistance", bb_put_sr),
+            ],
+            "Bollinger upper-band rejection + resistance",
+            "PUT after a CLOSED bearish rejection/reclaim from the upper Bollinger Band near resistance.",
+            family="Bollinger Bands",
+            tf_rule="ANY"
+        )
+
+    # Strategy 3 — RSI 14 reversal from an extreme + S/R confirmation.
+    # RSI is a setup detector here; it is not allowed to fire on a raw 70/30
+    # reading without a recovery/fall on the CLOSED candle.
+    if count >= 18:
+        closes = [float(x["close"]) for x in candles]
+        gains = []
+        losses = []
+        for i in range(1, len(closes)):
+            d = closes[i] - closes[i - 1]
+            gains.append(max(d, 0.0))
+            losses.append(max(-d, 0.0))
+
+        period = 14
+        recent_g = gains[-period:]
+        recent_l = losses[-period:]
+        avg_gain = sum(recent_g) / period
+        avg_loss = sum(recent_l) / period
+        rs = avg_gain / max(avg_loss, 1e-12)
+        rsi_now = 100.0 - (100.0 / (1.0 + rs))
+        prev_g = gains[-period-1:-1]
+        prev_l = losses[-period-1:-1]
+        pg = sum(prev_g) / period if len(prev_g) == period else avg_gain
+        pl = sum(prev_l) / period if len(prev_l) == period else avg_loss
+        prev_rs = pg / max(pl, 1e-12)
+        rsi_prev = 100.0 - (100.0 / (1.0 + prev_rs))
+
+        rsi_support = min(float(x["low"]) for x in candles[-16:-1])
+        rsi_resistance = max(float(x["high"]) for x in candles[-16:-1])
+        rsi_buffer = max(med_range * 0.40, tol * 1.40)
+
+        rsi_call_extreme = rsi_prev < 35.0
+        rsi_call_recovery = rsi_now > rsi_prev and rsi_now <= 50.0
+        rsi_call_sr = float(candles[-1]["low"]) <= rsi_support + rsi_buffer
+        rsi_call_candle = candles[-1]["dir"] > 0
+
+        rsi_put_extreme = rsi_prev > 65.0
+        rsi_put_recovery = rsi_now < rsi_prev and rsi_now >= 50.0
+        rsi_put_sr = float(candles[-1]["high"]) >= rsi_resistance - rsi_buffer
+        rsi_put_candle = candles[-1]["dir"] < 0
+
+        add(
+            3, 1,
+            [
+                ("RSI 14 was oversold", rsi_call_extreme),
+                ("RSI 14 is recovering upward", rsi_call_recovery),
+                ("Bullish candle close", rsi_call_candle),
+                ("Recovery occurs near support", rsi_call_sr),
+            ],
+            "RSI oversold recovery + support",
+            "CALL after RSI recovers from an oversold condition with a bullish closed candle near support.",
+            family="RSI Reversal",
+            tf_rule="ANY"
+        )
+        add(
+            3, -1,
+            [
+                ("RSI 14 was overbought", rsi_put_extreme),
+                ("RSI 14 is falling from the extreme", rsi_put_recovery),
+                ("Bearish candle close", rsi_put_candle),
+                ("Recovery occurs near resistance", rsi_put_sr),
+            ],
+            "RSI overbought reversal + resistance",
+            "PUT after RSI falls from an overbought condition with a bearish closed candle near resistance.",
+            family="RSI Reversal",
+            tf_rule="ANY"
+        )
 
     # Type 4 — long-tail rejection must occur near recent support, not mid-range.
     a,b=candles[-2:]
@@ -4764,6 +4869,21 @@ def _v46_apply_technical_confirmation(strategy, base_df, tf_df, timeframe):
         return strategy
 
     signal=str(strategy.get("signal")).upper()
+    # V83: the only active strategies are Bollinger, RSI and Wick Rejection.
+    # Do not impose the old EMA/MACD/ATR confirmation engine as a hard blocker;
+    # those were responsible for suppressing valid setups and are not separate
+    # active strategies anymore.
+    if int(strategy.get("pattern_type") or 0) in RAJA_ACTIVE_STRATEGY_IDS:
+        strategy["v46_technical_filter"] = {
+            "enabled": False,
+            "applied": False,
+            "mode": "V83 THREE-STRATEGY MODE",
+            "reason": "Only Bollinger Bands, RSI Reversal and Wick Rejection rules are active."
+        }
+        strategy["model_confidence"] = float(strategy.get("score") or 0.0)
+        strategy["calibrated_confidence"] = float(strategy.get("score") or 0.0)
+        strategy["v46_technical_blocked"] = False
+        return strategy
     snap=_v46_indicator_snapshot(tf_df)
     checks=_v46_direction_checks(snap,signal)
     htf=V46_HTF_MAP.get(str(timeframe).lower())
