@@ -37,7 +37,18 @@
 .screen-arrow-layer{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}.screen-arrow{position:absolute;width:0;height:0;filter:drop-shadow(0 0 5px rgba(0,0,0,.9));transform:translate(-50%,-50%)}.screen-arrow.up{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid var(--green)}.screen-arrow.down{border-left:6px solid transparent;border-right:6px solid transparent;border-top:11px solid var(--red)}.screen-arrow.latest{z-index:3}.screen-arrow.latest.up{border-left-width:9px;border-right-width:9px;border-bottom-width:16px;filter:drop-shadow(0 0 8px rgba(0,255,135,.9))}.screen-arrow.latest.down{border-left-width:9px;border-right-width:9px;border-top-width:16px;filter:drop-shadow(0 0 8px rgba(255,66,106,.9))}.screen-arrow-label{position:absolute;transform:translate(-50%,-50%);font-size:7px;font-weight:1000;letter-spacing:.4px;padding:2px 4px;border-radius:999px;background:rgba(0,0,0,.78);white-space:nowrap}.screen-arrow-label.up{color:var(--green);border:1px solid rgba(0,255,135,.55)}.screen-arrow-label.down{color:var(--red);border:1px solid rgba(255,66,106,.55)}
 </style>
 </head>
-<body>
+<body><script id="raja-scanner-network-guard">
+window.__rajaScannerFetch = async function(url, options={}, timeoutMs=12000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {...options, signal: controller.signal, cache:'no-store'});
+  } finally {
+    clearTimeout(timer);
+  }
+};
+</script>
+
 <script>
 /* RAJA scanner performance guard: bounded network requests + page visibility. */
 window.__RAJA_SCAN_TIMEOUT_MS = 12000;
