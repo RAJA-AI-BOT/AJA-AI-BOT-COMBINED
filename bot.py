@@ -9866,11 +9866,22 @@ def _v74_crypto_twelve_data_market_data(pair, force=False):
 # =========================================================
 BIQUOTE_API_URL = (os.environ.get("BIQUOTE_API_URL") or "https://biquote.io/api").strip().rstrip("/")
 BIQUOTE_ENABLED = str(os.environ.get("BIQUOTE_ENABLED", "1")).strip().lower() not in {"0", "false", "off", "no"}
-BIQUOTE_REQUEST_TIMEOUT_SECONDS = max(3.0, min(15.0, float(os.environ.get("BIQUOTE_REQUEST_TIMEOUT", "8"))))
-BIQUOTE_CANDLE_LIMIT = max(25, min(1000, int(os.environ.get("BIQUOTE_CANDLE_LIMIT", "1000"))))
+# Keep BiQuote fast-fail so a slow/unreachable public endpoint can never hold the
+# whole RAJA web app for many seconds.  Dukascopy remains the immediate fallback.
+BIQUOTE_REQUEST_TIMEOUT_SECONDS = max(1.5, min(6.0, float(os.environ.get("BIQUOTE_REQUEST_TIMEOUT", "2.5"))))
+BIQUOTE_TICK_TIMEOUT_SECONDS = max(1.0, min(5.0, float(os.environ.get("BIQUOTE_TICK_TIMEOUT", "1.5"))))
+BIQUOTE_CANDLE_LIMIT = max(150, min(600, int(os.environ.get("BIQUOTE_CANDLE_LIMIT", "300"))))
 BIQUOTE_CACHE_SECONDS = max(1.0, min(15.0, float(os.environ.get("BIQUOTE_CACHE_SECONDS", "3"))))
+BIQUOTE_FAILURE_COOLDOWN_SECONDS = max(3.0, min(60.0, float(os.environ.get("BIQUOTE_FAILURE_COOLDOWN", "15"))))
+BIQUOTE_TICK_FAILURE_COOLDOWN_SECONDS = max(2.0, min(30.0, float(os.environ.get("BIQUOTE_TICK_FAILURE_COOLDOWN", "5"))))
 _biquote_cache = {}
 _biquote_cache_lock = threading.RLock()
+_biquote_failed_until = {}
+_biquote_failed_reason = {}
+_biquote_failed_lock = threading.RLock()
+_biquote_tick_failed_until = {}
+_biquote_tick_failed_reason = {}
+_biquote_tick_failed_lock = threading.RLock()
 
 
 def _biquote_symbol(pair):
@@ -9880,31 +9891,57 @@ def _biquote_symbol(pair):
     return raw.replace("/", "").replace("-", "")
 
 
-def _biquote_json(path, params=None):
+def _biquote_json(path, params=None, timeout=None):
     if not BIQUOTE_ENABLED or not BIQUOTE_API_URL:
         raise RuntimeError("BiQuote is disabled or BIQUOTE_API_URL is not configured")
     query = urlencode(params or {})
     url = f"{BIQUOTE_API_URL}/{str(path).lstrip('/')}"
     if query:
         url += "?" + query
-    req = UrlRequest(url, headers={"User-Agent": "RAJA-AI-BiQuote/1.0", "Accept": "application/json"}, method="GET")
-    with urlopen(req, timeout=BIQUOTE_REQUEST_TIMEOUT_SECONDS) as response:
+    req = UrlRequest(
+        url,
+        headers={"User-Agent": "RAJA-AI-BiQuote/1.0", "Accept": "application/json"},
+        method="GET",
+    )
+    request_timeout = BIQUOTE_REQUEST_TIMEOUT_SECONDS if timeout is None else float(timeout)
+    with urlopen(req, timeout=request_timeout) as response:
         return json.loads(response.read().decode("utf-8", errors="replace"))
 
 
-def _biquote_market_data(pair, count=1000):
+def _biquote_market_data(pair, count=300):
     """Fetch BiQuote 1m OHLC candles and normalize them to RAJA columns."""
     symbol = _biquote_symbol(pair)
     if not symbol:
         return None, None, None, {"source": "BiQuote", "source_mode": "biquote_unsupported_pair", "provider_symbol": None}
     now = time.time()
     key = (symbol, int(count))
+
+    # Circuit breaker: after a failed BiQuote request, go straight to Dukascopy
+    # for a short period instead of making every browser poll wait for the timeout.
+    with _biquote_failed_lock:
+        blocked_until = float(_biquote_failed_until.get(symbol) or 0.0)
+        if now < blocked_until:
+            reason = _biquote_failed_reason.get(symbol) or "BiQuote temporarily bypassed after a recent failure."
+            raise RuntimeError(f"BiQuote cooldown active for {symbol}: {reason}")
+
     with _biquote_cache_lock:
         cached = _biquote_cache.get(key)
         if cached and now - float(cached.get("ts") or 0) <= BIQUOTE_CACHE_SECONDS:
             df = cached["df"].copy()
             return df, _source_candle_age_seconds(df), symbol, dict(cached["info"])
-    payload = _biquote_json(f"{symbol}/ohlc", {"interval": "1m", "limit": max(25, min(1000, int(count)))})
+
+    try:
+        payload = _biquote_json(
+            f"{symbol}/ohlc",
+            {"interval": "1m", "limit": max(150, min(600, int(count)))},
+            timeout=BIQUOTE_REQUEST_TIMEOUT_SECONDS,
+        )
+    except Exception as exc:
+        reason = f"{type(exc).__name__}: {exc}"
+        with _biquote_failed_lock:
+            _biquote_failed_until[symbol] = time.time() + BIQUOTE_FAILURE_COOLDOWN_SECONDS
+            _biquote_failed_reason[symbol] = reason[:220]
+        raise
     bars = payload.get("bars") if isinstance(payload, dict) else None
     if not bars:
         raise RuntimeError(f"BiQuote returned no 1-minute candles for {symbol}")
@@ -9926,6 +9963,10 @@ def _biquote_market_data(pair, count=1000):
     info={"source":"BiQuote","source_mode":"biquote_1m_live","provider_symbol":symbol,"feed_quality":_market_candle_quality(df),"backup_used":False,"exact_broker_feed":False,"credentials_required":False,"biquote_api":True,"biquote_interval":"1m"}
     with _biquote_cache_lock:
         _biquote_cache[key]={"ts":now,"df":df.copy(),"info":dict(info)}
+    # A successful response clears any previous circuit-breaker state.
+    with _biquote_failed_lock:
+        _biquote_failed_until.pop(symbol, None)
+        _biquote_failed_reason.pop(symbol, None)
     return df, age, symbol, info
 
 
@@ -9933,13 +9974,31 @@ def _biquote_tick(pair):
     symbol=_biquote_symbol(pair)
     if not symbol:
         return None
-    payload=_biquote_json(symbol)
+
+    now = time.time()
+    with _biquote_tick_failed_lock:
+        blocked_until = float(_biquote_tick_failed_until.get(symbol) or 0.0)
+        if now < blocked_until:
+            reason = _biquote_tick_failed_reason.get(symbol) or "BiQuote tick temporarily bypassed."
+            raise RuntimeError(f"BiQuote tick cooldown active for {symbol}: {reason}")
+
+    try:
+        payload=_biquote_json(symbol, timeout=BIQUOTE_TICK_TIMEOUT_SECONDS)
+    except Exception as exc:
+        reason = f"{type(exc).__name__}: {exc}"
+        with _biquote_tick_failed_lock:
+            _biquote_tick_failed_until[symbol] = time.time() + BIQUOTE_TICK_FAILURE_COOLDOWN_SECONDS
+            _biquote_tick_failed_reason[symbol] = reason[:220]
+        raise
     if not isinstance(payload, dict):
         return None
     payload["provider_pair"]=symbol
     payload["tick_supported"]=True
     payload["source"]="BiQuote"
     payload["source_mode"]="biquote_live_tick"
+    with _biquote_tick_failed_lock:
+        _biquote_tick_failed_until.pop(symbol, None)
+        _biquote_tick_failed_reason.pop(symbol, None)
     return payload
 
 def get_market_data(pair, bridge_user=None, broker=None):
@@ -10032,12 +10091,37 @@ def live_chart_tick():
 
 @app.route("/biquote-status", methods=["GET"])
 def biquote_status():
+    now = time.time()
+    with _biquote_failed_lock:
+        market_cooldowns = {
+            k: round(max(0.0, float(v) - now), 2)
+            for k, v in _biquote_failed_until.items()
+            if float(v) > now
+        }
+        market_errors = {
+            k: v for k, v in _biquote_failed_reason.items()
+            if k in market_cooldowns
+        }
+    with _biquote_tick_failed_lock:
+        tick_cooldowns = {
+            k: round(max(0.0, float(v) - now), 2)
+            for k, v in _biquote_tick_failed_until.items()
+            if float(v) > now
+        }
     return jsonify({
         "status": "configured" if BIQUOTE_ENABLED and BIQUOTE_API_URL else "disabled",
         "enabled": bool(BIQUOTE_ENABLED),
         "api_url": BIQUOTE_API_URL,
         "interval": "1m",
         "api_key_required": False,
+        "request_timeout_seconds": BIQUOTE_REQUEST_TIMEOUT_SECONDS,
+        "tick_timeout_seconds": BIQUOTE_TICK_TIMEOUT_SECONDS,
+        "candle_limit": BIQUOTE_CANDLE_LIMIT,
+        "cache_seconds": BIQUOTE_CACHE_SECONDS,
+        "failure_cooldown_seconds": BIQUOTE_FAILURE_COOLDOWN_SECONDS,
+        "market_cooldowns": market_cooldowns,
+        "market_errors": market_errors,
+        "tick_cooldowns": tick_cooldowns,
     }), 200
 
 
