@@ -3570,15 +3570,14 @@ def build_timeframe_display(base_df, minutes):
 # Indicators never create a trade by themselves; they can only confirm or block an SK25 setup.
 # =========================================================
 
-SK25_ENGINE_VERSION = "RAJA_AI_V80_CANDLE_SYNC_WARMUP_FIX"
+SK25_ENGINE_VERSION = "RAJA_AI_V81_SR_PINBAR_ONLY"
 SK25_PATTERN_LIBRARY_SIZE = 25
 SK25_LIVE_MIN_CANDLES = 10
 
-# V42 scanner policy: Pattern Type 1-25 only. IDs 26-35 remain in the
-# historical source for compatibility, but add()/add_setup() ignore them.
+# RAJA policy: only Strategy 1 is active. Other historical strategies remain in source but are ignored.
 RAJA_ACTIVE_STRATEGY_IDS = frozenset({1})
 RAJA_STRATEGY_NAMES = {
-    1: "⭐ S/R + Order Block Reversal",
+    1: "⭐ Wick Rejection / Pinbar + S/R",
     2: "RAJA Type 2 · Resistance Reversal",
     3: "RAJA Type 3 · Sideways Wick Sweep",
     4: "RAJA Type 4 · Long-Wick Rejection",
@@ -3749,13 +3748,88 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
         if matched==total: exact.append(item)
         elif pct>=60: near.append(item)
 
-    # Type 1 — OTC continuation, hardened against late-run exhaustion.
-    last8=candles[-8:]
-    last8_tail=last8[-1]
-    green_exhaustion_ok=(not long_upper(last8_tail)) and normal(last8_tail) and last8_tail["body"] <= med_body*1.80
-    red_exhaustion_ok=(not long_lower(last8_tail)) and normal(last8_tail) and last8_tail["body"] <= med_body*1.80
-    add(1,1,[("OTC market",is_otc),("8 back-to-back GREEN candles",all(x["dir"]>0 for x in last8)),("8th GREEN is normal, not an exhaustion spike",green_exhaustion_ok)],"8 GREEN candles in OTC + exhaustion guard","Next candle GREEN only when the 8th candle is still structurally healthy.",tf_rule="OTC ONLY")
-    add(1,-1,[("OTC market",is_otc),("8 back-to-back RED candles",all(x["dir"]<0 for x in last8)),("8th RED is normal, not an exhaustion spike",red_exhaustion_ok)],"8 RED candles in OTC + exhaustion guard","Next candle RED only when the 8th candle is still structurally healthy.",tf_rule="OTC ONLY")
+    # Type 1 — ⭐ Wick Rejection / Pinbar + Support/Resistance confirmation.
+    # Closed-candle only. Designed as a strict 1m/1m reversal setup.
+    if count >= 12:
+        signal_candle = candles[-1]
+        prior = candles[-12:-1]
+
+        # Build recent S/R from completed candles only.
+        support = min(float(x["low"]) for x in prior)
+        resistance = max(float(x["high"]) for x in prior)
+
+        sr_buffer = max(med_range * 0.35, tol * 1.25)
+        near_support = float(signal_candle["low"]) <= support + sr_buffer
+        near_resistance = float(signal_candle["high"]) >= resistance - sr_buffer
+
+        candle_range = max(float(signal_candle["range"]), 1e-12)
+        lower_wick_ratio = float(signal_candle["lower_wick"]) / candle_range
+        upper_wick_ratio = float(signal_candle["upper_wick"]) / candle_range
+        body_ratio = float(signal_candle["body"]) / candle_range
+
+        # Pinbar/Hammer quality: long rejection wick, relatively small body,
+        # and close back toward the rejected side.
+        bullish_pinbar = (
+            signal_candle["dir"] > 0
+            and lower_wick_ratio >= 0.45
+            and lower_wick_ratio >= upper_wick_ratio * 1.35
+            and body_ratio <= 0.45
+            and float(signal_candle["close"]) >= float(signal_candle["low"]) + candle_range * 0.65
+        )
+        bearish_pinbar = (
+            signal_candle["dir"] < 0
+            and upper_wick_ratio >= 0.45
+            and upper_wick_ratio >= lower_wick_ratio * 1.35
+            and body_ratio <= 0.45
+            and float(signal_candle["close"]) <= float(signal_candle["high"]) - candle_range * 0.65
+        )
+
+        # Avoid weak/mid-range pinbars and require a meaningful rejection.
+        bullish_rejection = (
+            near_support
+            and bullish_pinbar
+            and float(signal_candle["lower_wick"]) >= max(med_range * 0.20, float(signal_candle["body"]) * 1.15)
+        )
+        bearish_rejection = (
+            near_resistance
+            and bearish_pinbar
+            and float(signal_candle["upper_wick"]) >= max(med_range * 0.20, float(signal_candle["body"]) * 1.15)
+        )
+
+        # Optional trend context is a FILTER only: strong trend is not allowed
+        # to manufacture a signal; reversal remains level + price-action driven.
+        bullish_context = trend > -0.85
+        bearish_context = trend < 0.85
+
+        add(
+            1, 1,
+            [
+                ("Live/market candle data", is_live or is_otc),
+                ("Price rejects recent SUPPORT", near_support),
+                ("Bullish lower-wick pinbar/hammer", bullish_pinbar),
+                ("Lower wick materially exceeds body", bullish_rejection),
+                ("Context filter passes", bullish_context),
+            ],
+            "Support + bullish wick rejection / pinbar",
+            "CALL only after a completed bullish pinbar rejects recent support.",
+            family="S/R + Price Action",
+            tf_rule="1M"
+        )
+        add(
+            1, -1,
+            [
+                ("Live/market candle data", is_live or is_otc),
+                ("Price rejects recent RESISTANCE", near_resistance),
+                ("Bearish upper-wick pinbar", bearish_pinbar),
+                ("Upper wick materially exceeds body", bearish_rejection),
+                ("Context filter passes", bearish_context),
+            ],
+            "Resistance + bearish wick rejection / pinbar",
+            "PUT only after a completed bearish pinbar rejects recent resistance.",
+            family="S/R + Price Action",
+            tf_rule="1M"
+        )
+
 
     # Type 2 — two green at respected resistance + confirmed red rejection -> next red.
     a,b,c=candles[-3:]
