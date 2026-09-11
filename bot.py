@@ -3576,9 +3576,9 @@ SK25_LIVE_MIN_CANDLES = 10
 
 # V42 scanner policy: Pattern Type 1-25 only. IDs 26-35 remain in the
 # historical source for compatibility, but add()/add_setup() ignore them.
-RAJA_ACTIVE_STRATEGY_IDS = frozenset(range(1, 26))
+RAJA_ACTIVE_STRATEGY_IDS = frozenset({1})
 RAJA_STRATEGY_NAMES = {
-    1: "RAJA Type 1 · OTC Eight-Candle Continuation",
+    1: "⭐ S/R + Order Block Reversal",
     2: "RAJA Type 2 · Resistance Reversal",
     3: "RAJA Type 3 · Sideways Wick Sweep",
     4: "RAJA Type 4 · Long-Wick Rejection",
