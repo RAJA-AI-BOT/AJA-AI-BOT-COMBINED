@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="raja-app-build" content="__RAJA_APP_BUILD__">
     <title>RAJA AI BOT</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous"></script>
     <meta name="theme-color" content="#050b16">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -6326,6 +6325,88 @@ body:not(.raja-authenticated).raja-mobile-scanning {
 }
 html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradient(180deg,#f8fcff,#eef6fb);border-color:#b8d3df;box-shadow:0 12px 30px rgba(36,74,95,.10)}
 </style>
+
+<style id="raja-mobile-top-controls-final">
+@media (max-width: 600px){
+  /* Put the real broker/pair controls at the top of the dashboard on phones. */
+  #rajaMobileTopControls{
+    display:block !important;
+    margin:8px 8px 10px !important;
+    padding:10px !important;
+    border:1px solid rgba(65,239,190,.28) !important;
+    border-radius:14px !important;
+    background:linear-gradient(180deg,rgba(4,20,31,.96),rgba(2,10,19,.98)) !important;
+    box-shadow:0 8px 28px rgba(0,0,0,.28);
+  }
+  #rajaMobileTopControls .mobile-top-title{
+    color:#60efff;font-size:11px;font-weight:950;letter-spacing:.7px;
+    margin:0 0 8px;
+  }
+  #rajaMobileTopControls .mobile-top-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:7px;
+  }
+  #rajaMobileTopControls .mobile-top-grid .mobile-top-wide{grid-column:1/-1}
+  #rajaMobileTopControls .mobile-top-label{
+    display:block;color:#60efff;font-size:8px;font-weight:900;margin:0 0 4px;
+  }
+  #rajaMobileTopControls select,
+  #rajaMobileTopControls input{
+    width:100%;min-height:40px;box-sizing:border-box;
+    border:1px solid rgba(96,239,255,.22);border-radius:9px;
+    background:#071321;color:#e8f7ff;padding:8px;font-size:10px;
+  }
+  #rajaMobileTopControls .mobile-top-time{
+    grid-column:1/-1;
+    display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
+  }
+  #rajaMobileTopControls .mobile-top-time button{
+    min-height:36px;border:1px solid rgba(83,177,255,.18);
+    border-radius:8px;background:#071221;color:#9fdfff;font-size:9px;font-weight:900;
+  }
+  #rajaMobileTopControls .mobile-top-time button.active{
+    background:linear-gradient(90deg,#13e9ac,#22d3ee);
+    color:#00131b;border-color:#27e9cf;
+  }
+  #rajaMobileTopControls .mobile-top-actions{
+    grid-column:1/-1;display:grid;grid-template-columns:1fr 2fr 1fr;gap:5px;
+    margin-top:2px;
+  }
+  #rajaMobileTopControls .mobile-top-actions button{
+    min-height:42px;border-radius:9px;font-size:9px;font-weight:950;
+    border:1px solid rgba(83,177,255,.2);background:#071221;color:#bcecff;
+  }
+  #rajaMobileTopControls .mobile-top-actions #mobileTopScan{
+    background:linear-gradient(90deg,#13e9ac,#22d3ee,#3ba7ff);
+    color:#00131b;border-color:#1cebc5;
+  }
+  #rajaMobileTopControls .mobile-top-actions #mobileTopStop{
+    background:linear-gradient(180deg,#551725,#32101a);
+    color:#ff8fa5;border-color:rgba(255,66,106,.45);
+  }
+  #rajaMobileTopControls .mobile-top-auto{
+    grid-column:1/-1;min-height:38px;border-radius:9px;
+    border:1px solid rgba(255,204,74,.22);background:#071321;
+    color:#ffd96a;font-size:9px;font-weight:900;
+  }
+
+  /* Hide the old mobile settings/scan sheet controls; the same real controls
+     are exposed in the top panel above. */
+  #mainAppContent .config-panel .raja-mobile-sheet-inline-actions{display:none !important;}
+
+  /* Keep the original configuration section from creating a second full
+     broker/pair block on narrow screens. */
+  #mainAppContent .config-panel .selection-card,
+  #mainAppContent .config-panel .expiry-wide{
+    display:none !important;
+  }
+
+  #rajaMobileTopControls{position:relative;z-index:20}
+}
+@media (min-width:601px){
+  #rajaMobileTopControls{display:none !important}
+}
+</style>
+
 </head>
 <body>
 
@@ -6714,7 +6795,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                                         <div class="scan-stage-title">LIVE SCAN PROCESS</div>
                                         <div class="scan-stage-list">
                                             <div id="scanStageCollect" class="scan-stage active"><span class="scan-dot"></span><span>Collecting market data</span><span class="scan-stage-status">RUNNING</span></div>
-                                            <div id="scanStageAnalyze" class="scan-stage"><span class="scan-dot"></span><span>Checking RAJA 1 active strategy rule</span><span class="scan-stage-status">PENDING</span></div>
+                                            <div id="scanStageAnalyze" class="scan-stage"><span class="scan-dot"></span><span>Checking RAJA 24 strategy rules</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageAssets" class="scan-stage"><span class="scan-dot"></span><span>Scanning eligible assets</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageConditions" class="scan-stage"><span class="scan-dot"></span><span>Running exact rule + conflict gate</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageFinal" class="scan-stage"><span class="scan-dot"></span><span>Selecting exact pattern setup</span><span class="scan-stage-status">PENDING</span></div>
@@ -6836,7 +6917,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
                                     
 
-                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>RAJA 1:✔</span> | <span>CLOSED CANDLES:✔</span> | <span>CONFLICT GATE:✔</span> | <span>NO INDICATORS:✔</span> | <span>NEXT CANDLE:✔</span></div>
+                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>RAJA 24:✔</span> | <span>CLOSED CANDLES:✔</span> | <span>CONFLICT GATE:✔</span> | <span>NO INDICATORS:✔</span> | <span>NEXT CANDLE:✔</span></div>
                                     <div id="signalConfidenceRing" class="signal3d-confidence"><div><strong>--</strong><span>CONFIDENCE</span></div></div>
                                     <div class="mtf-heading psr-mtf-heading">SK PATTERN TYPE 1-25 · SELECTED TIMEFRAME</div>
                                     <div id="tfBreakdown" class="tf-breakdown"></div>
@@ -7049,7 +7130,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                                     </div>
                                 </div>
 
-                                <div class="inline-list-box"><div class="inline-item"><span>Signal Engine:</span><span style="color:#00ff87;">RAJA 1 · WICK REJECTION / PINBAR + S/R ✔</span></div><div class="inline-item"><span>Closed Candle Lock:</span><span id="settingsModeStatus" style="color:#00ff87;">BALANCED ✔</span></div><div class="inline-item"><span>Auto Signals:</span><span style="color:#00ff87;">3 Minutes · Strong Signals Feed ✔</span></div><div class="inline-item"><span>OTC:</span><span style="color:#facc15;">Underlying proxy feed</span></div></div><button class="menu-back-btn" onclick="showDefaultView()">🏠 Dashboard</button>
+                                <div class="inline-list-box"><div class="inline-item"><span>Signal Engine:</span><span style="color:#00ff87;">RAJA 24 SELECTED STRATEGIES ✔</span></div><div class="inline-item"><span>Closed Candle Lock:</span><span id="settingsModeStatus" style="color:#00ff87;">BALANCED ✔</span></div><div class="inline-item"><span>Auto Signals:</span><span style="color:#00ff87;">3 Minutes · Strong Signals Feed ✔</span></div><div class="inline-item"><span>OTC:</span><span style="color:#facc15;">Underlying proxy feed</span></div></div><button class="menu-back-btn" onclick="showDefaultView()">🏠 Dashboard</button>
                             </div>
                             <div id="newsInlineView" class="inline-content-view">
                                 <div class="inline-title">📰 Live Economic News / Calendar</div>
@@ -7144,7 +7225,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
 
                     <div class="status-grid">
-                        <section class="scan-summary-card"><div id="targetPairBoxContainer" class="selected-pair-box"><div class="selected-pair-head"><span class="selected-pair-label">SELECTED TARGET PAIR</span><div class="selected-pair-badges"><span id="selectedBrokerBadge" class="target-context-badge broker-badge">⚡ QUOTEX</span><span id="selectedMarketBadge" class="target-context-badge market-badge">📈 CRYPTO LIVE</span></div></div><span id="targetPairDisplay" class="selected-pair-name">NZD/CAD (OTC)</span><div class="metric-note">✓ All-pairs RAJA 1 strategy scanner</div></div></section>
+                        <section class="scan-summary-card"><div id="targetPairBoxContainer" class="selected-pair-box"><div class="selected-pair-head"><span class="selected-pair-label">SELECTED TARGET PAIR</span><div class="selected-pair-badges"><span id="selectedBrokerBadge" class="target-context-badge broker-badge">⚡ QUOTEX</span><span id="selectedMarketBadge" class="target-context-badge market-badge">📈 CRYPTO LIVE</span></div></div><span id="targetPairDisplay" class="selected-pair-name">NZD/CAD (OTC)</span><div class="metric-note">✓ All-pairs RAJA 24 strategy scanner</div></div></section>
                         <section class="scan-summary-card"><div class="card-label">CURRENT MARKET SNAPSHOT</div><div class="snapshot-grid"><div class="snapshot-cell"><small>Analysis</small><strong>Selected TF</strong></div><div class="snapshot-cell"><small>Confirmation</small><strong>Exact Rules</strong></div><div class="snapshot-cell"><small>Protection</small><strong>Active</strong></div><div class="snapshot-cell"><small>Base Feed</small><strong id="rajaBaseFeedLabel">BROKER NATIVE M1</strong></div><div class="snapshot-cell"><small>Auto Signals</small><strong>3 min</strong></div><div class="snapshot-cell"><small>Signal Mode</small><strong>Balanced</strong></div></div></section>
                     </div>
 
@@ -7283,7 +7364,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             if (rajaBackendWarmPromise) return rajaBackendWarmPromise;
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
             rajaBackendWarmPromise = fetch('/health', {
                 method:'GET',
                 cache:'no-store',
@@ -8514,7 +8595,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             } else if (safe >= 25) {
                 level = 'moderate';
                 label = 'MODERATE';
-                title = 'RAJA 1 strategy scan active';
+                title = 'RAJA 24 strategy scan active';
                 copy = 'Momentum, trend and volatility filters are converging.';
             }
 
@@ -8545,7 +8626,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             const telemetryProgress = document.getElementById('scanTelemetryProgress');
             if (telemetryProgress) telemetryProgress.innerText = Math.round(safe) + '%';
             const telemetryStage = document.getElementById('scanTelemetryStage');
-            if (telemetryStage) telemetryStage.innerText = safe < 28 ? 'Collecting Data' : (safe < 55 ? 'RAJA 1 Pattern Check' : (safe < 82 ? 'Exact Setup Scan' : 'Conflict Gate'));
+            if (telemetryStage) telemetryStage.innerText = safe < 28 ? 'Collecting Data' : (safe < 55 ? 'RAJA 24 Pattern Check' : (safe < 82 ? 'Exact Setup Scan' : 'Conflict Gate'));
             if (scanSessionState.running && scanSessionState.startedAt) {
                 const elapsed = Math.max(0, Math.floor((Date.now() - scanSessionState.startedAt) / 1000));
                 const elapsedEl = document.getElementById('scanElapsedValue');
@@ -8564,7 +8645,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 'Building 2m / 5m / 10m / 15m / 30m structures...',
                 'Checking closed-candle colour, body, wick and sequence rules...',
                 'Evaluating support/resistance and exact Pattern Type conditions...',
-                'Scanning every configured pair for an exact RAJA 1 setup...',
+                'Scanning every configured pair for an exact RAJA 24 setup...',
                 'Ranking high-quality setups and entry conditions...'
             ];
             scanAnimationInterval = setInterval(() => {
@@ -10045,8 +10126,8 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
 
         // ==========================================
-        // REAL BACKEND RAJA 1 STRATEGY ENGINE
-        // Live OHLC market data + RAJA selected active strategy engine
+        // REAL BACKEND RAJA 24 STRATEGY ENGINE
+        // Live OHLC market data + RAJA selected 24-strategy engine
         // ==========================================
         function normalizeBackendSignal(data, fallbackPair) {
             if(!data||!data.signal||data.signal==='NO SIGNAL'||Number(data.score||0)<=0)return null;
@@ -12341,7 +12422,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             },
             {
                 title:'Read Signal & Entry Timing',
-                text:'A confirmed RAJA 1 UP/DOWN signal appears only after an exact closed-candle setup. Use the countdown before entering.',
+                text:'A confirmed RAJA 24 UP/DOWN signal appears only after an exact closed-candle setup. Use the countdown before entering.',
                 selector:'#hudBoxContainer'
             }
         ];
@@ -17459,17 +17540,7 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     const updateBadge=()=>{if(badge)badge.textContent=`${liveLocal.broker==='PocketOption'?'POCKET OPTION':'QUOTEX'} · ${liveLocal.market==='CryptoLive'?'CRYPTO LIVE':'FOREX LIVE'}`};updateBadge();
     broker.onchange=()=>{liveLocal.broker=broker.value;liveLocal.pair='';if(search)search.value='';persistLiveLocal();liveRenderPairs('',false);updateBadge();refresh(true)};
     market.onchange=()=>{liveLocal.market=market.value;liveLocal.pair='';if(search)search.value='';persistLiveLocal();liveRenderPairs('',false);updateBadge();refresh(true)};
-    pair.onchange=()=>{
-      const nextPair=String(pair.value||'').trim();
-      liveLocal.pair=nextPair;
-      persistLiveLocal();
-      liveDispatch();
-      // Cancel any old pair request immediately so the newly selected pair never waits for it.
-      try{if(typeof window.cancelRajaLiveChartRequest==='function')window.cancelRajaLiveChartRequest()}catch(_){}
-      // Force the chart to switch visually at once while the new pair loads.
-      try{if(typeof window.prepareRajaLivePairSwitch==='function')window.prepareRajaLivePairSwitch(nextPair)}catch(_){}
-      refresh(true);
-    };
+    pair.onchange=()=>{liveLocal.pair=String(pair.value||'');persistLiveLocal();liveDispatch();refresh(true)};
     search.oninput=()=>liveRenderPairs(search.value,true);search.onsearch=()=>liveRenderPairs(search.value,true);
     clear.onclick=()=>{search.value='';liveRenderPairs('',true);search.focus()};
   }
@@ -17509,104 +17580,17 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   document.addEventListener('fullscreenchange',syncRajaLiveFullscreen);
   document.addEventListener('webkitfullscreenchange',syncRajaLiveFullscreen);
   function liveTfSeconds(tf){return({'1m':60,'2m':120,'5m':300,'10m':600,'15m':900,'30m':1800})[String(tf||'1m').toLowerCase()]||60}
-  // Signal arrows are EVENT markers, not persistent status markers.
-  // The first signal state seen after opening/switching a pair is treated as
-  // the baseline. An arrow is drawn only when a genuinely new signal event
-  // appears afterwards (new candle/signal/pattern key).
-  const liveSignalBaselineByPair = Object.create(null);
-  let liveSignalMarkerKey = '';
   function applyLiveSignalMarker(data,clean){
-    if(!candleSeries||!Array.isArray(clean)||!clean.length)return;
-    const pairKey=String(data?.pair||selected()?.pair||'').replace(/[-_]/g,'/').toUpperCase();
-    const sig=String(data?.signal||'').toUpperCase();
-    const tf=String(data?.selected_expiry||liveLocal.expiry||'1m').toLowerCase();
-    const sum=data?.timeframe_summary&&data.timeframe_summary[tf];
-    const closed=Number(data?.closed_candle_epoch||sum?.closed_candle_epoch||0);
-    const pattern=String(data?.pattern_type||'');
-    const eventKey=`${pairKey}|${tf}|${sig}|${closed}|${pattern}`;
-
-    // Never show arrows for NO TRADE / WAIT states.
-    if(sig!=='CALL'&&sig!=='PUT'){
-      liveSignalMarkerKey='';
-      try{
-        if(typeof LightweightCharts.createSeriesMarkers==='function' && signalMarkers){
-          signalMarkers.setMarkers([]);
-        }else if(typeof candleSeries.setMarkers==='function'){
-          candleSeries.setMarkers([]);
-        }
-      }catch(_){}
-      signalMarkers=null;
-      return;
-    }
-
-    // First state for a pair is the baseline — it is not a new signal.
-    if(!liveSignalBaselineByPair[pairKey]){
-      liveSignalBaselineByPair[pairKey]=eventKey;
-      liveSignalMarkerKey='';
-      try{
-        if(typeof LightweightCharts.createSeriesMarkers==='function' && signalMarkers){
-          signalMarkers.setMarkers([]);
-        }else if(typeof candleSeries.setMarkers==='function'){
-          candleSeries.setMarkers([]);
-        }
-      }catch(_){}
-      signalMarkers=null;
-      return;
-    }
-
-    // Same signal event: keep the chart clean, no repeated arrow.
-    if(liveSignalBaselineByPair[pairKey]===eventKey)return;
-
-    // A new signal event has appeared.
-    liveSignalBaselineByPair[pairKey]=eventKey;
-    liveSignalMarkerKey=eventKey;
-
-    if(!Number.isFinite(closed)||closed<=0)return;
-    const entry=closed+liveTfSeconds(tf);
-    let target=clean.find(c=>Number(c.time)===entry)||clean.find(c=>Number(c.time)===closed);
-    if(!target){
-      const near=[...clean].sort((a,b)=>Math.abs(Number(b.time)-entry)-Math.abs(Number(a.time)-entry))[0];
-      if(near&&Math.abs(Number(near.time)-entry)<=liveTfSeconds(tf))target=near;
-    }
-    if(!target)return;
-
-    const marker={
-      time:target.time,
-      position:sig==='CALL'?'belowBar':'aboveBar',
-      color:sig==='CALL'?'#00ff87':'#ff426a',
-      shape:sig==='CALL'?'arrowUp':'arrowDown',
-      text:`${sig}${pattern?` · T${Number(pattern)}`:''}`
-    };
-    try{
-      if(typeof LightweightCharts.createSeriesMarkers==='function'){
-        signalMarkers=LightweightCharts.createSeriesMarkers(candleSeries,[marker]);
-      }else if(typeof candleSeries.setMarkers==='function'){
-        candleSeries.setMarkers([marker]);
-      }
-    }catch(_){}
+    signalMarkers=null;if(!candleSeries||!Array.isArray(clean)||!clean.length)return;const sig=String(data?.signal||'').toUpperCase();if(sig!=='CALL'&&sig!=='PUT')return;
+    const tf=String(data?.selected_expiry||liveLocal.expiry||'1m').toLowerCase();const sum=data?.timeframe_summary&&data.timeframe_summary[tf];const closed=Number(data?.closed_candle_epoch||sum?.closed_candle_epoch||0);if(!Number.isFinite(closed)||closed<=0)return;
+    const entry=closed+liveTfSeconds(tf);let target=clean.find(c=>Number(c.time)===entry)||clean.find(c=>Number(c.time)===closed);
+    if(!target){const near=[...clean].sort((a,b)=>Math.abs(Number(a.time)-entry)-Math.abs(Number(b.time)-entry))[0];if(near&&Math.abs(Number(near.time)-entry)<=liveTfSeconds(tf))target=near}
+    if(!target)return;const marker={time:target.time,position:sig==='CALL'?'belowBar':'aboveBar',color:sig==='CALL'?'#00ff87':'#ff426a',shape:sig==='CALL'?'arrowUp':'arrowDown',text:`${sig}${data?.pattern_type?` · T${Number(data.pattern_type)}`:''}`};
+    try{if(typeof LightweightCharts.createSeriesMarkers==='function')signalMarkers=LightweightCharts.createSeriesMarkers(candleSeries,[marker]);else if(typeof candleSeries.setMarkers==='function')candleSeries.setMarkers([marker])}catch(_){}
   }
   function renderChart(data){
     if(!data)return;const canvas=document.getElementById('rajaLiveChartCanvas');if(!canvas)return;const raw=Array.isArray(data.chart_preview)?data.chart_preview:[];const clean=raw.map((c,i)=>({time:Number(c?.t??c?.time??i),open:Number(c?.o),high:Number(c?.h),low:Number(c?.l),close:Number(c?.c)})).filter(c=>Number.isFinite(c.time)&&Number.isFinite(c.open)&&Number.isFinite(c.high)&&Number.isFinite(c.low)&&Number.isFinite(c.close));if(clean.length<2)return;
     if(!window.LightweightCharts){try{window.rajaEnsureChartEngine?.().then(()=>renderChart(data))}catch(_){};return}
-    // Keep the existing LightweightCharts instance alive during live refreshes.
-    // Recreating the whole chart every few seconds can make the visual feed appear
-    // frozen and can interrupt the forming-candle update.
-    if(chart && candleSeries){
-      try{
-        candleSeries.setData(clean);
-        applyLiveSignalMarker(data,clean);
-        indicatorSeries.forEach(ser=>{try{ser.setData([])}catch(_){}}); 
-        indicatorSeries=[];
-        const closes=clean.map(c=>c.close),times=clean.map(c=>c.time),mk=(arr)=>arr.map((v,i)=>v==null?null:{time:times[i],value:v}).filter(Boolean);
-        if(prefs.indicators.ema9)addLine(mk(ema(closes,9)),{lineWidth:1,title:'EMA 9',lastValueVisible:false,priceLineVisible:false});
-        if(prefs.indicators.ema21)addLine(mk(ema(closes,21)),{lineWidth:1,title:'EMA 21',lastValueVisible:false,priceLineVisible:false});
-        if(prefs.indicators.ema50)addLine(mk(ema(closes,50)),{lineWidth:1,title:'EMA 50',lastValueVisible:false,priceLineVisible:false});
-        if(prefs.indicators.sma20)addLine(mk(sma(closes,20)),{lineWidth:1,title:'SMA 20',lastValueVisible:false,priceLineVisible:false});
-        if(prefs.indicators.bb){const m=sma(closes,20),sd=std(closes,20,m);addLine(mk(m.map((v,i)=>v==null?null:v+2*sd[i])),{lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dotted,title:'BB Upper',lastValueVisible:false,priceLineVisible:false});addLine(mk(m.map((v,i)=>v==null?null:v-2*sd[i])),{lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dotted,title:'BB Lower',lastValueVisible:false,priceLineVisible:false})}
-        try{chart.timeScale().scrollToRealTime()}catch(_){}
-        return;
-      }catch(_){}
-    }
     try{chart?.remove()}catch(_){};chart=null;indicatorSeries=[];canvas.innerHTML='';
     const light=document.documentElement.dataset.rajaTheme==='light';const bg=light?'#f7fafc':'#111725',txt=light?'#42596c':'#c6d0dc';
     chart=LightweightCharts.createChart(canvas,{width:Math.max(320,canvas.clientWidth||320),height:Math.max(240,canvas.clientHeight||360),layout:{background:{type:LightweightCharts.ColorType.Solid,color:bg},textColor:txt,attributionLogo:false,fontFamily:'Segoe UI,Arial,sans-serif',fontSize:10},grid:{vertLines:{color:light?'rgba(70,100,120,.12)':'rgba(122,137,158,.16)'},horzLines:{color:light?'rgba(70,100,120,.16)':'rgba(122,137,158,.19)'}},rightPriceScale:{visible:true,borderColor:'rgba(130,145,165,.28)',scaleMargins:{top:.10,bottom:.10},minimumWidth:58},timeScale:{visible:true,timeVisible:true,secondsVisible:false,borderColor:'rgba(130,145,165,.28)',rightOffset:3,barSpacing:Math.max(4,Math.min(18,(canvas.clientWidth||900)/Math.max(30,clean.length))),minBarSpacing:2,fixLeftEdge:false,fixRightEdge:false,lockVisibleTimeRangeOnResize:false},handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},handleScale:{axisPressedMouseMove:true,mouseWheel:true,pinch:true}});
@@ -17623,50 +17607,6 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   function tfSeconds(tf){const m=String(tf||'1m').toLowerCase().match(/^(\d+)m$/);return m?Math.max(60,Number(m[1])*60):60}
   function tickState(text,ok=false){const el=document.getElementById('rajaLiveTickState');if(el){el.textContent=text;el.style.color=ok?'#00d98a':'#68859b'}}
   function normalizePreviewCandle(c){return {time:Number(c?.t??c?.time),open:Number(c?.o??c?.open),high:Number(c?.h??c?.high),low:Number(c?.l??c?.low),close:Number(c?.c??c?.close)}}
-  function biQuoteSymbol(v){return String(v||'').replace(/\(OTC\)/ig,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase()}
-  let biQuoteHub=null,biQuoteStreamSymbol='',biQuoteStreamStarting=false,biQuoteStreamReady=false;
-  let liveChartAbortController=null;
-  let liveChartRequestSeq=0;
-  function biQuoteTickToLocal(t){
-    if(!t||typeof t!=='object')return null;
-    const symbol=biQuoteSymbol(t.symbol||t.provider_pair);
-    const selectedSymbol=biQuoteSymbol(selected()?.pair);
-    if(!symbol||!selectedSymbol||symbol!==selectedSymbol)return null;
-    const price=Number(t.mid??t.bid??t.ask);
-    if(!Number.isFinite(price)||price<=0)return null;
-    const ts=Date.parse(String(t.timestamp||''));
-    const epoch=Number.isFinite(ts)?Math.floor(ts/1000):Math.floor(Date.now()/1000);
-    return {pair:selected()?.pair,bid:price,time:epoch,age_ms:Math.max(0,Date.now()-epoch*1000),source:'BiQuote',source_mode:'biquote_signalr_tick',tick_supported:true};
-  }
-  async function ensureBiQuoteStream(pair){
-    const symbol=biQuoteSymbol(pair);
-    if(!symbol||/OTC/i.test(String(pair||''))||typeof signalR==='undefined')return;
-    if(biQuoteHub&&biQuoteStreamReady&&biQuoteStreamSymbol===symbol)return;
-    if(biQuoteStreamStarting)return;
-    biQuoteStreamStarting=true;
-    try{
-      if(!biQuoteHub){
-        biQuoteHub=new signalR.HubConnectionBuilder()
-          .withUrl('https://biquote.io/hubs/tick')
-          .withAutomaticReconnect([0,1000,2000,5000,10000])
-          .build();
-        biQuoteHub.on('ReceiveTick',(tick)=>{
-          const local=biQuoteTickToLocal(tick);
-          if(local)mergeLiveTickIntoPreview(local);
-        });
-        biQuoteHub.onreconnecting(()=>{biQuoteStreamReady=false;tickState('LIVE TICK: BiQuote reconnecting…',false)});
-        biQuoteHub.onreconnected(async()=>{
-          try{if(biQuoteStreamSymbol)await biQuoteHub.invoke('Subscribe',[biQuoteStreamSymbol]);biQuoteStreamReady=true;tickState('LIVE TICK: BIQUOTE STREAM · connected',true)}catch(_){biQuoteStreamReady=false;tickState('LIVE TICK: BiQuote resubscribe failed',false)}});
-        biQuoteHub.onclose(()=>{biQuoteStreamReady=false;tickState('LIVE TICK: BiQuote stream offline',false)});
-      }
-      if(biQuoteHub.state==='Disconnected')await biQuoteHub.start();
-      if(biQuoteStreamSymbol&&biQuoteStreamSymbol!==symbol){try{await biQuoteHub.invoke('Unsubscribe',[biQuoteStreamSymbol])}catch(_) {}}
-      if(biQuoteStreamSymbol!==symbol)await biQuoteHub.invoke('Subscribe',[symbol]);
-      biQuoteStreamSymbol=symbol;biQuoteStreamReady=true;
-      tickState(`LIVE TICK: BIQUOTE STREAM · ${symbol} · real-time`,true);
-    }catch(e){biQuoteStreamReady=false;tickState('LIVE TICK: BiQuote stream unavailable · fallback polling',false)}
-    finally{biQuoteStreamStarting=false}
-  }
   function mergeLiveTickIntoPreview(tick){
     if(!tick||!lastData||!candleSeries)return;
     const x=selected();if(String(tick.pair||'').replace(/[-_]/g,'/').toUpperCase()!==String(x.pair||'').replace(/[-_]/g,'/').toUpperCase())return;
@@ -17675,11 +17615,14 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     const raw=Array.isArray(lastData.chart_preview)?lastData.chart_preview:[];
     let prev=raw.length?normalizePreviewCandle(raw[raw.length-1]):null;
     let bar;
+    const f=tick.forming_candle||{};
     if(prev&&Number(prev.time)===bucket){
-      bar={time:bucket,open:prev.open,high:Math.max(prev.high,bid),low:Math.min(prev.low,bid),close:bid};
+      const fh=Number(f.h),fl=Number(f.l);
+      bar={time:bucket,open:prev.open,high:Math.max(prev.high,bid,Number.isFinite(fh)?fh:bid),low:Math.min(prev.low,bid,Number.isFinite(fl)?fl:bid),close:bid};
     }else{
-      const op=prev&&Number.isFinite(prev.close)&&prev.close>0?prev.close:bid;
-      bar={time:bucket,open:op,high:Math.max(op,bid),low:Math.min(op,bid),close:bid};
+      const fo=Number(f.o),fh=Number(f.h),fl=Number(f.l);
+      const op=Number.isFinite(fo)&&fo>0?fo:bid;
+      bar={time:bucket,open:op,high:Math.max(op,bid,Number.isFinite(fh)?fh:bid),low:Math.min(op,bid,Number.isFinite(fl)?fl:bid),close:bid};
       const obj={t:bar.time,o:bar.open,h:bar.high,l:bar.low,c:bar.close};
       if(!prev||Number(prev.time)<bucket)raw.push(obj);else raw[raw.length-1]=obj;
       while(raw.length>Math.max(25,prefs.count))raw.shift();
@@ -17687,105 +17630,29 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     if(raw.length){const last=raw[raw.length-1],lt=Number(last?.t??last?.time);if(lt===bucket){last.t=bucket;last.o=bar.open;last.h=bar.high;last.l=bar.low;last.c=bar.close}}
     try{candleSeries.update(bar)}catch(_){return}
     lastData.chart_includes_forming_candle=true;
-    const age=Math.max(0,Number(tick.age_ms||0));lastTickSource='BiQuote';
-    tickState(`LIVE TICK: BIQUOTE STREAM · ${Math.round(age)}ms`,true);
-    const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=lastData.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(x.expiry||'1m').toUpperCase()} · BIQUOTE LIVE · ${raw.length} candles · LIVE FORMING${qg?` · FEED ${qg}`:''}`}
+    const age=Math.max(0,Number(tick.age_ms||0));lastTickSource=String(tick.source||'Dukascopy JForex BID TICK');
+    tickState(`LIVE TICK: ${lastTickSource.replace('Dukascopy JForex BID TICK','DUKASCOPY BID')} · ${Math.round(age)}ms`,true);
+    const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=lastData.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(x.expiry||'1m').toUpperCase()} · ${lastTickSource} · ${raw.length} candles · LIVE FORMING${qg?` · FEED ${qg}`:''}`}
     const ageEl=document.getElementById('rajaLiveAge');if(ageEl)ageEl.textContent=age<1000?`${Math.round(age)}ms`:`${Math.round(age/1000)}s`;
     if(lastLiveBucket&&bucket!==lastLiveBucket){setTimeout(()=>{if(auto&&!busy)refresh(true)},350)}
     lastLiveBucket=bucket;
   }
-  let liveDirectTickController=null;
   async function refreshLiveTick(){
     if(!auto||tickBusy||!lastData||!candleSeries)return;
-    if(biQuoteStreamReady)return;
     if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;
-    const x=selected();
-    if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)||/OTC/i.test(String(x.pair)))return;
-    const symbol=biQuoteSymbol(x.pair);
-    if(!symbol)return;
+    const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair))return;
     tickBusy=true;
-    const controller=new AbortController();
-    liveDirectTickController=controller;
-    const timeoutId=setTimeout(()=>controller.abort(),900);
     try{
-      // Direct BiQuote latest-tick fallback. This keeps the forming candle moving
-      // even when the SignalR browser connection is temporarily unavailable.
-      const r=await fetch(`https://biquote.io/api/${encodeURIComponent(symbol)}?allowStale=false&_=${Date.now()}`,{
-        method:'GET',cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'},signal:controller.signal
-      });
-      const q=await r.json();
-      const price=Number(q?.mid??q?.bid??q?.ask);
-      const stamp=Date.parse(String(q?.timestamp||''));
-      const epoch=Number.isFinite(stamp)?Math.floor(stamp/1000):Math.floor(Date.now()/1000);
-      if(r.ok&&Number.isFinite(price)&&price>0){
-        mergeLiveTickIntoPreview({pair:x.pair,bid:price,time:epoch,age_ms:Number(q?.quoteAgeSeconds||0)*1000,source:'BiQuote',source_mode:'biquote_rest_live_tick',tick_supported:true});
-        tickState(`LIVE TICK: BIQUOTE · ${symbol} · live fallback`,true);
-        return;
-      }
-      tickState(q?.marketState==='closed'?'LIVE TICK: market closed':'LIVE TICK: waiting for BiQuote tick',false);
-    }catch(e){
-      if(e?.name!=='AbortError')tickState('LIVE TICK: BiQuote fallback reconnecting…',false);
-    }finally{
-      clearTimeout(timeoutId);
-      if(liveDirectTickController===controller)liveDirectTickController=null;
-      tickBusy=false;
-    }
+      const payload={pair:x.pair,broker:x.broker,market:x.market,...(typeof getAuthPayload==='function'?getAuthPayload():{})};
+      const r=await fetch('/live-chart-tick',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify(payload)});
+      const j=await r.json();const t=j?.data||{};
+      if(r.ok&&j?.status==='success'&&t.tick_supported&&Number.isFinite(Number(t.bid))){mergeLiveTickIntoPreview(t)}
+      else tickState(t.reason?`LIVE TICK: ${String(t.reason).slice(0,80)}`:'LIVE TICK: minute refresh only',false);
+    }catch(e){tickState('LIVE TICK: reconnecting…',false)}finally{tickBusy=false}
   }
-  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st)st.textContent=data.pattern_type?`TYPE ${data.pattern_type}`:'--';const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>{ensureBiQuoteStream(pair);refreshLiveTick()},120)}
-  function cancelRajaLiveChartRequest(){
-    liveChartRequestSeq++;
-    if(liveChartAbortController){try{liveChartAbortController.abort()}catch(_){} liveChartAbortController=null}
-    busy=false;
-  }
-  function prepareRajaLivePairSwitch(pair){
-    lastPair='';
-    lastData=null;
-    lastLiveBucket=null;
-    biQuoteStreamReady=false;
-    biQuoteStreamStarting=false;
-    const st=document.getElementById('rajaLiveStatus');
-    if(st){st.className='raja-live-status warn';st.textContent=`Loading ${pair||'pair'} live chart…`}
-    const age=document.getElementById('rajaLiveAge');if(age)age.textContent='--';
-    const dir=document.getElementById('rajaLiveSignalDir');if(dir){dir.textContent='LOADING';dir.className='dir wait'}
-    try{if(candleSeries){candleSeries.setData([])}}catch(_){}
-  }
-  window.cancelRajaLiveChartRequest=cancelRajaLiveChartRequest;
-  window.prepareRajaLivePairSwitch=prepareRajaLivePairSwitch;
-  async function refresh(force=false){
-    const card=ensure();
-    if(!card)return;
-    if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;
-    const x=selected();
-    if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}
-    // A forced refresh (pair change) always wins: abort the previous HTTP request.
-    if(force)cancelRajaLiveChartRequest();
-    else if(busy)return;
-    busy=true;
-    const requestSeq=++liveChartRequestSeq;
-    const controller=new AbortController();
-    liveChartAbortController=controller;
-    const timeoutId=setTimeout(()=>controller.abort(),5000);
-    try{
-      const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),_live_refresh_ts:Date.now(),...(typeof getAuthPayload==='function'?getAuthPayload():{})};
-      const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache','Pragma':'no-cache'},cache:'no-store',body:JSON.stringify(payload),signal:controller.signal});
-      const j=await r.json();
-      // Ignore a late response belonging to an older pair.
-      if(requestSeq!==liveChartRequestSeq||String(selected()?.pair||'')!==String(x.pair||''))return;
-      if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');
-      paint(j.data||{});
-      lastPair=x.pair;
-    }catch(e){
-      if(e?.name==='AbortError')return;
-      if(requestSeq!==liveChartRequestSeq)return;
-      const s=document.getElementById('rajaLiveStatus');
-      if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses BiQuote 1M only; Dukascopy is disabled. Crypto Live uses its configured feed.'}
-    }finally{
-      clearTimeout(timeoutId);
-      if(liveChartAbortController===controller)liveChartAbortController=null;
-      if(requestSeq===liveChartRequestSeq)busy=false;
-    }
-  }
-  function boot(){ensure();setTimeout(()=>refresh(true),1200);timer=setInterval(()=>{if(document.hidden||!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},2000);tickTimer=setInterval(()=>{if(!document.hidden&&!biQuoteStreamReady)refreshLiveTick()},1000);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
+  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st)st.textContent=data.pattern_type?`TYPE ${data.pattern_type}`:'--';const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>refreshLiveTick(),120)}
+  async function refresh(force=false){const card=ensure();if(!card||busy)return;if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}busy=true;try{const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),...(typeof getAuthPayload==='function'?getAuthPayload():{})};const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify(payload)});const j=await r.json();if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');paint(j.data||{});lastPair=x.pair}catch(e){const s=document.getElementById('rajaLiveStatus');if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses Dukascopy JForex; Crypto Live uses Dukascopy then Twelve Data fallback.'}}finally{busy=false}}
+  function boot(){ensure();setTimeout(()=>refresh(true),1800);timer=setInterval(()=>{if(!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},6000);tickTimer=setInterval(()=>{refreshLiveTick()},1000);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
   document.addEventListener('DOMContentLoaded',boot);window.refreshRajaLiveOpenChart=()=>refresh(true);
 })();
 </script>
@@ -17966,6 +17833,121 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   setTimeout(moveScanActionsIntoActiveScan,300);
 })();
 </script>
+
+<script id="raja-mobile-top-controls-final-js">
+(function(){
+  'use strict';
+
+  function mount(){
+    if (window.innerWidth > 600) return;
+    if (document.getElementById('rajaMobileTopControls')) return;
+
+    const broker = document.getElementById('brokerSelect');
+    const market = document.getElementById('marketType');
+    const pair = document.getElementById('pairSelect');
+    const pairSearch = document.getElementById('pairSearchInput');
+    const expiry = document.querySelectorAll('.expiry-btn[data-time]');
+    const scan = document.getElementById('scanBtn');
+    const stop = document.getElementById('stopScanBtn');
+    const auto = document.getElementById('rajaAutoBestPairBtn');
+    if(!broker || !market || !pair || !scan) return;
+
+    const panel = document.createElement('section');
+    panel.id='rajaMobileTopControls';
+    panel.innerHTML = `
+      <div class="mobile-top-title">📊 BROKER &amp; PAIR</div>
+      <div class="mobile-top-grid">
+        <div>
+          <span class="mobile-top-label">1. SELECT BROKER PLATFORM</span>
+          <div id="mobileTopBroker"></div>
+        </div>
+        <div>
+          <span class="mobile-top-label">2. SELECT MARKET TYPE</span>
+          <div id="mobileTopMarket"></div>
+        </div>
+        <div class="mobile-top-wide">
+          <span class="mobile-top-label">3. SELECT PAIR / ASSET</span>
+          <div id="mobileTopPair"></div>
+        </div>
+        <div class="mobile-top-wide">
+          <span class="mobile-top-label">4. SELECT TIMEFRAME (MINUTES)</span>
+          <div class="mobile-top-time" id="mobileTopTime"></div>
+        </div>
+        <div class="mobile-top-actions">
+          <button id="mobileTopScanMode" type="button">🔎 SCAN: 1M</button>
+          <button id="mobileTopScan" type="button">▶ START AI MARKET SCAN</button>
+          <button id="mobileTopStop" type="button">■ STOP SCAN</button>
+        </div>
+        <button id="mobileTopAuto" class="mobile-top-auto" type="button">✨ AUTO SCAN BEST PAIR</button>
+      </div>`;
+
+    const host = document.querySelector('#mainAppContent .main-panel-card') ||
+                 document.querySelector('#mainAppContent');
+    if(!host) return;
+    host.parentNode.insertBefore(panel, host);
+
+    // Move the real controls (not clones) so all existing handlers/state remain intact.
+    panel.querySelector('#mobileTopBroker').appendChild(broker.closest('.config-field'));
+    panel.querySelector('#mobileTopMarket').appendChild(market.closest('.config-field'));
+
+    const pairField = pair.closest('.config-field');
+    panel.querySelector('#mobileTopPair').appendChild(pairField);
+
+    // Keep pair search visible and compact.
+    const timeBox = panel.querySelector('#mobileTopTime');
+    expiry.forEach(btn=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.textContent=btn.textContent.trim();
+      b.dataset.time=btn.dataset.time;
+      b.className=btn.classList.contains('active')?'active':'';
+      b.disabled=btn.disabled;
+      b.onclick=()=>{ btn.click(); syncTimes(); };
+      timeBox.appendChild(b);
+    });
+
+    panel.querySelector('#mobileTopScan').onclick=()=>scan.click();
+    panel.querySelector('#mobileTopStop').onclick=()=>stop?.click();
+    panel.querySelector('#mobileTopAuto').onclick=()=>auto?.click();
+
+    function syncTimes(){
+      timeBox.querySelectorAll('button').forEach(b=>{
+        const real=[...expiry].find(x=>x.dataset.time===b.dataset.time);
+        b.classList.toggle('active',!!real?.classList.contains('active'));
+      });
+      const active=[...expiry].find(x=>x.classList.contains('active'));
+      const t=active?.dataset.time||'1m';
+      panel.querySelector('#mobileTopScanMode').textContent='🔎 SCAN: '+t.toUpperCase();
+    }
+    const observer=new MutationObserver(syncTimes);
+    expiry.forEach(x=>observer.observe(x,{attributes:true,attributeFilter:['class','disabled']}));
+    syncTimes();
+
+    // Keep mobile scan button text synchronized with the real button.
+    const scanObserver=new MutationObserver(()=>{
+      panel.querySelector('#mobileTopScan').textContent=scan.textContent||'▶ START AI MARKET SCAN';
+      panel.querySelector('#mobileTopScan').disabled=scan.disabled;
+    });
+    scanObserver.observe(scan,{childList:true,characterData:true,subtree:true,attributes:true});
+    panel.querySelector('#mobileTopScan').disabled=scan.disabled;
+
+    // Hide only the old duplicate visual controls after moving the real fields.
+    panel.querySelectorAll('.config-field').forEach(f=>{
+      f.style.display='block';
+      f.style.margin='0';
+    });
+
+    // Re-sync pair list/search if the original code exposes these helpers.
+    try{ window.syncMobilePairListbox?.(); }catch(_){}
+    try{ window.syncTargetPairDisplay?.(); }catch(_){}
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,250),{once:true});
+  else setTimeout(mount,250);
+  window.addEventListener('resize',()=>{ if(innerWidth<=600 && !document.getElementById('rajaMobileTopControls')) setTimeout(mount,100); });
+})();
+</script>
+
 </body>
 <!-- RAJA UI BROKER-PAIR-LAUNCH V1 · AUDNZD SKIP · HISTORY WINLOSS · 2026-08-28 -->
 <!-- RAJA STRONG SIGNAL FEED V1 · TOP4 POWER · AUTO BUTTON RESTORED · 2026-08-28 -->
@@ -17973,103 +17955,3 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
 <!-- RAJA OTC NO-BRIDGE REFERENCE MODE V1 · 2026-08-28 -->
 <!-- RAJA V50 SAME-CANDLE SCAN · ZOOM/PAN · MANUAL CANDLE COUNT · USER INDICATORS · 2026-09-09 -->
 </html>
-
-<style id="raja-mobile-top-controls-v1">
-/* Mobile: keep Broker + Market + Pair + Expiry + Scan together at the top. */
-@media (max-width:820px){
-  #rajaMobileTopControls{
-    display:block!important;
-    margin:8px 8px 10px!important;
-    padding:10px!important;
-    border:1px solid rgba(0,255,154,.28)!important;
-    border-radius:14px!important;
-    background:linear-gradient(180deg,rgba(5,20,32,.98),rgba(3,12,23,.98))!important;
-    box-shadow:0 10px 28px rgba(0,0,0,.28)!important;
-  }
-  #rajaMobileTopControls .raja-mobile-top-title{
-    display:block;color:#60efff;font-size:11px;font-weight:950;letter-spacing:.8px;margin:0 0 8px;
-  }
-  #rajaMobileTopControls .raja-front-market-picker{
-    display:grid!important;gap:7px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
-  }
-  #rajaMobileTopControls .raja-front-market-picker::before{display:none!important;}
-  #rajaMobileTopControls .raja-front-market-picker .config-field{
-    padding:7px!important;margin:0!important;border-radius:9px!important;
-  }
-  #rajaMobileTopControls .raja-front-market-picker .config-field label{font-size:8px!important;margin-bottom:4px!important;}
-  #rajaMobileTopControls .raja-front-market-picker #brokerSelect,
-  #rajaMobileTopControls .raja-front-market-picker #marketType{min-height:40px!important;font-size:11px!important;}
-  #rajaMobileTopControls .raja-front-market-picker .pair-search-field{grid-column:1/-1!important;}
-  #rajaMobileTopControls .raja-front-market-picker #pairSelect{min-height:70px!important;max-height:100px!important;}
-  #rajaMobileTopControls .raja-mobile-top-expiry{
-    margin:8px 0 0!important;padding:7px!important;border:1px solid rgba(96,239,255,.18)!important;border-radius:9px!important;background:rgba(3,14,26,.72)!important;
-  }
-  #rajaMobileTopControls .raja-mobile-top-expiry label{display:block;color:#60efff;font-size:8px;font-weight:900;margin-bottom:5px;}
-  #rajaMobileTopControls .expiry-container{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px!important;}
-  #rajaMobileTopControls .expiry-btn{min-height:34px!important;padding:5px 2px!important;font-size:9px!important;}
-  #rajaMobileTopControls .raja-mobile-top-scan{
-    display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin-top:8px!important;
-  }
-  #rajaMobileTopControls .raja-mobile-top-scan .scan-btn,
-  #rajaMobileTopControls .raja-mobile-top-scan .v32-stop-scan-btn{
-    min-height:46px!important;margin:0!important;font-size:10px!important;font-weight:950!important;
-  }
-  #rajaMobileTopControls .raja-mobile-top-auto{margin-top:6px!important;}
-  #rajaMobileTopControls .raja-mobile-top-auto button{width:100%!important;min-height:38px!important;font-size:9px!important;}
-}
-@media (max-width:390px){
-  #rajaMobileTopControls{margin-left:5px!important;margin-right:5px!important;padding:8px!important;}
-  #rajaMobileTopControls .expiry-container{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
-}
-@media (min-width:821px){#rajaMobileTopControls{display:none!important;}}
-</style>
-
-<script id="raja-mobile-top-controls-v1-script">
-(() => {
-  function mountMobileTopControls(){
-    if (window.innerWidth > 820) return;
-    if (document.getElementById('rajaMobileTopControls')) return;
-    const main = document.getElementById('mainAppContent');
-    const unified = document.getElementById('rajaUnifiedScanShell');
-    const front = document.getElementById('rajaSideAutoSignalsPanel');
-    const expiry = document.querySelector('#mainAppContent .config-panel .expiry-wide');
-    const scanRow = document.querySelector('#mainAppContent .front-scan-actions');
-    if (!main || !unified || !front || !expiry || !scanRow) return;
-
-    const dock = document.createElement('section');
-    dock.id = 'rajaMobileTopControls';
-    dock.setAttribute('aria-label','Mobile broker, pair, expiry and scan controls');
-    dock.innerHTML = '<div class="raja-mobile-top-title">⚡ BROKER · MARKET · PAIR · EXPIRY · SCAN</div>';
-
-    const frontSlot = document.createElement('div');
-    frontSlot.className = 'raja-mobile-top-front';
-    frontSlot.appendChild(front);
-
-    const expirySlot = document.createElement('div');
-    expirySlot.className = 'raja-mobile-top-expiry';
-    expirySlot.appendChild(expiry);
-
-    const scanSlot = document.createElement('div');
-    scanSlot.className = 'raja-mobile-top-scan';
-    const auto = scanRow.querySelector('#rajaAutoBestPairBtn');
-    const scan = scanRow.querySelector('#scanBtn');
-    const stop = scanRow.querySelector('#stopScanBtn');
-    if (scan) scanSlot.appendChild(scan);
-    if (stop) scanSlot.appendChild(stop);
-
-    const autoSlot = document.createElement('div');
-    autoSlot.className = 'raja-mobile-top-auto';
-    if (auto) autoSlot.appendChild(auto);
-
-    dock.append(frontSlot, expirySlot, scanSlot, autoSlot);
-    main.insertBefore(dock, unified);
-
-    /* Hide the old empty containers after their controls have moved. */
-    scanRow.style.display = 'none';
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountMobileTopControls, {once:true});
-  else mountMobileTopControls();
-  window.addEventListener('resize', () => { if (window.innerWidth <= 820) mountMobileTopControls(); }, {passive:true});
-})();
-</script>
