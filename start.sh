@@ -1,26 +1,15 @@
 #!/bin/sh
 set -eu
 
-DUKASCOPY_ENABLED_VALUE="${DUKASCOPY_ENABLED:-false}"
-case "$(printf '%s' "$DUKASCOPY_ENABLED_VALUE" | tr '[:upper:]' '[:lower:]')" in
-  1|true|yes|on)
-    echo "Starting Dukascopy Bridge..."
-    java -jar /app/bridge.jar &
-    BRIDGE_PID=$!
-    ;;
-  *)
-    echo "Dukascopy bridge temporarily DISABLED."
-    BRIDGE_PID=""
-    ;;
-esac
+# RAJA AI Bot: Dukascopy is permanently OFF at runtime.
+# BiQuote remains the primary live Forex/metals feed.
+export DUKASCOPY_ENABLED=false
+export BIQUOTE_ENABLED=true
+export BIQUOTE_API_URL="${BIQUOTE_API_URL:-https://biquote.io/api}"
 
-cleanup() {
-  if [ -n "${BRIDGE_PID:-}" ]; then
-    echo "Stopping Dukascopy Bridge..."
-    kill "$BRIDGE_PID" 2>/dev/null || true
-  fi
-}
-trap cleanup INT TERM EXIT
-
+# Do NOT start the Java Dukascopy bridge.
 echo "Starting RAJA AI Bot..."
-python -m gunicorn bot:app --bind "0.0.0.0:${PORT:-8080}"
+echo "BiQuote: ENABLED"
+echo "Dukascopy: DISABLED"
+
+exec python -m gunicorn bot:app --bind "0.0.0.0:${PORT:-8080}" --threads 4 --timeout 30
