@@ -38,6 +38,20 @@
 </style>
 </head>
 <body>
+<script>
+/* RAJA scanner performance guard: bounded network requests + page visibility. */
+window.__RAJA_SCAN_TIMEOUT_MS = 12000;
+window.__rajaFetchWithTimeout = async function(url, options={}, timeoutMs=window.__RAJA_SCAN_TIMEOUT_MS){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {...options, signal: controller.signal, cache:"no-store"});
+  } finally {
+    clearTimeout(timer);
+  }
+};
+</script>
+
 <div id="signalBanner" class="signal-banner" role="alert" aria-live="assertive">
   <div id="signalBannerDirection" class="direction">--</div>
   <div id="signalBannerDetail" class="detail"></div>
@@ -753,7 +767,7 @@ async function scanBlob(blob,atClose,epoch,captureModeOverride=''){
   fd.append('source','RAJA_LIVE_SCREEN_SCANNER');Object.entries(a).forEach(([k,v])=>fd.append(k,v));
   activeController=new AbortController();const timeout=setTimeout(()=>activeController?.abort(),atClose?15000:10000);
   try{
-    const r=await fetch('/chart-scan',{method:'POST',body:fd,cache:'no-store',signal:activeController.signal}),j=await r.json(),t3=Date.now();
+    const r=await window.__rajaFetchWithTimeout('/chart-scan',{method:'POST',body:fd,cache:'no-store',signal:activeController.signal}),j=await r.json(),t3=Date.now();
     lastRoundTripMs=t3-t0;setMetric('latencyState',lastRoundTripMs+'ms',lastRoundTripMs<=4000?'ok':lastRoundTripMs<=8000?'warn':'block');
     if(Number(j.request_received_epoch_ms)&&Number(j.server_epoch_ms)){
       const measured=((Number(j.request_received_epoch_ms)-t0)+(Number(j.server_epoch_ms)-t3))/2;
@@ -1008,7 +1022,7 @@ body.v48-live-compact #scannerControlsCard .v48-advanced{display:none}
     moveTechnical();copyManualOptions();
     q('v47AutoPair')?.addEventListener('change',e=>{if(q('autoPair')){q('autoPair').checked=e.target.checked;q('autoPair').dispatchEvent(new Event('change',{bubbles:true}));}renderV47();});
     q('v47ManualPair')?.addEventListener('change',e=>{if(q('pair')){q('pair').value=e.target.value;q('pair').dispatchEvent(new Event('change',{bubbles:true}));}if(q('autoPair')){q('autoPair').checked=false;q('autoPair').dispatchEvent(new Event('change',{bubbles:true}));}renderV47();});
-    setInterval(renderV47,250);setTimeout(renderV47,250);
+    setInterval(renderV47,500);setTimeout(renderV47,250);
   },{once:true});
 })();
 </script>
@@ -1038,7 +1052,7 @@ body.v48-live-compact #scannerControlsCard .v48-advanced{display:none}
   document.addEventListener('DOMContentLoaded',()=>{
     buildAdvanced(); positionLiveWatch(); updateCompact();
     const home=q('homeBtn'); if(home){home.addEventListener('click',e=>{e.preventDefault(); window.location.replace(window.location.origin+'/index.html?home=1');});}
-    setInterval(updateCompact,500);
+    setInterval(updateCompact,750);
   },{once:true});
 })();
 </script>
@@ -1326,7 +1340,7 @@ function update(){
     state.style.color='var(--gold)';
   }
 }
-document.addEventListener('DOMContentLoaded',()=>{build();update();setInterval(update,200)},{once:true});
+document.addEventListener('DOMContentLoaded',()=>{build();update();setInterval(update,500)},{once:true});
 })();
 </script>
 
@@ -1570,7 +1584,7 @@ function compactLowerPanels(){
 document.addEventListener('DOMContentLoaded',()=>{
   compactLowerPanels();
   updateNextCandleVisual();
-  setInterval(updateNextCandleVisual,250);
+  setInterval(updateNextCandleVisual,500);
 },{once:true});
 })();
 </script>
@@ -1754,7 +1768,7 @@ function hook(){
 document.addEventListener('DOMContentLoaded',()=>{
   buildCombinedPanel();render();
   if(!hook()){const t=setInterval(()=>{if(hook())clearInterval(t)},300);setTimeout(()=>clearInterval(t),10000)}
-  setInterval(render,3000);
+  setInterval(render,4000);
 },{once:true});
 })();
 </script>
@@ -1973,7 +1987,7 @@ async function requestCheck(row){
   if(row.entry_price!=null)fd.append('entry_price',String(row.entry_price));
   if(row.expiry_ms)fd.append('expiry_epoch_ms',String(row.expiry_ms));
   Object.entries(a).forEach(([k,v])=>fd.append(k,v||''));
-  const r=await fetch('/chart-scan',{method:'POST',body:fd,cache:'no-store'});
+  const r=await window.__rajaFetchWithTimeout('/chart-scan',{method:'POST',body:fd,cache:'no-store'});
   const j=await r.json();
   if(!r.ok)throw new Error(j?.message||'result check failed');
   return j?.result||j;
@@ -2031,7 +2045,7 @@ function patchJournalUI(){
   });
 }
 document.addEventListener('DOMContentLoaded',()=>{
-  sweep();setInterval(sweep,1000);setInterval(patchJournalUI,1500);
+  sweep();setInterval(sweep,1500);setInterval(patchJournalUI,2000);
 },{once:true});
 })();
 </script>
