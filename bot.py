@@ -3570,7 +3570,7 @@ def build_timeframe_display(base_df, minutes):
 # Indicators never create a trade by themselves; they can only confirm or block an SK25 setup.
 # =========================================================
 
-SK25_ENGINE_VERSION = "RAJA_AI_V81_SR_PINBAR_ONLY"
+SK25_ENGINE_VERSION = "RAJA_AI_V82_SR_PINBAR_EMA20_EMA50_RSI14"
 SK25_PATTERN_LIBRARY_SIZE = 25
 SK25_LIVE_MIN_CANDLES = 10
 
@@ -4561,8 +4561,8 @@ V46_TECH_FILTER_ENABLED = str(os.environ.get("RAJA_V46_TECH_FILTER", "1")).strip
 # V76: 65 keeps confirmation meaningful but avoids requiring nearly every
 # indicator to agree on each scan. Railway env vars can still override this.
 V46_MIN_CONFIDENCE = max(60.0, min(95.0, float(os.environ.get("RAJA_V78_MIN_CONFIDENCE", "65"))))
-V46_EMA_FAST = max(3, int(os.environ.get("RAJA_V46_EMA_FAST", "9")))
-V46_EMA_SLOW = max(V46_EMA_FAST + 2, int(os.environ.get("RAJA_V46_EMA_SLOW", "21")))
+V46_EMA_FAST = max(3, int(os.environ.get("RAJA_V46_EMA_FAST", "20")))
+V46_EMA_SLOW = max(V46_EMA_FAST + 2, int(os.environ.get("RAJA_V46_EMA_SLOW", "50")))
 V46_RSI_PERIOD = max(5, int(os.environ.get("RAJA_V46_RSI_PERIOD", "14")))
 V46_ATR_PERIOD = max(5, int(os.environ.get("RAJA_V46_ATR_PERIOD", "14")))
 V46_HTF_MAP = {"1m":"5m", "2m":"5m", "5m":"15m", "10m":"30m", "15m":"30m", "30m":None}
@@ -4804,6 +4804,9 @@ def _v46_apply_technical_confirmation(strategy, base_df, tf_df, timeframe):
     strategy["calibrated_confidence"]=round(score,1)
     strategy["calibration_status"]="V47 BALANCED TECHNICAL CONFIRMATION"
 
+    # Strategy 1 accuracy filter: require EMA20/EMA50 trend alignment AND RSI14 confirmation.
+    # These indicators only confirm/block the pinbar + S/R setup; they never create a signal.
+    strategy1_indicator_failed = bool(strategy.get("pattern_type") == 1 and (not checks.get("ema") or not checks.get("rsi")))
     hard_opposition=bool(checks.get("opposition") or (htf and htf_ready and htf_checks.get("opposition")))
     warmup_failed=not bool(snap.get("ready"))
     htf_failed=bool(V78_BALANCED_ACCURACY and V78_REQUIRE_HTF and htf and (not htf_ready or not htf_ok))
@@ -4822,9 +4825,10 @@ def _v46_apply_technical_confirmation(strategy, base_df, tf_df, timeframe):
         })
         return strategy
 
-    if hard_opposition or htf_failed or volatility_failed or score < V46_MIN_CONFIDENCE:
+    if strategy1_indicator_failed or hard_opposition or htf_failed or volatility_failed or score < V46_MIN_CONFIDENCE:
         original=signal
         reasons=[]
+        if strategy1_indicator_failed: reasons.append("Strategy 1 blocked: EMA20/EMA50 trend or RSI14 confirmation failed")
         if hard_opposition: reasons.append("EMA + MACD direction conflict")
         if htf_failed:
             reasons.append(f"higher-timeframe {htf} confirmation not ready/aligned")
