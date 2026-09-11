@@ -6165,6 +6165,7 @@ def _finnhub_live_base_df(pair, count=1800):
 # that crypto symbol via /pairs; otherwise the existing Twelve Data crypto
 # path remains active. OTC routing is unchanged.
 # =========================================================
+DUKASCOPY_ENABLED = str(os.environ.get("DUKASCOPY_ENABLED", "false")).strip().lower() in {"1", "true", "yes", "on"}
 DUKASCOPY_BRIDGE_URL = (os.environ.get("DUKASCOPY_BRIDGE_URL") or "").strip().rstrip("/")
 DUKASCOPY_BRIDGE_TIMEOUT = max(2.0, min(15.0, float(os.environ.get("DUKASCOPY_BRIDGE_TIMEOUT", "7"))))
 DUKASCOPY_PAIRS_CACHE_SECONDS = max(15, min(600, int(os.environ.get("DUKASCOPY_PAIRS_CACHE_SECONDS", "60"))))
@@ -6215,6 +6216,8 @@ except Exception:
 
 
 def _dukascopy_bridge_json(path, params=None):
+    if not DUKASCOPY_ENABLED:
+        raise RuntimeError("Dukascopy is temporarily disabled")
     if not DUKASCOPY_BRIDGE_URL:
         raise RuntimeError("DUKASCOPY_BRIDGE_URL is not configured")
     url = DUKASCOPY_BRIDGE_URL + path
@@ -6230,6 +6233,8 @@ def _dukascopy_bridge_json(path, params=None):
 
 
 def _dukascopy_bridge_pairs(force=False):
+    if not DUKASCOPY_ENABLED:
+        return set()
     now = time.time()
     with _dukascopy_pairs_lock:
         cached = set(_dukascopy_pairs_cache.get("pairs") or set())
@@ -6256,6 +6261,15 @@ def _dukascopy_bridge_pairs(force=False):
 def _dukascopy_bridge_market_data(pair, count=1200, provider_pair=None):
     clean = str(pair or "").strip()
     bridge_pair = str(provider_pair or clean).strip().upper()
+
+    if not DUKASCOPY_ENABLED:
+        return None, None, bridge_pair, {
+            "source": "Dukascopy JForex BID",
+            "source_mode": "dukascopy_disabled",
+            "provider_symbol": bridge_pair.replace("/", ""),
+            "unavailable_reason": "Dukascopy temporarily disabled on Railway.",
+            "backup_used": False,
+        }
 
     if not DUKASCOPY_BRIDGE_URL:
         return None, None, bridge_pair, {
@@ -6372,11 +6386,13 @@ def get_market_data(pair, bridge_user=None, broker=None):
 def dukascopy_bridge_status():
     health = None
     err = None
+    if not DUKASCOPY_ENABLED:
+        return jsonify({"status":"disabled","configured":False,"health":None,"pair_count":0,"pairs":[],"crypto_on_dukascopy":{},"crypto_fallback":"Twelve Data","error":"Dukascopy temporarily disabled on Railway."}), 200
     try:
         health = _dukascopy_bridge_json("/health")
     except Exception as exc:
         err = f"{type(exc).__name__}: {exc}"
-    pairs = sorted(_dukascopy_bridge_pairs(force=True)) if DUKASCOPY_BRIDGE_URL else []
+    pairs = sorted(_dukascopy_bridge_pairs(force=True)) if DUKASCOPY_ENABLED and DUKASCOPY_BRIDGE_URL else []
     crypto_on_bridge = {
         app_pair: bridge_pair
         for app_pair, bridge_pair in DUKASCOPY_CRYPTO_CANDIDATES.items()
@@ -6384,7 +6400,7 @@ def dukascopy_bridge_status():
     }
     return jsonify({
         "status": "success" if health else "error",
-        "configured": bool(DUKASCOPY_BRIDGE_URL),
+        "configured": bool(DUKASCOPY_ENABLED and DUKASCOPY_BRIDGE_URL),
         "health": health,
         "pair_count": len(pairs),
         "pairs": pairs,
@@ -9628,6 +9644,8 @@ def _v73_dukascopy_unavailable(pair, bridge_pair, reason):
 
 def _v73_get_dukascopy(pair, count=1500):
     bridge_pair = _v73_normalize_dukascopy_pair(pair)
+    if not DUKASCOPY_ENABLED:
+        return _v73_dukascopy_unavailable(pair, bridge_pair or "", "Dukascopy temporarily disabled on Railway.")
 
     if not bridge_pair:
         return _v73_dukascopy_unavailable(pair, "", "Empty instrument name.")
@@ -10026,7 +10044,7 @@ def get_market_data(pair, bridge_user=None, broker=None):
     # Existing crypto policy is preserved.
     if upper in TWELVE_DATA_CRYPTO_LIVE_PAIRS:
         bridge_pair = _v73_normalize_dukascopy_pair(upper)
-        supported = _dukascopy_bridge_pairs(force=False) if DUKASCOPY_BRIDGE_URL else set()
+        supported = _dukascopy_bridge_pairs(force=False) if DUKASCOPY_ENABLED and DUKASCOPY_BRIDGE_URL else set()
         dukascopy_reason = None
         if bridge_pair and bridge_pair in supported:
             data, age, symbol, info = _v73_get_dukascopy(upper, count=1500)
@@ -10075,8 +10093,8 @@ def live_chart_tick():
         supported=_dukascopy_bridge_pairs(force=False) if DUKASCOPY_BRIDGE_URL else set()
         if bridge_pair not in supported:
             return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"Twelve Data minute fallback","reason":biquote_error}})
-    if not DUKASCOPY_BRIDGE_URL:
-        return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"Dukascopy JForex BID","reason":biquote_error}})
+    if not DUKASCOPY_ENABLED or not DUKASCOPY_BRIDGE_URL:
+        return jsonify({"status":"success","data":{"pair":pair,"provider_pair":bridge_pair,"tick_supported":False,"source":"BiQuote","reason":biquote_error + "; Dukascopy temporarily disabled"}})
     try:
         tick=_dukascopy_bridge_json("/tick", {"pair":bridge_pair})
         if not isinstance(tick,dict):
