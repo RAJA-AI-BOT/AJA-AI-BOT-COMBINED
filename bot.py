@@ -3574,14 +3574,12 @@ SK25_ENGINE_VERSION = "RAJA_AI_V83_BB_RSI_WICK_3_STRATEGIES"
 SK25_PATTERN_LIBRARY_SIZE = 3
 SK25_LIVE_MIN_CANDLES = 10
 
-# RAJA policy: only Strategy 1 is active. Other historical strategies remain in source but are ignored.
+# RAJA policy: only Strategies 1-3 are active. Other historical strategies remain in source but are ignored.
 RAJA_ACTIVE_STRATEGY_IDS = frozenset({1, 2, 3})
 RAJA_STRATEGY_NAMES = {
     1: "⭐ Candlestick Wick Rejection / Pinbar + S/R",
     2: "⭐ Bollinger Bands Rejection + S/R",
     3: "⭐ RSI Reversal + S/R",
-    2: "RAJA Type 2 · Resistance Reversal",
-    3: "RAJA Type 3 · Sideways Wick Sweep",
     4: "RAJA Type 4 · Long-Wick Rejection",
     5: "RAJA Type 5 · Double-Tail Reversal",
     6: "RAJA Type 6 · Loss Recovery Sequence",
@@ -3616,7 +3614,7 @@ RAJA_STRATEGY_NAMES = {
     35: "Premium · Engulfing at Key S/R",
 }
 RAJA_STRATEGY_PRIORITIES = {
-    2:105, 4:115, 9:145, 10:145, 12:165, 14:150,
+    1:120, 2:115, 3:115, 4:100, 9:145, 10:145, 12:165, 14:150,
     18:155, 19:155, 20:145, 21:145, 22:155, 23:155, 24:180, 25:175,
     26:188, 27:202, 28:205, 29:192, 30:198,
     31:210, 32:206, 33:204, 34:207, 35:200,
