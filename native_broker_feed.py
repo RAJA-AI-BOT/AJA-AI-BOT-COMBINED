@@ -12,7 +12,6 @@ Secrets must be supplied through environment variables, never committed to sourc
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import re
 import threading
@@ -580,21 +579,6 @@ class PocketNativeFeed:
 
         self.auth_looks_like_ws_ssid = _is_full_auth(self.ssid)
 
-        self.auth_payload = {}
-        self.auth_frame_kind = "unknown"
-        if self.auth_looks_like_ws_ssid:
-            try:
-                parsed = json.loads(self.ssid[2:])
-                payload = parsed[1] if isinstance(parsed, list) and len(parsed) >= 2 else {}
-                if parsed[0] == "auth" and isinstance(payload, dict):
-                    self.auth_payload = payload
-                    if payload.get("session"):
-                        self.auth_frame_kind = "trading"
-                    elif payload.get("sessionToken"):
-                        self.auth_frame_kind = "browser_site"
-            except Exception:
-                self.auth_frame_kind = "malformed"
-
         # If a Pocket auth value exists, enable the native feed automatically.
         # An explicit RAJA_POCKET_NATIVE_ENABLED=true/false may still override it,
         # but a missing variable no longer disables a valid SSID.
@@ -610,23 +594,13 @@ class PocketNativeFeed:
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
         self.cache_seconds = max(2, min(30, int(os.environ.get("RAJA_NATIVE_CACHE_SECONDS", "8"))))
         self.history_refresh_seconds = max(30, min(900, int(os.environ.get("RAJA_NATIVE_HISTORY_REFRESH_SECONDS", "120"))))
-        self.state = FeedState(configured=bool(self.enabled and self.ssid and self.auth_frame_kind == "trading"))
+        self.state = FeedState(configured=bool(self.enabled and self.ssid))
         self._client: Any = None
         self._lock = threading.RLock()
         self._connect_lock = threading.Lock()
         self._cache: dict[str, tuple[float, Any, str]] = {}
         self._frames: dict[str, tuple[float, Any, str]] = {}
         self._catalog: dict[str, Any] = {}
-        if self.auth_frame_kind == "browser_site":
-            print(
-                "[RAJA POCKET] BROWSER AUTH DETECTED: sessionToken frame belongs to the "
-                "Pocket website socket. Native PocketOptionApi market websocket will not "
-                "be attempted with this frame; use Pocket Browser Bridge for exact OTC data.",
-                flush=True,
-            )
-        elif self.auth_frame_kind == "malformed":
-            print("[RAJA POCKET] AUTH FRAME MALFORMED", flush=True)
-
         if self.state.configured:
             print(
                 f"[RAJA POCKET] CONFIG READY source={self.auth_source} "
@@ -644,9 +618,8 @@ class PocketNativeFeed:
                 )
         else:
             print(
-                f"[RAJA POCKET] NATIVE TRADING AUTH UNAVAILABLE; "
-                f"frame_kind={self.auth_frame_kind} ssid_present={bool(self.raw_ssid)} "
-                f"api_key_present={self.api_key_present}",
+                f"[RAJA POCKET] CONFIG MISSING usable auth; "
+                f"ssid_present={bool(self.raw_ssid)} api_key_present={self.api_key_present}",
                 flush=True,
             )
 
@@ -788,7 +761,6 @@ class PocketNativeFeed:
             "auth_source": self.auth_source,
             "auth_format": "full_ws_auth" if self.auth_looks_like_ws_ssid else ("raw_token" if self.ssid else "none"),
             "api_key_present": bool(self.api_key_present),
-            "auth_frame_kind": self.auth_frame_kind,
         })
         return out
 
