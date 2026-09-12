@@ -526,7 +526,20 @@ class QuotexNativeFeed:
 
 class PocketNativeFeed:
     def __init__(self) -> None:
-        self.ssid = (os.environ.get("RAJA_POCKET_SSID") or os.environ.get("PO_SSID") or "").strip()
+        # Prefer the full Pocket Option WebSocket SSID.  RAJA_POCKET_SID is
+        # also accepted as an alias/fallback for deployments that keep both
+        # names as separate Railway variables.
+        self.ssid = (
+            os.environ.get("RAJA_POCKET_SSID")
+            or os.environ.get("RAJA_POCKET_SID")
+            or os.environ.get("PO_SSID")
+            or ""
+        ).strip()
+        self.auth_source = (
+            "RAJA_POCKET_SSID" if os.environ.get("RAJA_POCKET_SSID")
+            else ("RAJA_POCKET_SID" if os.environ.get("RAJA_POCKET_SID")
+                  else ("PO_SSID" if os.environ.get("PO_SSID") else "none"))
+        )
         self.enabled = _env_bool("RAJA_POCKET_NATIVE_ENABLED", bool(self.ssid))
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
         self.cache_seconds = max(2, min(30, int(os.environ.get("RAJA_NATIVE_CACHE_SECONDS", "8"))))
@@ -666,7 +679,11 @@ class PocketNativeFeed:
 
     def status(self) -> dict[str, Any]:
         out = self.state.public()
-        out.update({"enabled": bool(self.enabled), "auth_mode": "ssid" if self.ssid else "none"})
+        out.update({
+            "enabled": bool(self.enabled),
+            "auth_mode": "ssid" if self.ssid else "none",
+            "auth_source": self.auth_source,
+        })
         return out
 
 
