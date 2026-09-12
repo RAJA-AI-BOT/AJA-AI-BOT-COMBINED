@@ -3387,6 +3387,19 @@ def get_market_data(pair, bridge_user=None, broker=None):
     if is_otc:
         # Preserve the project's existing OTC native/live-sharing path.
         if is_quotex or is_pocket:
+            # Pocket Option exact OTC: prefer the existing browser bridge first.
+            if is_pocket:
+                try:
+                    bdf, bage, bsym, binfo = get_pocket_bridge_market_data(bridge_user, pair)
+                    if bdf is not None and not bdf.empty:
+                        info = dict(binfo or {})
+                        info["feed_quality"] = _market_candle_quality(bdf)
+                        info["source_priority"] = "pocket_browser_bridge_first"
+                        return bdf, bage, bsym or pair, info
+                except Exception:
+                    pass
+
+            # Native websocket is still used when a genuine trading SSID exists.
             if callable(get_native_broker_market_data):
                 try:
                     ndf, nage, nsym, ninfo = get_native_broker_market_data(broker, pair)
@@ -3396,17 +3409,16 @@ def get_market_data(pair, bridge_user=None, broker=None):
                         return ndf, nage, nsym or pair, info
                 except Exception:
                     pass
-            try:
-                if is_pocket:
-                    bdf, bage, bsym, binfo = get_pocket_bridge_market_data(bridge_user, pair)
-                else:
+
+            if is_quotex:
+                try:
                     bdf, bage, bsym, binfo = get_quotex_bridge_market_data(bridge_user, pair)
-                if bdf is not None and not bdf.empty:
-                    info = dict(binfo or {})
-                    info["feed_quality"] = _market_candle_quality(bdf)
-                    return bdf, bage, bsym or pair, info
-            except Exception:
-                pass
+                    if bdf is not None and not bdf.empty:
+                        info = dict(binfo or {})
+                        info["feed_quality"] = _market_candle_quality(bdf)
+                        return bdf, bage, bsym or pair, info
+                except Exception:
+                    pass
         return None, None, pair, {
             "source": "OTC Live Sharing",
             "source_mode": "otc_requires_broker_feed",
