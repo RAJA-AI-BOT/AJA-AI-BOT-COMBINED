@@ -580,22 +580,18 @@ class PocketNativeFeed:
 
         self.auth_looks_like_ws_ssid = _is_full_auth(self.ssid)
 
-        # Validate that this is the Pocket Option *trading* WebSocket auth frame
-        # expected by PocketOptionApi v2.0. A chat/site auth frame may also start
-        # with 42["auth",...] but uses sessionToken/currentUrl/isChart instead of
-        # session/isDemo/platform and will be rejected by the market-data server.
         self.auth_payload = {}
         self.auth_frame_kind = "unknown"
         if self.auth_looks_like_ws_ssid:
             try:
-                payload_text = self.ssid[2:]
-                parsed = json.loads(payload_text)
-                if isinstance(parsed, list) and len(parsed) >= 2 and parsed[0] == "auth" and isinstance(parsed[1], dict):
-                    self.auth_payload = parsed[1]
-                    if self.auth_payload.get("session"):
+                parsed = json.loads(self.ssid[2:])
+                payload = parsed[1] if isinstance(parsed, list) and len(parsed) >= 2 else {}
+                if parsed[0] == "auth" and isinstance(payload, dict):
+                    self.auth_payload = payload
+                    if payload.get("session"):
                         self.auth_frame_kind = "trading"
-                    elif self.auth_payload.get("sessionToken"):
-                        self.auth_frame_kind = "site_or_chat"
+                    elif payload.get("sessionToken"):
+                        self.auth_frame_kind = "browser_site"
             except Exception:
                 self.auth_frame_kind = "malformed"
 
@@ -621,13 +617,16 @@ class PocketNativeFeed:
         self._cache: dict[str, tuple[float, Any, str]] = {}
         self._frames: dict[str, tuple[float, Any, str]] = {}
         self._catalog: dict[str, Any] = {}
-        if self.auth_looks_like_ws_ssid and self.auth_frame_kind != "trading":
+        if self.auth_frame_kind == "browser_site":
             print(
-                f"[RAJA POCKET] WRONG AUTH FRAME kind={self.auth_frame_kind}; "
-                "PocketOptionApi requires trading socket auth with keys session/isDemo/uid "
-                "(not sessionToken/currentUrl/isChart).",
+                "[RAJA POCKET] BROWSER AUTH DETECTED: sessionToken frame belongs to the "
+                "Pocket website socket. Native PocketOptionApi market websocket will not "
+                "be attempted with this frame; use Pocket Browser Bridge for exact OTC data.",
                 flush=True,
             )
+        elif self.auth_frame_kind == "malformed":
+            print("[RAJA POCKET] AUTH FRAME MALFORMED", flush=True)
+
         if self.state.configured:
             print(
                 f"[RAJA POCKET] CONFIG READY source={self.auth_source} "
@@ -645,8 +644,9 @@ class PocketNativeFeed:
                 )
         else:
             print(
-                f"[RAJA POCKET] CONFIG MISSING usable auth; "
-                f"ssid_present={bool(self.raw_ssid)} api_key_present={self.api_key_present}",
+                f"[RAJA POCKET] NATIVE TRADING AUTH UNAVAILABLE; "
+                f"frame_kind={self.auth_frame_kind} ssid_present={bool(self.raw_ssid)} "
+                f"api_key_present={self.api_key_present}",
                 flush=True,
             )
 
