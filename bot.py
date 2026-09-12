@@ -3582,18 +3582,18 @@ def build_timeframe_display(base_df, minutes):
 # Indicators never create a trade by themselves; they can only confirm or block an SK25 setup.
 # =========================================================
 
-SK25_ENGINE_VERSION = "RAJA_AI_V84_BB_RSI_WICK_3_STRATEGIES_EMA20_50_ADX14"
-SK25_PATTERN_LIBRARY_SIZE = 3
+SK25_ENGINE_VERSION = "RAJA_AI_V85_5_STRATEGIES_ORDERBLOCK_BREAKOUT_RETEST"
+SK25_PATTERN_LIBRARY_SIZE = 5
 SK25_LIVE_MIN_CANDLES = 10
 
-# RAJA policy: only Strategies 1-3 are active. Other historical strategies remain in source but are ignored.
-RAJA_ACTIVE_STRATEGY_IDS = frozenset({1, 2, 3})
+# RAJA policy: Strategies 1-5 are active. Other historical strategies remain in source but are ignored.
+RAJA_ACTIVE_STRATEGY_IDS = frozenset({1, 2, 3, 4, 5})
 RAJA_STRATEGY_NAMES = {
     1: "⭐ Candlestick Wick Rejection / Pinbar + S/R",
     2: "⭐ Bollinger Bands Rejection + S/R",
     3: "⭐ RSI Reversal + S/R",
-    4: "RAJA Type 4 · Long-Wick Rejection",
-    5: "RAJA Type 5 · Double-Tail Reversal",
+    4: "⭐ Order Block + S/R",
+    5: "⭐ Breakout + Retest",
     6: "RAJA Type 6 · Loss Recovery Sequence",
     7: "RAJA Type 7 · RED + Two GREEN Reversal",
     8: "RAJA Type 8 · GREEN + Two RED Reversal",
@@ -3626,7 +3626,7 @@ RAJA_STRATEGY_NAMES = {
     35: "Premium · Engulfing at Key S/R",
 }
 RAJA_STRATEGY_PRIORITIES = {
-    1:120, 2:115, 3:115, 4:100, 9:145, 10:145, 12:165, 14:150,
+    1:120, 2:115, 3:115, 4:125, 5:123, 9:145, 10:145, 12:165, 14:150,
     18:155, 19:155, 20:145, 21:145, 22:155, 23:155, 24:180, 25:175,
     26:188, 27:202, 28:205, 29:192, 30:198,
     31:210, 32:206, 33:204, 34:207, 35:200,
@@ -3759,6 +3759,73 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
         }
         if matched==total: exact.append(item)
         elif pct>=60: near.append(item)
+
+    # Strategy 4 — Order Block + Support/Resistance.
+    # Bullish OB: previous bearish candle is displaced by a bullish close above its high near support.
+    # Bearish OB: previous bullish candle is displaced by a bearish close below its low near resistance.
+    if count >= 22:
+        ob_prev = candles[-2]
+        ob_last = candles[-1]
+        ob_context = candles[-22:-2]
+        ob_support = min(float(x["low"]) for x in ob_context)
+        ob_resistance = max(float(x["high"]) for x in ob_context)
+        ob_buffer = max(med_range * 0.55, tol * 1.75)
+        ob_bull_zone = float(ob_prev["low"]) <= ob_support + ob_buffer
+        ob_bear_zone = float(ob_prev["high"]) >= ob_resistance - ob_buffer
+        bullish_ob = (
+            ob_prev["dir"] < 0 and ob_last["dir"] > 0
+            and float(ob_last["close"]) > float(ob_prev["high"]) + tol * 0.05
+            and ob_last["body"] >= med_body * 0.70
+        )
+        bearish_ob = (
+            ob_prev["dir"] > 0 and ob_last["dir"] < 0
+            and float(ob_last["close"]) < float(ob_prev["low"]) - tol * 0.05
+            and ob_last["body"] >= med_body * 0.70
+        )
+        add(4, 1, [
+            ("Previous candle is bearish order-block candidate", ob_prev["dir"] < 0),
+            ("Bullish displacement closes above order-block high", bullish_ob),
+            ("Order block formed near recent support", ob_bull_zone),
+        ], "Bullish Order Block + support", "CALL after a CLOSED bullish displacement confirms a bearish order block near support.", family="Order Block", tf_rule="ANY")
+        add(4, -1, [
+            ("Previous candle is bullish order-block candidate", ob_prev["dir"] > 0),
+            ("Bearish displacement closes below order-block low", bearish_ob),
+            ("Order block formed near recent resistance", ob_bear_zone),
+        ], "Bearish Order Block + resistance", "PUT after a CLOSED bearish displacement confirms a bullish order block near resistance.", family="Order Block", tf_rule="ANY")
+
+    # Strategy 5 — Breakout + Retest of recent Support/Resistance.
+    # Uses only closed candles: candle[-2] breaks the level, candle[-1] retests and holds it.
+    if count >= 24:
+        br_break = candles[-2]
+        br_retest = candles[-1]
+        br_context = candles[-24:-2]
+        br_resistance = max(float(x["high"]) for x in br_context)
+        br_support = min(float(x["low"]) for x in br_context)
+        br_buffer = max(med_range * 0.32, tol * 1.30)
+        bull_break = br_break["dir"] > 0 and float(br_break["close"]) > br_resistance + tol * 0.10
+        bull_retest = (
+            br_retest["dir"] > 0
+            and float(br_retest["low"]) <= br_resistance + br_buffer
+            and float(br_retest["low"]) >= br_resistance - br_buffer * 1.25
+            and float(br_retest["close"]) > br_resistance
+        )
+        bear_break = br_break["dir"] < 0 and float(br_break["close"]) < br_support - tol * 0.10
+        bear_retest = (
+            br_retest["dir"] < 0
+            and float(br_retest["high"]) >= br_support - br_buffer
+            and float(br_retest["high"]) <= br_support + br_buffer * 1.25
+            and float(br_retest["close"]) < br_support
+        )
+        add(5, 1, [
+            ("Previous CLOSED candle breaks resistance", bull_break),
+            ("Latest CLOSED candle retests broken resistance", bull_retest),
+            ("Retest holds above old resistance", float(br_retest["close"]) > br_resistance),
+        ], "Resistance breakout + bullish retest", "CALL after resistance breaks and the next CLOSED candle retests/holds it as support.", family="Breakout Retest", tf_rule="ANY")
+        add(5, -1, [
+            ("Previous CLOSED candle breaks support", bear_break),
+            ("Latest CLOSED candle retests broken support", bear_retest),
+            ("Retest holds below old support", float(br_retest["close"]) < br_support),
+        ], "Support breakdown + bearish retest", "PUT after support breaks and the next CLOSED candle retests/holds it as resistance.", family="Breakout Retest", tf_rule="ANY")
 
     # Type 1 — ⭐ Wick Rejection / Pinbar + Support/Resistance confirmation.
     # Closed-candle only. Designed as a strict 1m/1m reversal setup.
@@ -3962,11 +4029,11 @@ def analyze_sk25_ohlc(df, timeframe="1m", market="LIVE", last_outcome=""):
     a,b=candles[-2:]
     prior_support=min((x["low"] for x in candles[-10:-2]), default=a["low"])
     support_rejection=a["low"] <= prior_support+tol*1.20 and a["close"] >= prior_support-tol*0.20
-    add(4,1,[("RED then GREEN",seq_is([a,b],[-1,1])),("1st RED lower tail is long",long_lower(a)),("RED tail longer than GREEN head",a["lower_wick"]>max(b["upper_wick"]*1.12,med_range*0.18)),("Long tail rejects recent support area",support_rejection)],"RED long-tail support rejection + GREEN","Next candle GREEN only when the wick rejects a meaningful recent support area.")
+    add(104,1,[("RED then GREEN",seq_is([a,b],[-1,1])),("1st RED lower tail is long",long_lower(a)),("RED tail longer than GREEN head",a["lower_wick"]>max(b["upper_wick"]*1.12,med_range*0.18)),("Long tail rejects recent support area",support_rejection)],"RED long-tail support rejection + GREEN","Next candle GREEN only when the wick rejects a meaningful recent support area.")
 
     # Type 5 — R,R long tails; second red does not break first red high; then G -> next R.
     a,b,c=candles[-3:]
-    add(5,-1,[("RED, RED, GREEN setup",seq_is([a,b,c],[-1,-1,1])),("First two RED lower tails are long",long_lower(a) and long_lower(b)),("2nd RED high does not break 1st RED",b["high"]<=a["high"]+tol*0.35),("Sideways/mixed context",abs(trend)<0.68)],"2 long-tail RED + GREEN","Next candle RED.","Sideways")
+    add(105,-1,[("RED, RED, GREEN setup",seq_is([a,b,c],[-1,-1,1])),("First two RED lower tails are long",long_lower(a) and long_lower(b)),("2nd RED high does not break 1st RED",b["high"]<=a["high"]+tol*0.35),("Sideways/mixed context",abs(trend)<0.68)],"2 long-tail RED + GREEN","Next candle RED.","Sideways")
 
     # Type 6 — loss-recovery label stays, but a loss alone never creates the edge.
     recovery_bear_context=trend < -0.08
