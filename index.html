@@ -16292,30 +16292,12 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     }
 
     function installBridgeButton() {
-        let btn = document.getElementById('rajaBrokerBridgeBtn');
+        const existing = document.getElementById('rajaBrokerBridgeBtn');
+        if (existing) existing.remove();
         const old = document.getElementById('rajaQuotexBridgeBtn');
         if (old) old.remove();
-
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.type = 'button';
-            btn.id = 'rajaBrokerBridgeBtn';
-            btn.className = 'raja-visual-pair-btn';
-            btn.style.width = '100%';
-            btn.style.marginTop = '8px';
-            btn.onclick = createBridgePairCode;
-
-            const tools = document.getElementById('rajaVisualPairTools');
-            const pairSelect = document.getElementById('pairSelect');
-            if (tools) {
-                tools.appendChild(btn);
-            } else if (pairSelect && pairSelect.parentElement) {
-                pairSelect.parentElement.appendChild(btn);
-            }
-        }
-
         updateBridgeUi(null);
-        refreshBridgeStatus();
+        return;
     }
 
     window.rajaCreateBrokerBridgePairCode = createBridgePairCode;
