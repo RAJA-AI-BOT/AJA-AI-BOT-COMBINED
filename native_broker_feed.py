@@ -526,20 +526,13 @@ class QuotexNativeFeed:
 
 class PocketNativeFeed:
     def __init__(self) -> None:
-        # Prefer the full Pocket Option WebSocket SSID.  RAJA_POCKET_SID is
-        # also accepted as an alias/fallback for deployments that keep both
-        # names as separate Railway variables.
-        self.ssid = (
-            os.environ.get("RAJA_POCKET_SSID")
-            or os.environ.get("RAJA_POCKET_SID")
-            or os.environ.get("PO_SSID")
-            or ""
-        ).strip()
-        self.auth_source = (
-            "RAJA_POCKET_SSID" if os.environ.get("RAJA_POCKET_SSID")
-            else ("RAJA_POCKET_SID" if os.environ.get("RAJA_POCKET_SID")
-                  else ("PO_SSID" if os.environ.get("PO_SSID") else "none"))
-        )
+        # RAJA Railway Pocket Option authentication.
+        # Expected value:
+        #   RAJA_POCKET_SSID=42["auth",{...}]
+        # No separate API-key variable is required for this build.
+        self.auth_source = "RAJA_POCKET_SSID"
+        self.ssid = str(os.environ.get("RAJA_POCKET_SSID") or "").strip()
+        self.auth_looks_like_ws_ssid = bool(self.ssid.startswith('42["auth",'))
         self.enabled = _env_bool("RAJA_POCKET_NATIVE_ENABLED", bool(self.ssid))
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
         self.cache_seconds = max(2, min(30, int(os.environ.get("RAJA_NATIVE_CACHE_SECONDS", "8"))))
@@ -551,6 +544,14 @@ class PocketNativeFeed:
         self._cache: dict[str, tuple[float, Any, str]] = {}
         self._frames: dict[str, tuple[float, Any, str]] = {}
         self._catalog: dict[str, Any] = {}
+        if self.state.configured:
+            print(
+                f"[RAJA POCKET] CONFIG READY source=RAJA_POCKET_SSID "
+                f"format={'full_ws_auth' if self.auth_looks_like_ws_ssid else 'unexpected'}",
+                flush=True,
+            )
+        else:
+            print("[RAJA POCKET] CONFIG MISSING RAJA_POCKET_SSID", flush=True)
 
     def _ensure_connected(self) -> bool:
         if not self.state.configured:
@@ -582,6 +583,7 @@ class PocketNativeFeed:
                 if not ok:
                     self.state.connected = False
                     self.state.last_error = f"Pocket Option connect failed: {err}"
+                    print(f"[RAJA POCKET] AUTH FAILED error={err}", flush=True)
                     return False
                 deadline = time.time() + 12.0
                 while time.time() < deadline:
@@ -594,9 +596,11 @@ class PocketNativeFeed:
                 if not client.check_connect():
                     self.state.connected = False
                     self.state.last_error = "Pocket Option websocket did not become ready"
+                    print("[RAJA POCKET] AUTH FAILED error=websocket_not_ready", flush=True)
                     return False
                 self._client = client
                 self.state.subscriptions.clear()
+                print(f"[RAJA POCKET] AUTH CONNECTED source={self.auth_source} format={'full_ws_auth' if self.auth_looks_like_ws_ssid else 'raw_token'}", flush=True)
                 try:
                     self._catalog = client.get_assets() or {}
                 except Exception:
@@ -607,6 +611,7 @@ class PocketNativeFeed:
             except Exception as exc:
                 self.state.connected = False
                 self.state.last_error = f"Pocket Option native error: {type(exc).__name__}: {exc}"
+                print(f"[RAJA POCKET] AUTH FAILED error={type(exc).__name__}: {exc}", flush=True)
                 return False
 
     def _fetch(self, pair: str):
@@ -655,6 +660,7 @@ class PocketNativeFeed:
             self.state.last_asset = asset
             self.state.connected = True
             self.state.last_error = ""
+            print(f"[RAJA POCKET] DATA OK pair={pair} asset={asset} candles={len(df)} source=PocketOption", flush=True)
             return df, asset
         except Exception as exc:
             self.state.last_error = f"Pocket Option fetch: {type(exc).__name__}: {exc}"
@@ -683,6 +689,8 @@ class PocketNativeFeed:
             "enabled": bool(self.enabled),
             "auth_mode": "ssid" if self.ssid else "none",
             "auth_source": self.auth_source,
+            "auth_format": "full_ws_auth" if self.auth_looks_like_ws_ssid else ("raw_token" if self.ssid else "none"),
+            "api_key_present": bool(self.api_key_present),
         })
         return out
 
