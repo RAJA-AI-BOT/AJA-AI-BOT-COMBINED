@@ -527,11 +527,35 @@ class QuotexNativeFeed:
 class PocketNativeFeed:
     def __init__(self) -> None:
         # RAJA Railway Pocket Option authentication.
-        # Expected value:
+        # Preferred:
         #   RAJA_POCKET_SSID=42["auth",{...}]
-        # No separate API-key variable is required for this build.
-        self.auth_source = "RAJA_POCKET_SSID"
-        self.ssid = str(os.environ.get("RAJA_POCKET_SSID") or "").strip()
+        # Optional:
+        #   RAJA_POCKET_API_KEY=<separate short key/token>
+        #
+        # PocketOptionApi authenticates with the full Socket.IO auth frame.
+        # Therefore a full RAJA_POCKET_SSID is primary.  If the API-key
+        # variable itself contains a full auth frame it may be used as a
+        # fallback. A short key is never silently misrepresented as a full
+        # websocket auth frame.
+        self.raw_ssid = str(os.environ.get("RAJA_POCKET_SSID") or "").strip()
+        self.api_key = str(os.environ.get("RAJA_POCKET_API_KEY") or "").strip()
+        self.api_key_present = bool(self.api_key)
+
+        ssid_is_full = bool(self.raw_ssid.startswith('42["auth",'))
+        api_is_full = bool(self.api_key.startswith('42["auth",'))
+        if ssid_is_full:
+            self.ssid = self.raw_ssid
+            self.auth_source = "RAJA_POCKET_SSID"
+        elif api_is_full:
+            self.ssid = self.api_key
+            self.auth_source = "RAJA_POCKET_API_KEY"
+        else:
+            # Keep the configured SSID value for diagnostics/compatibility.
+            # A short cookie/token may fail with PocketOptionApi; the log will
+            # make that explicit rather than pretending authentication worked.
+            self.ssid = self.raw_ssid
+            self.auth_source = "RAJA_POCKET_SSID" if self.raw_ssid else "none"
+
         self.auth_looks_like_ws_ssid = bool(self.ssid.startswith('42["auth",'))
         self.enabled = _env_bool("RAJA_POCKET_NATIVE_ENABLED", bool(self.ssid))
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
@@ -546,12 +570,24 @@ class PocketNativeFeed:
         self._catalog: dict[str, Any] = {}
         if self.state.configured:
             print(
-                f"[RAJA POCKET] CONFIG READY source=RAJA_POCKET_SSID "
-                f"format={'full_ws_auth' if self.auth_looks_like_ws_ssid else 'unexpected'}",
+                f"[RAJA POCKET] CONFIG READY source={self.auth_source} "
+                f"format={'full_ws_auth' if self.auth_looks_like_ws_ssid else 'raw_token'} "
+                f"api_key_present={self.api_key_present}",
                 flush=True,
             )
+            if self.api_key_present:
+                print("[RAJA POCKET] API KEY VARIABLE DETECTED", flush=True)
+            if not self.auth_looks_like_ws_ssid:
+                print(
+                    "[RAJA POCKET] WARNING selected auth is not a full 42[\"auth\",{...}] frame",
+                    flush=True,
+                )
         else:
-            print("[RAJA POCKET] CONFIG MISSING RAJA_POCKET_SSID", flush=True)
+            print(
+                f"[RAJA POCKET] CONFIG MISSING usable auth; "
+                f"ssid_present={bool(self.raw_ssid)} api_key_present={self.api_key_present}",
+                flush=True,
+            )
 
     def _ensure_connected(self) -> bool:
         if not self.state.configured:
@@ -741,7 +777,7 @@ def get_native_broker_market_data(broker: str, pair: str):
                 )
             else:
                 info["unavailable_reason"] = (
-                    "Pocket Option native feed is not configured. Set RAJA_POCKET_SSID in Railway."
+                    "Pocket Option native feed is not configured. Set RAJA_POCKET_SSID to the full 42[\"auth\",{...}] frame in Railway. RAJA_POCKET_API_KEY is optional."
                 )
         elif status.get("library_available") is False:
             info["unavailable_reason"] = (
