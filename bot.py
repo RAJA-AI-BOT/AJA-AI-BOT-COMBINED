@@ -5572,13 +5572,16 @@ def otc_fallback_config():
     po_native = dict(native.get("pocket_option") or {})
     qx_native_ready = bool(qx_native.get("configured") and qx_native.get("connected"))
     po_native_ready = bool(po_native.get("configured") and po_native.get("connected"))
-    # No-bridge reference mode is always scan-capable when the normal
-    # Yahoo/Twelve reference chain is available. Native broker data remains optional.
-    direct_ready = True
-    if qx_native_ready:
-        message = "Exact Quotex native feed is connected. It will be preferred automatically."
+    # Broker OTC is exact-feed only. Reference providers are intentionally blocked.
+    direct_ready = bool(qx_native_ready or po_native_ready or bridge_connected)
+    if po_native_ready:
+        message = "Exact Pocket Option native OTC feed is connected."
+    elif qx_native_ready:
+        message = "Exact Quotex native OTC feed is connected."
+    elif bridge_connected:
+        message = "Exact broker browser-bridge OTC feed is connected. Yahoo/reference OTC data is blocked."
     else:
-        message = "No-bridge OTC reference mode is active. Yahoo/Twelve reference candles will be used when exact broker OTC data is unavailable."
+        message = "Exact broker OTC feed is not connected yet. Yahoo/reference OTC data is blocked."
     return jsonify({
         "status": "success",
         "data": {
@@ -5595,8 +5598,8 @@ def otc_fallback_config():
             "bridge": bridge,
             "bridge_required_for_quotex_otc": False,
             "bridge_is_backup": True,
-            "reference_fallback_enabled": True,
-            "strict_broker_otc": False,
+            "reference_fallback_enabled": False,
+            "strict_broker_otc": True,
             "message": message,
         },
     })
@@ -9668,7 +9671,7 @@ def live_chart_data():
             "status":"success",
             "data":result,
             "read_only":True,
-            "note":"V68: Twelve Data candles are aligned to exact minute boundaries. Signals use CLOSED candles only; the chart may include the current forming candle.",
+            "note":"OTC uses the selected broker's exact native/bridge candles only; Yahoo/reference OTC data is blocked. Signals use CLOSED candles only; the chart may include the current forming candle.",
         })
     except Exception as exc:
         # Always return JSON so the browser never receives Flask's HTML 500 page.
@@ -10275,12 +10278,90 @@ def _biquote_tick(pair):
     return payload
 
 def get_market_data(pair, bridge_user=None, broker=None):
+    """Return broker-native market data for OTC; never proxy Pocket Option OTC via Yahoo.
+
+    Pocket Option / Quotex OTC is exact-feed only: native WebSocket first, then
+    the same-broker browser bridge as an exact backup. Yahoo, Twelve Data,
+    Dukascopy, OANDA, or other underlying/reference feeds are never used for OTC.
+    """
     clean = str(pair or "").strip()
     upper = clean.upper()
     is_otc = "(OTC)" in upper
+    broker_name = str(broker or "").strip().casefold().replace(" ", "")
+    is_quotex = broker_name == "quotex"
+    is_pocket = broker_name in {"pocketoption", "pocket_option", "pocket"}
 
-    # BiQuote is the ONLY normal LIVE Forex/metals market-data source on Railway.
-    # OTC stays on the existing broker-native/reference path. Dukascopy is OFF.
+    if is_otc:
+        if not (is_quotex or is_pocket):
+            return None, None, clean, {
+                "source": "Broker Native WebSocket",
+                "source_mode": "broker_otc_requires_selected_broker",
+                "exact_broker_feed": False,
+                "reference_fallback_used": False,
+                "yahoo_used": False,
+                "unavailable_reason": "Select Pocket Option or Quotex for OTC so RAJA can use that broker's exact feed.",
+            }
+
+        native_info = {}
+        native_symbol = None
+        if callable(get_native_broker_market_data):
+            try:
+                native_df, native_age, native_symbol, native_info = get_native_broker_market_data(broker, clean)
+            except Exception as exc:
+                native_df, native_age, native_symbol = None, None, None
+                native_info = {
+                    "source": "Pocket Option Native WebSocket" if is_pocket else "Quotex Native WebSocket",
+                    "source_mode": "broker_native_websocket_otc",
+                    "exact_broker_feed": False,
+                    "reference_fallback_used": False,
+                    "yahoo_used": False,
+                    "unavailable_reason": f"Native broker feed error: {type(exc).__name__}: {exc}",
+                }
+            if native_df is not None and not getattr(native_df, "empty", True):
+                info = dict(native_info or {})
+                info.update({
+                    "feed_quality": _market_candle_quality(native_df),
+                    "reference_fallback_used": False,
+                    "yahoo_used": False,
+                })
+                return native_df, native_age, native_symbol or clean, info
+
+        # Exact same-broker bridge backup only; never an underlying/reference feed.
+        bridge_info = {}
+        try:
+            if is_pocket:
+                bridge_df, bridge_age, bridge_symbol, bridge_info = get_pocket_bridge_market_data(bridge_user, clean)
+            else:
+                bridge_df, bridge_age, bridge_symbol, bridge_info = get_quotex_bridge_market_data(bridge_user, clean)
+            if bridge_df is not None and not bridge_df.empty:
+                info = dict(bridge_info or {})
+                info.update({
+                    "feed_quality": _market_candle_quality(bridge_df),
+                    "reference_fallback_used": False,
+                    "yahoo_used": False,
+                    "backup_used": True,
+                })
+                return bridge_df, bridge_age, bridge_symbol or clean, info
+        except Exception as exc:
+            bridge_info = {"unavailable_reason": f"Broker bridge error: {type(exc).__name__}: {exc}"}
+
+        source = "Pocket Option Native WebSocket" if is_pocket else "Quotex Native WebSocket"
+        reason = (native_info or {}).get("unavailable_reason") or (bridge_info or {}).get("unavailable_reason")
+        if not reason:
+            reason = f"{source} has no fresh exact OTC candles for {clean}."
+        return None, None, native_symbol or clean, {
+            "source": source,
+            "source_mode": "broker_native_required",
+            "provider_symbol": native_symbol or clean,
+            "exact_broker_feed": False,
+            "reference_fallback_used": False,
+            "yahoo_used": False,
+            "backup_used": False,
+            "strict_broker_otc": True,
+            "unavailable_reason": reason,
+        }
+
+    # Normal LIVE Forex/metals: preserve the current BiQuote-first policy.
     is_normal_live = (not is_otc and "/" in upper and upper not in set(DUKASCOPY_CRYPTO_CANDIDATES.values())) or upper == "XAUUSD"
     if is_normal_live and BIQUOTE_ENABLED:
         try:
@@ -10290,22 +10371,18 @@ def get_market_data(pair, bridge_user=None, broker=None):
             biquote_reason = "BiQuote returned no usable candles."
         except Exception as exc:
             biquote_reason = f"BiQuote: {type(exc).__name__}: {exc}"
-        # Dukascopy is intentionally OFF on Railway. Never fall back to it here.
         return _v73_dukascopy_unavailable(
             clean,
             _v73_normalize_dukascopy_pair(clean) or "",
             f"BiQuote unavailable; Dukascopy is disabled on Railway. {biquote_reason}",
         )
 
-    # Existing crypto policy is preserved.
     if upper in TWELVE_DATA_CRYPTO_LIVE_PAIRS:
-        # Crypto keeps its existing Twelve Data path. Dukascopy is OFF.
         data, age, symbol, info = _v74_crypto_twelve_data_market_data(upper, force=False)
         info = dict(info or {})
         info["dukascopy_disabled"] = True
         return data, age, symbol, info
 
-    # No Dukascopy fallback anywhere in the live market-data path.
     return _v73_dukascopy_unavailable(
         clean,
         _v73_normalize_dukascopy_pair(clean) or "",
@@ -10450,11 +10527,17 @@ def resolve_tracked_signal(item):
     if not pair:
         return False
 
-    data, _age, _symbol, source_info = get_market_data(pair)
+    broker = str(item.get("broker") or "").strip()
+    is_otc = "(OTC)" in pair.upper()
+    if is_otc and not broker:
+        src = str(item.get("source") or "").casefold()
+        broker = "PocketOption" if "pocket" in src else ("Quotex" if "quotex" in src else "")
+
+    data, _age, _symbol, source_info = get_market_data(pair, broker=broker)
     if data is None or getattr(data, "empty", True):
         item["result_wait_reason"] = (
             (source_info or {}).get("unavailable_reason")
-            or "Dukascopy result candles are not available yet."
+            or ("Exact broker OTC result candles are not available yet." if is_otc else "Live result candles are not available yet.")
         )
         return False
 
@@ -10501,7 +10584,7 @@ def resolve_tracked_signal(item):
     item["entry_epoch_actual"] = int(entry_epoch_actual)
     item["exit_epoch_actual"] = int(exit_epoch_actual)
     item["result"] = result
-    item["resolved_source"] = str((source_info or {}).get("source") or "Dukascopy JForex BID")
+    item["resolved_source"] = str((source_info or {}).get("source") or ("Pocket Option Native WebSocket" if is_otc and "pocket" in broker.casefold() else "Quotex Native WebSocket" if is_otc and broker.casefold() == "quotex" else "live_market_source"))
     item["resolved_at"] = int(time.time())
     return True
 
