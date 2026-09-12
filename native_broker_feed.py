@@ -12,6 +12,7 @@ Secrets must be supplied through environment variables, never committed to sourc
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
 import threading
@@ -579,6 +580,25 @@ class PocketNativeFeed:
 
         self.auth_looks_like_ws_ssid = _is_full_auth(self.ssid)
 
+        # Validate that this is the Pocket Option *trading* WebSocket auth frame
+        # expected by PocketOptionApi v2.0. A chat/site auth frame may also start
+        # with 42["auth",...] but uses sessionToken/currentUrl/isChart instead of
+        # session/isDemo/platform and will be rejected by the market-data server.
+        self.auth_payload = {}
+        self.auth_frame_kind = "unknown"
+        if self.auth_looks_like_ws_ssid:
+            try:
+                payload_text = self.ssid[2:]
+                parsed = json.loads(payload_text)
+                if isinstance(parsed, list) and len(parsed) >= 2 and parsed[0] == "auth" and isinstance(parsed[1], dict):
+                    self.auth_payload = parsed[1]
+                    if self.auth_payload.get("session"):
+                        self.auth_frame_kind = "trading"
+                    elif self.auth_payload.get("sessionToken"):
+                        self.auth_frame_kind = "site_or_chat"
+            except Exception:
+                self.auth_frame_kind = "malformed"
+
         # If a Pocket auth value exists, enable the native feed automatically.
         # An explicit RAJA_POCKET_NATIVE_ENABLED=true/false may still override it,
         # but a missing variable no longer disables a valid SSID.
@@ -594,13 +614,20 @@ class PocketNativeFeed:
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
         self.cache_seconds = max(2, min(30, int(os.environ.get("RAJA_NATIVE_CACHE_SECONDS", "8"))))
         self.history_refresh_seconds = max(30, min(900, int(os.environ.get("RAJA_NATIVE_HISTORY_REFRESH_SECONDS", "120"))))
-        self.state = FeedState(configured=bool(self.enabled and self.ssid))
+        self.state = FeedState(configured=bool(self.enabled and self.ssid and self.auth_frame_kind == "trading"))
         self._client: Any = None
         self._lock = threading.RLock()
         self._connect_lock = threading.Lock()
         self._cache: dict[str, tuple[float, Any, str]] = {}
         self._frames: dict[str, tuple[float, Any, str]] = {}
         self._catalog: dict[str, Any] = {}
+        if self.auth_looks_like_ws_ssid and self.auth_frame_kind != "trading":
+            print(
+                f"[RAJA POCKET] WRONG AUTH FRAME kind={self.auth_frame_kind}; "
+                "PocketOptionApi requires trading socket auth with keys session/isDemo/uid "
+                "(not sessionToken/currentUrl/isChart).",
+                flush=True,
+            )
         if self.state.configured:
             print(
                 f"[RAJA POCKET] CONFIG READY source={self.auth_source} "
@@ -761,6 +788,7 @@ class PocketNativeFeed:
             "auth_source": self.auth_source,
             "auth_format": "full_ws_auth" if self.auth_looks_like_ws_ssid else ("raw_token" if self.ssid else "none"),
             "api_key_present": bool(self.api_key_present),
+            "auth_frame_kind": self.auth_frame_kind,
         })
         return out
 
