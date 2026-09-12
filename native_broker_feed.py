@@ -545,21 +545,23 @@ class PocketNativeFeed:
             """Normalize Railway-pasted Pocket Option Socket.IO auth frames."""
             value = str(value or "").strip()
             # Accept accidental "RAJA_POCKET_SSID = ..." pasted into the value.
-            value = re.sub(r"^RAJA_POCKET_(?:SSID|API_KEY)\\s*=\\s*", "", value, flags=re.I).strip()
+            value = re.sub(r"^RAJA_POCKET_(?:SSID|API_KEY)\s*=\s*", "", value, flags=re.I).strip()
             # Strip one pair of surrounding quotes added by env editors.
             if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
                 value = value[1:-1].strip()
             # Some editors escape JSON quotes; undo only this harmless wrapping.
             value = value.replace('\\\\\"', '"')
             # Normalize whitespace between Socket.IO packet number and auth array.
-            value = re.sub(r"^42\\s*", "42", value)
+            value = re.sub(r"^42\s*", "42", value)
             return value
 
         self.raw_ssid = _normalize_pocket_auth(self.raw_ssid)
         self.api_key = _normalize_pocket_auth(self.api_key)
 
         def _is_full_auth(value: str) -> bool:
-            return bool(re.match(r'^42\\s*\\[\\s*["\\\']auth["\\\']\\s*,', str(value or "")))
+            # PocketOptionApi expects the complete Socket.IO authentication frame.
+            # Example: 42["auth",{"sessionToken":"...","uid":"...",...}]
+            return bool(re.match(r'^42\s*\[\s*["\']auth["\']\s*,', str(value or "").strip()))
 
         ssid_is_full = _is_full_auth(self.raw_ssid)
         api_is_full = _is_full_auth(self.api_key)
