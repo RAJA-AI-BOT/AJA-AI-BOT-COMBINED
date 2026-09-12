@@ -36,27 +36,6 @@
 /* Screen Share latest-signal arrow only; camera/screenshot modes are untouched. */
 .screen-arrow-layer{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}.screen-arrow{position:absolute;width:0;height:0;filter:drop-shadow(0 0 5px rgba(0,0,0,.9));transform:translate(-50%,-50%)}.screen-arrow.up{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid var(--green)}.screen-arrow.down{border-left:6px solid transparent;border-right:6px solid transparent;border-top:11px solid var(--red)}.screen-arrow.latest{z-index:3}.screen-arrow.latest.up{border-left-width:9px;border-right-width:9px;border-bottom-width:16px;filter:drop-shadow(0 0 8px rgba(0,255,135,.9))}.screen-arrow.latest.down{border-left-width:9px;border-right-width:9px;border-top-width:16px;filter:drop-shadow(0 0 8px rgba(255,66,106,.9))}.screen-arrow-label{position:absolute;transform:translate(-50%,-50%);font-size:7px;font-weight:1000;letter-spacing:.4px;padding:2px 4px;border-radius:999px;background:rgba(0,0,0,.78);white-space:nowrap}.screen-arrow-label.up{color:var(--green);border:1px solid rgba(0,255,135,.55)}.screen-arrow-label.down{color:var(--red);border:1px solid rgba(255,66,106,.55)}
 </style>
-
-<style id="raja-compact-new-design">
-:root{--nd-bg:#020711;--nd-card:#07111f;--nd-line:#15395a;--nd-blue:#1da1ff;--nd-cyan:#3fe5ff;--nd-green:#00f28a;--nd-red:#ff465d;--nd-gold:#ffc74f}
-html,body{height:100%;overflow:hidden;background:radial-gradient(circle at 50% -18%,#0a2a50 0,#04101e 34%,#01050b 78%)!important}
-body{padding:0!important}.app{width:100%!important;max-width:none!important;height:100vh;margin:0!important;padding:0 12px 10px;display:grid;grid-template-rows:auto 1fr auto;gap:8px}
-.top{min-height:66px;margin:0!important;padding:8px 4px!important;border-bottom:1px solid rgba(64,171,255,.18);background:rgba(2,8,17,.92);backdrop-filter:blur(14px);display:grid!important;grid-template-columns:minmax(280px,1fr) repeat(5,minmax(90px,135px));gap:8px;align-items:center}
-.top .back{font-size:0!important;display:block!important}.top .back:before{content:'♛ RAJA AI  |  Live Screen Scanner';font-size:24px;font-weight:1000;color:#eef8ff;letter-spacing:-.6px}.top .back:after{content:'  •  REAL-TIME SIGNALS';display:block;margin-top:2px;font-size:9px;letter-spacing:1px;color:#7898b4}
-.top .pill{display:none!important}.nd-head-tile{height:48px;border:1px solid #123a5d;border-radius:10px;background:linear-gradient(180deg,#08192c,#06111f);padding:6px 10px;display:flex;flex-direction:column;justify-content:center}.nd-head-tile small{color:#6ca7d1;font-size:8px;font-weight:900;letter-spacing:.5px}.nd-head-tile b{margin-top:2px;font-size:14px;color:#fff}.nd-head-tile.live b,.nd-head-tile.market b{color:var(--nd-green)}
-#scannerIntroCard{display:none!important}#scannerControlsCard,#v47CompactWatch,#result{margin:0!important;border-radius:12px!important;background:linear-gradient(180deg,rgba(5,15,28,.98),rgba(2,8,16,.99))!important;border:1px solid rgba(35,115,175,.42)!important;box-shadow:none!important}
-#scannerControlsCard{height:100%;min-height:0;padding:0!important;display:block!important;overflow:hidden}.nd-workspace{height:100%;display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:10px}.nd-sidebar,.nd-center,.nd-right{min-width:0;min-height:0;border:1px solid rgba(46,127,188,.28);border-radius:12px;background:#030a13}.nd-sidebar{padding:12px;overflow:auto}.nd-center{padding:10px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px}.nd-right{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
-.nd-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.nd-title h2{font-size:17px;margin:0}.nd-live{font-size:9px;padding:5px 8px;border-radius:999px;color:#7dffc1;border:1px solid rgba(0,242,138,.38);background:rgba(0,242,138,.08);font-weight:950}.nd-sub{font-size:9px;color:#7892a8}.nd-pair-title{font-size:15px;font-weight:950;margin-bottom:8px}.nd-control-block{margin-bottom:8px}.nd-control-block label{font-size:7px;margin:4px 0 3px}.nd-control-block select,.nd-control-block input{height:34px;border-radius:7px}.nd-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.nd-actions .btn{min-height:36px;font-size:8px;padding:7px}.nd-actions .btn:first-child{grid-column:1/-1}.nd-checks{margin-top:8px;border-top:1px solid rgba(96,239,255,.1);padding-top:6px}.nd-checks .switchrow{margin-top:4px}.nd-checks .switchrow label{font-size:7.5px!important}.nd-checks .switchrow:nth-child(2),.nd-checks .switchrow:nth-child(3),.nd-checks .switchrow:nth-child(4){display:none!important}
-#stage{display:block!important;margin:0!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;aspect-ratio:auto!important;border-radius:10px!important;border-color:rgba(30,126,195,.52)!important;background:#000}.nd-stage-wrap{min-height:0;position:relative}.nd-stage-wrap #stage{position:absolute;inset:0}.hud span{font-size:7px!important}.crop{border-color:var(--nd-green)!important}.screen-arrow-layer{position:absolute;inset:0;z-index:8;pointer-events:none}.screen-arrow{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border:0!important;border-radius:50%;display:grid;place-items:center;font-size:0;filter:drop-shadow(0 0 8px currentColor)}.screen-arrow:after{font-size:34px;line-height:1;font-weight:1000}.screen-arrow.up{color:var(--nd-green)}.screen-arrow.up:after{content:'⬆'}.screen-arrow.down{color:var(--nd-red)}.screen-arrow.down:after{content:'⬇'}.screen-arrow.latest{animation:ndPulse .9s ease-in-out infinite alternate}@keyframes ndPulse{from{transform:translate(-50%,-50%) scale(.9)}to{transform:translate(-50%,-50%) scale(1.14)}}
-.nd-chart-head{display:grid;grid-template-columns:minmax(180px,1fr) repeat(4,minmax(78px,120px));gap:6px;align-items:stretch}.nd-pairbox,.nd-stat{border:1px solid rgba(37,116,177,.25);border-radius:8px;background:#06111f;padding:7px 9px}.nd-pairbox b{font-size:18px}.nd-pairbox small,.nd-stat small{display:block;color:#7591aa;font-size:7px;font-weight:900}.nd-stat b{display:block;margin-top:2px;font-size:12px}.nd-stat.good b{color:var(--nd-green)}
-.nd-status-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nd-mini{padding:8px;border-radius:8px;border:1px solid rgba(40,120,180,.22);background:#04101c;text-align:center}.nd-mini small{display:block;color:#6e8aa3;font-size:7px;font-weight:900}.nd-mini b{display:block;margin-top:2px;font-size:10px}.nd-mini.good b{color:var(--nd-green)}
-#v47CompactWatch{display:none!important}.nd-right #v47SignalCard{display:block!important;border:1px solid rgba(0,242,138,.44)!important;border-radius:11px!important;padding:16px!important;background:radial-gradient(circle at 50% 0,rgba(0,242,138,.16),rgba(3,12,21,.98) 62%)!important;text-align:center}.nd-right #v47SignalCard small{font-size:8px}.nd-right #v47SignalCard strong{font-size:34px!important;line-height:1.1}.nd-right #v47SignalCard.call strong{color:var(--nd-green)!important}.nd-right #v47SignalCard.put strong{color:var(--nd-red)!important}.nd-right #v47SignalCard span{font-size:9px!important}.nd-right .v47-state,.nd-right .v47-count{padding:9px!important}.nd-right .v47-count strong{font-size:24px!important}.nd-right .v47-state span{display:none!important}.nd-right .v47-state strong{font-size:10px!important}.nd-signal-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px}.nd-signal-meta .v47-state:last-child{grid-column:1/-1}.nd-right .v51-health,.nd-right .v51-decision,.nd-right .v51-replay,.nd-right .learning-panel,.nd-right .v47-details{display:none!important}
-#result{display:none!important}.statusbar,.safetybar,#qualityHud,#preflightHint,#status,#preview{display:none!important}.nd-strategies{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nd-strategy{border:1px solid rgba(30,126,195,.28);border-radius:8px;background:#05101d;padding:8px 7px;font-size:8px;font-weight:900;color:#dce9f3}.nd-strategy span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;margin-right:5px;background:#0e72d8;color:#fff}.nd-strategy.s1{border-color:rgba(0,242,138,.45)}.nd-strategy.s3{border-color:rgba(255,164,43,.45)}.nd-strategy.s4{border-color:rgba(185,65,255,.5)}.nd-strategy.s5{border-color:rgba(0,208,255,.45)}
-.nd-footer{height:54px;display:grid;grid-template-columns:250px repeat(4,1fr);gap:8px}.nd-footbox{border:1px solid rgba(37,116,177,.25);border-radius:9px;background:#04101c;padding:7px 10px;display:flex;align-items:center;justify-content:space-between}.nd-footbox small{color:#7892a8;font-size:7px;font-weight:900}.nd-footbox b{font-size:14px}.nd-footbox.good b{color:var(--nd-green)}.nd-footbox.bad b{color:var(--nd-red)}
-@media(max-width:1050px){html,body{overflow:auto}.app{height:auto;min-height:100vh;display:block;padding:8px}.top{grid-template-columns:1fr 1fr 1fr;min-height:auto;position:relative!important}.top .back{grid-column:1/-1}.nd-workspace{grid-template-columns:220px minmax(0,1fr);height:760px}.nd-right{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr 1fr}.nd-footer{grid-template-columns:repeat(2,1fr);height:auto;margin-top:8px}.nd-footer .nd-footbox:first-child{grid-column:1/-1}}
-@media(max-width:720px){.top{grid-template-columns:1fr 1fr}.top .back:before{font-size:19px}.nd-workspace{display:block;height:auto}.nd-sidebar,.nd-center,.nd-right{margin-bottom:8px}.nd-sidebar{max-height:none}.nd-center{height:560px}.nd-right{display:block}.nd-chart-head{grid-template-columns:1fr 1fr}.nd-pairbox{grid-column:1/-1}.nd-strategies{grid-template-columns:1fr 1fr}.nd-status-strip{grid-template-columns:1fr 1fr}.nd-footer{grid-template-columns:1fr 1fr}}
-</style>
-
 </head>
 <body><script id="raja-scanner-network-guard">
 window.__rajaScannerFetch = async function(url, options={}, timeoutMs=12000){
@@ -821,16 +800,16 @@ function alertConfirmedSignal(up){if(!$('signalAlerts')?.checked)return;playSign
 function startEntry(x,state){
   if(entryTimer)clearInterval(entryTimer);entryTimer=null;hideSignalBanner(true);
   const box=$('entry'),bias=String(x.bias||'').toUpperCase(),up=bias.startsWith('UP'),down=bias.startsWith('DOWN');
-  if(!up&&!down){box.style.display='none';window.syncV47SignalCard?.(null);return;}
+  if(!up&&!down){box.style.display='none';syncV47SignalCard(null);return;}
   const dir=up?'CALL (UP)':'PUT (DOWN)',entryMs=Number(x.entry_epoch_ms||Number(x.entry_epoch||0)*1000),expiryMs=Number(x.expiry_epoch_ms||0),grace=Math.max(3,Number(x.entry_window_seconds||10))*1000;
   box.style.display='block';box.className='entry '+(up?'up':'down')+((state==='DUPLICATE'||state==='EXPIRED')?' blocked':'');
-  if(state==='DUPLICATE'){$('entryMain').textContent=dir+' · DUPLICATE BLOCKED';$('entrySub').textContent='This candle signal was already shown. Wait for a fresh signal.';window.syncV47SignalCard?.({up,dir,state:'DUPLICATE',text:'Duplicate blocked'});return;}
+  if(state==='DUPLICATE'){$('entryMain').textContent=dir+' · DUPLICATE BLOCKED';$('entrySub').textContent='This candle signal was already shown. Wait for a fresh signal.';syncV47SignalCard({up,dir,state:'DUPLICATE',text:'Duplicate blocked'});return;}
   if(state==='EXPIRED'||!entryMs){
     $('entryMain').textContent=dir+' · SIGNAL EXPIRED';$('entrySub').textContent='Fresh scan required.';
-    window.syncV47SignalCard?.({up,dir,state:'EXPIRED',text:'Fresh scan required'});
+    syncV47SignalCard({up,dir,state:'EXPIRED',text:'Fresh scan required'});
     // Live scanner loops already keep running. Release the expired card shortly
     // afterwards so the user can see that the next boundary is being watched.
-    setTimeout(()=>{try{if(!busy){window.syncV47SignalCard?.(null);setSignalState('WATCH','warn');setStatus('Expired signal cleared · AUTO SCAN is watching the next candle boundary.');}}catch(_){}},1500);
+    setTimeout(()=>{try{if(!busy){syncV47SignalCard(null);setSignalState('WATCH','warn');setStatus('Expired signal cleared · AUTO SCAN is watching the next candle boundary.');}}catch(_){}},1500);
     return;
   }
   const tick=()=>{
@@ -839,23 +818,23 @@ function startEntry(x,state){
       const sec=Math.ceil(untilEntry/1000);
       $('entryMain').textContent=dir;
       $('entrySub').textContent=(sec<=10?`ENTRY COUNTDOWN ${sec}`:`Entry in ${fmtRemain(untilEntry)}`)+` · Expiry ${fmtClock(expiryMs)}`;
-      window.syncV47SignalCard?.({up,dir,state:'COUNTDOWN',seconds:sec,entryMs,expiryMs});
+      syncV47SignalCard({up,dir,state:'COUNTDOWN',seconds:sec,entryMs,expiryMs});
       hideSignalBanner();
     }else if(windowLeft>=0&&x.entry_allowed){
       const sec=Math.max(0,Math.ceil(windowLeft/1000));
       $('entryMain').textContent=dir;
       $('entrySub').textContent=`ENTRY NOW · ${sec}s window · Expiry ${fmtClock(expiryMs)}`;
-      window.syncV47SignalCard?.({up,dir,state:'ENTRY',seconds:sec,entryMs,expiryMs});
+      syncV47SignalCard({up,dir,state:'ENTRY',seconds:sec,entryMs,expiryMs});
       showSignalBanner(up?'UP':'DOWN',$('pair').value,entryMs,expiryMs,windowLeft);
     }else if(expiryMs&&untilExpiry>0){
       $('entryMain').textContent=dir;
       $('entrySub').textContent=`ENTRY WINDOW CLOSED · Signal remains visible · Expires in ${fmtRemain(untilExpiry)}`;
-      window.syncV47SignalCard?.({up,dir,state:'ACTIVE',seconds:Math.ceil(untilExpiry/1000),entryMs,expiryMs});
+      syncV47SignalCard({up,dir,state:'ACTIVE',seconds:Math.ceil(untilExpiry/1000),entryMs,expiryMs});
       hideSignalBanner();
     }else{
       $('entryMain').textContent=dir+' · SIGNAL EXPIRED';
       $('entrySub').textContent='Fresh scan required.';
-      window.syncV47SignalCard?.({up,dir,state:'EXPIRED',text:'Fresh scan required'});
+      syncV47SignalCard({up,dir,state:'EXPIRED',text:'Fresh scan required'});
       hideSignalBanner();setSignalState('EXPIRED','block');if(entryTimer){clearInterval(entryTimer);entryTimer=null;}
     }
   };
@@ -4023,40 +4002,117 @@ document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{restoreAutoWri
 })();
 </script>
 
-<script id="raja-compact-new-design-js">
+<style id="raja-v7-dashboard-style">
+/* RAJA AI V7 compact dashboard — visual redesign only; scanner engine remains original. */
+html,body{height:100%;overflow:hidden!important;background:#020916!important}
+body{padding:0!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif!important}
+body>.app,body>#signalBanner{display:none!important}
+#rajaDesignV7{height:100vh;display:grid;grid-template-rows:76px 1fr 34px;background:radial-gradient(circle at 50% -20%,#0d2948 0,#04111f 35%,#010711 76%);color:#eef8ff;overflow:hidden}
+.r7-header{display:grid;grid-template-columns:minmax(310px,1fr) auto auto;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #153650;background:rgba(2,10,20,.96)}
+.r7-brand{display:flex;align-items:center;gap:10px;min-width:0}.r7-crown{font-size:30px;filter:drop-shadow(0 0 8px rgba(255,190,60,.35))}.r7-brand h1{font-size:25px;margin:0;font-weight:950;letter-spacing:.2px;white-space:nowrap}.r7-brand h1 span{font-weight:650}.r7-brand small{display:block;color:#86a6bf;font-size:10px;margin-top:2px;letter-spacing:.45px}.r7-live{display:inline-flex;align-items:center;gap:5px;margin-left:7px;padding:5px 8px;border:1px solid #0be784;border-radius:7px;color:#22f69a;font-size:10px;font-weight:950}.r7-dot{width:8px;height:8px;border-radius:50%;background:#16f195;box-shadow:0 0 14px #16f195}
+.r7-summary{display:grid;grid-template-columns:repeat(5,minmax(92px,1fr));gap:8px}.r7-stat{min-width:96px;padding:8px 12px;border:1px solid #183b57;border-radius:9px;background:#071628}.r7-stat small{display:block;color:#6f9fc0;font-size:8px;font-weight:900;letter-spacing:.45px}.r7-stat strong{display:block;margin-top:2px;font-size:15px}.r7-stat.green strong{color:#1bf39a}.r7-clock{font-size:22px;font-weight:950;line-height:1}.r7-clock-date{font-size:9px;color:#8faac0;margin-top:3px}
+.r7-main{display:grid;grid-template-columns:255px minmax(0,1fr) 280px;gap:12px;padding:12px 14px;min-height:0;overflow:hidden}.r7-panel{border:1px solid #123852;border-radius:12px;background:linear-gradient(180deg,rgba(5,21,36,.98),rgba(2,12,23,.98));box-shadow:0 12px 30px rgba(0,0,0,.18);min-height:0}.r7-left{display:flex;flex-direction:column;overflow:hidden}.r7-panel-head{padding:12px 13px;border-bottom:1px solid #12354f;font-size:13px;font-weight:950}.r7-search{margin:10px;position:relative}.r7-search input{height:38px!important;border-radius:8px!important;background:#081729!important;border:1px solid #183d59!important;color:#fff!important;padding:0 12px 0 34px!important;font-size:12px!important}.r7-search:before{content:'⌕';position:absolute;left:12px;top:8px;color:#5fc9ff;font-size:18px}.r7-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 10px 9px}.r7-tabs button{height:30px;border-radius:7px;border:1px solid #163c57;background:#061426;color:#91aec4;font-size:10px;font-weight:850}.r7-tabs button.active{background:linear-gradient(180deg,#138cf9,#0a5bdc);color:white;border-color:#33b6ff;box-shadow:0 0 16px rgba(0,135,255,.25)}.r7-pairs{overflow:auto;min-height:0;padding:0 7px 10px;scrollbar-width:thin}.r7-pair{width:100%;display:grid;grid-template-columns:1fr 36px 72px;align-items:center;gap:6px;padding:8px 7px;border:0;border-bottom:1px solid rgba(36,69,92,.35);background:transparent;color:#edf7ff;text-align:left;cursor:pointer}.r7-pair:hover,.r7-pair.active{background:#0a2c4f;border-radius:7px}.r7-pair b{font-size:11px}.r7-pair span{font-size:9px;color:#8ca7ba}.r7-pair em{font-size:11px;font-style:normal;font-weight:900;color:#21f39a;text-align:right}.r7-left-status{padding:9px 12px;border-top:1px solid #12354f;color:#71a1bd;font-size:9px}.r7-left-status strong{color:#16ef93;font-size:12px;margin-left:4px}
+.r7-center{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:9px;min-height:0}.r7-assetbar{display:grid;grid-template-columns:minmax(220px,1fr) repeat(5,minmax(78px,auto));gap:6px;align-items:stretch}.r7-asset{display:flex;align-items:center;gap:9px;padding:9px 11px}.r7-flag{font-size:28px}.r7-asset b{display:block;font-size:19px}.r7-asset small{color:#819fb6;font-size:10px}.r7-quote{padding:8px 10px;border-left:1px solid #12354f}.r7-quote small{display:block;color:#6b93ae;font-size:8px;font-weight:900}.r7-quote strong{display:block;margin-top:2px;font-size:12px}.r7-quote.price strong,.r7-quote.change strong{color:#17f294}
+.r7-toolbar{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #123852;border-radius:9px;background:#061628}.r7-toolbar button,.r7-toolbar select{height:31px!important;width:auto!important;min-width:46px!important;border-radius:7px!important;border:1px solid #173c58!important;background:#0a1b2f!important;color:#d8f1ff!important;padding:0 10px!important;font-size:10px!important;font-weight:900!important}.r7-toolbar button.primary{background:#0b72e7!important;border-color:#22a6ff!important}.r7-toolbar .spacer{flex:1}.r7-toolbar .tiny{min-width:34px!important;padding:0 8px!important}
+.r7-chart{position:relative;min-height:0;overflow:hidden;border:1px solid #123852;border-radius:11px;background:linear-gradient(180deg,#071421,#030b14)}.r7-chart-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(80,140,180,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(80,140,180,.08) 1px,transparent 1px);background-size:10% 16.66%;pointer-events:none}.r7-chart-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#6f92ab;gap:7px;font-size:11px;z-index:1}.r7-chart-placeholder b{color:#9bb8cc;font-size:16px}.r7-chart #stage{display:none;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;aspect-ratio:auto!important;margin:0!important;border:0!important;border-radius:0!important;background:#000!important}.r7-chart #stage video{width:100%;height:100%;object-fit:contain}.r7-chart #screenArrowLayer{z-index:30!important}.r7-chart .screen-arrow.latest.up{border-left-width:12px!important;border-right-width:12px!important;border-bottom-width:22px!important}.r7-chart .screen-arrow.latest.down{border-left-width:12px!important;border-right-width:12px!important;border-top-width:22px!important}.r7-chart .screen-arrow-label{font-size:9px!important;padding:3px 7px!important;font-weight:1000!important}.r7-indicator-labels{position:absolute;left:12px;top:10px;z-index:4;display:grid;gap:3px;font-size:9px;font-weight:900;pointer-events:none}.r7-indicator-labels span:nth-child(1){color:#d8edf8}.r7-indicator-labels span:nth-child(2){color:#ffc33d}.r7-indicator-labels span:nth-child(3){color:#38b8ff}
+.r7-strategies{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.r7-strat{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 9px;border:1px solid #18445f;border-radius:8px;background:#061526}.r7-num{display:grid;place-items:center;flex:0 0 25px;height:25px;border-radius:50%;font-size:11px;font-weight:950;background:#0ea55f}.r7-strat:nth-child(2) .r7-num{background:#126ee8}.r7-strat:nth-child(3) .r7-num{background:#bd6909}.r7-strat:nth-child(4) .r7-num{background:#7d20db}.r7-strat:nth-child(5) .r7-num{background:#0b9cc7}.r7-strat b{font-size:9px;line-height:1.25}.r7-bottomstats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.r7-bottomstats .r7-panel{padding:8px 10px;text-align:center}.r7-bottomstats small{display:block;color:#6f95af;font-size:8px}.r7-bottomstats strong{font-size:18px}.r7-bottomstats .buy{color:#1cf399}.r7-bottomstats .sell{color:#ff435b}.r7-bottomstats .win{color:#22c4ff}
+.r7-right{display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:10px;min-height:0}.r7-signal{padding:12px;display:flex;flex-direction:column;min-height:0}.r7-sig-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:950}.r7-sig-live{font-size:9px;color:#1af298;border:1px solid rgba(24,242,152,.25);padding:4px 7px;border-radius:999px}.r7-sig-card{margin-top:10px;flex:1;border:1px solid #0d9e64;border-radius:10px;background:radial-gradient(circle at 50% 20%,rgba(0,255,143,.16),rgba(0,255,143,.02) 55%,#04111c);padding:13px;display:flex;flex-direction:column;justify-content:space-between;min-height:0}.r7-sig-card.sell{border-color:#d43f55;background:radial-gradient(circle at 50% 20%,rgba(255,62,86,.17),rgba(255,62,86,.02) 55%,#04111c)}.r7-sig-card.watch{border-color:#475e70;background:linear-gradient(180deg,#081827,#04111c)}.r7-sig-pair{font-size:16px;font-weight:950}.r7-direction{text-align:center;font-size:42px;font-weight:1000;color:#18f397;line-height:1.05;text-shadow:0 0 18px rgba(24,243,151,.28);margin:7px 0}.r7-sig-card.sell .r7-direction{color:#ff465f;text-shadow:0 0 18px rgba(255,70,95,.28)}.r7-sig-card.watch .r7-direction{font-size:24px;color:#f5c453;text-shadow:none}.r7-sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid #17394e;border-bottom:1px solid #17394e;padding:9px 0}.r7-sig-grid small{display:block;color:#7595aa;font-size:7px}.r7-sig-grid strong{font-size:10px}.r7-strategy-box{padding:9px 0}.r7-strategy-box small{display:block;color:#7395ac;font-size:8px}.r7-strategy-box strong{font-size:11px}.r7-confidence{margin-top:4px}.r7-conf-row{display:flex;justify-content:space-between;font-size:9px}.r7-conf-row b{color:#1cf39a}.r7-conf-track{height:8px;background:#0a2940;border-radius:999px;overflow:hidden;margin-top:5px}.r7-conf-fill{height:100%;width:0;background:linear-gradient(90deg,#12e792,#28d8ff);border-radius:999px;transition:.25s}
+.r7-next{padding:12px;display:grid;grid-template-columns:1fr auto;align-items:center}.r7-next b{font-size:12px}.r7-next strong{font-size:24px;color:#ffc43c}.r7-next-track{grid-column:1/-1;margin-top:8px;height:8px;border-radius:999px;background:#0a2940;overflow:hidden}.r7-next-fill{height:100%;width:70%;background:#16ed92;border-radius:999px}.r7-health{padding:10px 12px}.r7-health-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.r7-health-box{border:1px solid #153852;border-radius:7px;padding:7px}.r7-health-box small{display:block;color:#7294aa;font-size:7px}.r7-health-box strong{display:block;font-size:9px;margin-top:2px}.r7-health-box strong.ok{color:#1bf298}.r7-health-box strong.warn{color:#f8c34d}
+.r7-footer{display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-top:1px solid #12354e;background:#03101c;color:#7898ae;font-size:9px}.r7-footer b{color:#4fd0ff;font-size:11px}.r7-footer .connected{color:#17ee94}.r7-footer .connected:before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#17ee94;box-shadow:0 0 10px #17ee94;margin-right:5px}
+#r7Advanced{position:fixed;z-index:9998;inset:6vh 5vw;display:none;overflow:auto;padding:12px;border:1px solid #2c5872;border-radius:14px;background:#03101d;box-shadow:0 25px 80px rgba(0,0,0,.75)}#r7Advanced.show{display:block}#r7AdvancedClose{position:sticky;top:0;float:right;z-index:2;height:34px;border:1px solid #24506d;border-radius:8px;background:#0b2034;color:white;padding:0 12px;font-weight:900}.r7-advanced-title{font-size:16px;font-weight:950;margin:4px 0 10px}.r7-advanced-note{font-size:10px;color:#86a3b8;margin-bottom:8px}
+@media(max-width:1200px){#rajaDesignV7{overflow:auto}.r7-main{grid-template-columns:220px minmax(600px,1fr) 255px;min-width:1100px}.r7-header{min-width:1100px}.r7-footer{min-width:1100px}}
+@media(max-height:780px){.r7-header{height:64px;padding-top:6px;padding-bottom:6px}.r7-brand h1{font-size:21px}.r7-main{padding-top:8px;padding-bottom:8px}.r7-strat{padding:6px 8px}.r7-bottomstats .r7-panel{padding:6px}.r7-sig-card{padding:10px}.r7-direction{font-size:34px}}
+</style>
+<div id="rajaDesignV7">
+  <header class="r7-header">
+    <div class="r7-brand"><div class="r7-crown">♛</div><div><h1>RAJA AI <span>| Live Screen Scanner</span><span class="r7-live"><i class="r7-dot"></i> LIVE</span></h1><small>REAL-TIME SIGNALS • QUOTEX / POCKET OPTION (OTC)</small></div></div>
+    <div class="r7-summary">
+      <div class="r7-stat"><small>BROKER</small><strong id="r7Broker">Quotex</strong></div>
+      <div class="r7-stat green"><small>MARKET</small><strong id="r7Market">OTC</strong></div>
+      <div class="r7-stat"><small>TIMEFRAME</small><strong id="r7Tf">1m</strong></div>
+      <div class="r7-stat"><small>EXPIRY</small><strong id="r7Expiry">1m</strong></div>
+      <div class="r7-stat green"><small>SCANNER</small><strong id="r7Scanner">READY</strong></div>
+    </div>
+    <div><div class="r7-clock" id="r7Clock">--:--:--</div><div class="r7-clock-date" id="r7Date">--</div></div>
+  </header>
+  <main class="r7-main">
+    <aside class="r7-panel r7-left">
+      <div class="r7-panel-head">PAIRS <span id="r7PairCount"></span></div>
+      <div class="r7-search"><input id="r7PairSearch" placeholder="Search pair..." autocomplete="off"></div>
+      <div class="r7-tabs"><button>ALL</button><button class="active">OTC</button><button>FAVORITES</button></div>
+      <div class="r7-pairs" id="r7Pairs"></div>
+      <div class="r7-left-status">SCANNER STATUS <strong id="r7LeftStatus">READY</strong><br><span id="r7LeftMeta">5 strategies • 1m timeframe</span></div>
+    </aside>
+    <section class="r7-center">
+      <div class="r7-panel r7-assetbar">
+        <div class="r7-asset"><div class="r7-flag">🌐</div><div><b id="r7Asset">--</b><small>Live chart scanner</small></div></div>
+        <div class="r7-quote price"><small>PRICE</small><strong id="r7Price">--</strong></div>
+        <div class="r7-quote change"><small>QUALITY</small><strong id="r7Quality">--</strong></div>
+        <div class="r7-quote"><small>CANDLES</small><strong id="r7Candles">--</strong></div>
+        <div class="r7-quote"><small>FRAME</small><strong id="r7Frame">--</strong></div>
+        <div class="r7-quote"><small>LATENCY</small><strong id="r7Latency">--</strong></div>
+      </div>
+      <div class="r7-toolbar">
+        <select id="r7TfSelect"><option>30s</option><option selected>1m</option><option>2m</option><option>3m</option><option>5m</option><option>10m</option><option>15m</option><option>30m</option></select>
+        <button id="r7Share" class="primary">🖥 Screen</button><button id="r7Camera">📷 Camera</button><button id="r7Shot">🖼 Screenshot</button>
+        <div class="spacer"></div><button id="r7Auto">◎ Auto Area</button><button id="r7Confirm">✓ Confirm</button><button id="r7AdvancedBtn" class="tiny">⚙</button>
+      </div>
+      <div class="r7-chart" id="r7ChartSlot"><div class="r7-chart-grid"></div><div class="r7-chart-placeholder" id="r7ChartPlaceholder"><b>LIVE CHART AREA</b><span>Start Screen Share, Camera or Screenshot</span></div><div class="r7-indicator-labels"><span>Bollinger Bands</span><span>EMA 20</span><span>EMA 50</span></div></div>
+      <div class="r7-strategies">
+        <div class="r7-strat"><span class="r7-num">1</span><b>Wick Rejection<br>S/R</b></div><div class="r7-strat"><span class="r7-num">2</span><b>Bollinger Bands<br>Rejection</b></div><div class="r7-strat"><span class="r7-num">3</span><b>RSI Reversal<br>S/R</b></div><div class="r7-strat"><span class="r7-num">4</span><b>Order Block<br>S/R</b></div><div class="r7-strat"><span class="r7-num">5</span><b>Breakout<br>Retest</b></div>
+      </div>
+      <div class="r7-bottomstats">
+        <div class="r7-panel"><small>SIGNAL STATE</small><strong id="r7State">WATCH</strong></div><div class="r7-panel"><small>BUY SIGNAL</small><strong class="buy" id="r7BuyCount">--</strong></div><div class="r7-panel"><small>SELL SIGNAL</small><strong class="sell" id="r7SellCount">--</strong></div><div class="r7-panel"><small>RULE GATE</small><strong class="win" id="r7Gate">--</strong></div>
+      </div>
+    </section>
+    <aside class="r7-right">
+      <section class="r7-panel r7-signal"><div class="r7-sig-head"><span>⚡ LIVE SIGNAL</span><span class="r7-sig-live">● LIVE</span></div><div class="r7-sig-card watch" id="r7SigCard"><div class="r7-sig-pair" id="r7SigPair">--</div><div class="r7-direction" id="r7Direction">WATCH</div><div class="r7-sig-grid"><div><small>CANDLE TIME</small><strong id="r7SigTime">--</strong></div><div><small>ENTRY</small><strong id="r7Entry">--</strong></div><div><small>EXPIRY</small><strong id="r7SigExpiry">1 MIN</strong></div></div><div class="r7-strategy-box"><small>STRATEGY</small><strong id="r7Strategy">Waiting for confirmed setup</strong></div><div class="r7-confidence"><div class="r7-conf-row"><span>Confidence</span><b id="r7ConfText">--</b></div><div class="r7-conf-track"><div class="r7-conf-fill" id="r7ConfFill"></div></div></div></div></section>
+      <section class="r7-panel r7-next"><b>⌛ NEXT CANDLE</b><strong id="r7Next">--:--</strong><div class="r7-next-track"><div class="r7-next-fill" id="r7NextFill"></div></div></section>
+      <section class="r7-panel r7-health"><div class="r7-health-row"><div class="r7-health-box"><small>FEED</small><strong id="r7Feed" class="warn">WAIT</strong></div><div class="r7-health-box"><small>PAIR DETECT</small><strong id="r7PairDetect">--</strong></div><div class="r7-health-box"><small>CHART AREA</small><strong id="r7Crop">--</strong></div><div class="r7-health-box"><small>ALERTS</small><strong id="r7Alerts">--</strong></div></div></section>
+    </aside>
+  </main>
+  <footer class="r7-footer"><span><b>♛ RAJA AI</b> &nbsp; Trade Smarter • Trade Better</span><span>Signals are informational, not guaranteed outcomes.</span><span class="connected" id="r7Connected">Scanner Ready</span></footer>
+</div>
+<div id="r7Advanced"><button id="r7AdvancedClose">✕ CLOSE</button><div class="r7-advanced-title">Advanced Scanner Controls</div><div class="r7-advanced-note">Original scanner controls and technical panels are kept here so all existing functionality remains available.</div><div id="r7AdvancedHost"></div></div>
+<script id="raja-v7-dashboard-script">
 (function(){
-  const q=id=>document.getElementById(id);
-  function mk(cls,html=''){const d=document.createElement('div');d.className=cls;d.innerHTML=html;return d}
-  function headTile(label,value,cls=''){const d=mk('nd-head-tile '+cls,`<small>${label}</small><b>${value}</b>`);return d}
-  function init(){
-    const top=document.querySelector('.top'),controls=q('scannerControlsCard'),watch=q('v47CompactWatch'); if(!top||!controls||!watch)return;
-    if(!top.querySelector('.nd-head-tile')){top.append(headTile('BROKER',q('broker')?.value||'Quotex'));top.append(headTile('MARKET',q('market')?.value||'OTC','market'));top.append(headTile('TIMEFRAME',q('tf')?.value||'1m'));top.append(headTile('EXPIRY','1m'));top.append(headTile('SCANNER','RUNNING','live'));}
-    const ws=mk('nd-workspace'),side=mk('nd-sidebar'),center=mk('nd-center'),right=mk('nd-right'); controls.append(ws);ws.append(side,center,right);
-    side.append(mk('nd-pair-title','PAIRS / SOURCE'));
-    const ids=['broker','market','pairSearch','pairSearchClear','pairSearchCount','pair','tf','interval','quality'];
-    ids.forEach(id=>{const el=q(id);if(!el)return; let wrap=el.closest('.pair-search-wrap')||el.parentElement; if(wrap&&wrap!==side&&!side.contains(wrap)){const b=mk('nd-control-block');const lab=wrap.querySelector(':scope > label');if(lab)b.append(lab);b.append(wrap);side.append(b);}});
-    const actions=mk('nd-actions');['shareBtn','cameraBtn','shotBtn','autoDetectBtn','confirmCropBtn','cropBtn','testFrameBtn','stopBtn'].forEach(id=>{const el=q(id);if(el)actions.append(el)});side.append(actions);
-    const checks=mk('nd-checks');['autoScan','autoPair','autoBroker','autoRecal','signalAlerts'].forEach(id=>{const el=q(id);const row=el?.closest('.switchrow');if(row)checks.append(row)});side.append(checks);
-    const chartHead=mk('nd-chart-head');chartHead.append(mk('nd-pairbox',`<small>ACTIVE PAIR</small><b id="ndPair">${q('pair')?.value||'--'}</b><small>Live scanner chart</small>`),mk('nd-stat good','<small>MARKET</small><b id="ndMarket">OTC</b>'),mk('nd-stat','<small>TIMEFRAME</small><b id="ndTf">1m</b>'),mk('nd-stat','<small>QUALITY</small><b id="ndQuality">--</b>'),mk('nd-stat','<small>TIME</small><b id="ndTime">--:--:--</b>'));center.append(chartHead);
-    const sw=mk('nd-stage-wrap');sw.append(q('stage'));center.append(sw);
-    const strategies=mk('nd-strategies');['Wick Rejection S/R','Bollinger Bands Rejection','RSI Reversal S/R','Order Block + S/R','Breakout + Retest'].forEach((x,i)=>strategies.append(mk('nd-strategy s'+(i+1),`<span>${i+1}</span>${x}`)));center.append(strategies);
-    right.append(mk('nd-title','<div><h2>LIVE SIGNAL</h2><div class="nd-sub">Closed-candle signal only</div></div><span class="nd-live">● LIVE</span>'));
-    right.append(q('v47SignalCard')); const meta=mk('nd-signal-meta');meta.append(q('v47Setup').closest('.v47-state'),q('v47Rules').closest('.v47-state'),q('v47Entry').closest('.v47-state'));right.append(meta);right.append(q('v47Count').closest('.v47-count'));
-    const status=mk('nd-status-strip'); status.innerHTML='<div class="nd-mini good"><small>CAPTURE</small><b id="ndCapture">OFF</b></div><div class="nd-mini"><small>CHART</small><b id="ndChart">WAIT</b></div><div class="nd-mini"><small>CANDLES</small><b id="ndCandles">--</b></div><div class="nd-mini"><small>LATENCY</small><b id="ndLatency">--</b></div><div class="nd-mini good"><small>ALERTS</small><b id="ndAlerts">ARMED</b></div>';right.append(status);
-    const footer=mk('nd-footer');footer.innerHTML='<div class="nd-footbox good"><div><small>SCANNER STATUS</small><b>● LIVE SCANNING</b></div><small>5 strategies</small></div><div class="nd-footbox"><small>SIGNAL STATE</small><b id="ndSignalState">WATCH</b></div><div class="nd-footbox good"><small>PAIR</small><b id="ndPairFoot">--</b></div><div class="nd-footbox"><small>CANDLES</small><b id="ndCandlesFoot">--</b></div><div class="nd-footbox"><small>ENTRY CLOCK</small><b id="ndClock">SYNC</b></div>';document.querySelector('.app').append(footer);
-    watch.style.display='none';
-    ['broker','market','pair','tf'].forEach(id=>q(id)?.addEventListener('change',sync));setInterval(sync,1000);sync();
-  }
-  function txt(id){return q(id)?.textContent?.trim()||'--'}
-  function sync(){
-    if(q('ndPair'))q('ndPair').textContent=q('pair')?.value||txt('v47Pair'); if(q('ndPairFoot'))q('ndPairFoot').textContent=q('pair')?.value||txt('v47Pair');
-    if(q('ndMarket'))q('ndMarket').textContent=q('market')?.value||'OTC'; if(q('ndTf'))q('ndTf').textContent=(q('tf')?.value||'1m').toUpperCase();
-    if(q('ndQuality'))q('ndQuality').textContent=txt('v47Quality'); if(q('ndTime'))q('ndTime').textContent=new Date().toLocaleTimeString([], {hour12:false});
-    if(q('ndCapture'))q('ndCapture').textContent=txt('captureState'); if(q('ndChart'))q('ndChart').textContent=txt('v47Chart'); if(q('ndCandles'))q('ndCandles').textContent=txt('v47Candles');
-    if(q('ndLatency'))q('ndLatency').textContent=txt('latencyState'); if(q('ndAlerts'))q('ndAlerts').textContent=txt('alertState'); if(q('ndSignalState'))q('ndSignalState').textContent=txt('signalState');
-    if(q('ndCandlesFoot'))q('ndCandlesFoot').textContent=txt('v47Candles'); if(q('ndClock'))q('ndClock').textContent=txt('clockState');
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,60));else setTimeout(init,60);
+'use strict';
+const $=id=>document.getElementById(id);
+const txt=(id,f='--')=>{const e=$(id);return e&&String(e.textContent||'').trim()||f};
+function syncSelect(copyId,origId){const c=$(copyId),o=$(origId);if(!c||!o)return;c.value=o.value;c.onchange=()=>{o.value=c.value;o.dispatchEvent(new Event('change',{bubbles:true}))};o.addEventListener('change',()=>c.value=o.value)}
+function clickThrough(copyId,origId){const c=$(copyId),o=$(origId);if(c&&o)c.onclick=()=>o.click()}
+function buildPairs(filter=''){
+ const o=$('pair'),host=$('r7Pairs');if(!o||!host)return;host.innerHTML='';const q=filter.trim().toLowerCase();let n=0;
+ [...o.options].forEach((op,i)=>{const name=(op.textContent||op.value||'').trim();if(!name|| (q&&!name.toLowerCase().includes(q)))return;n++;const b=document.createElement('button');b.className='r7-pair'+(op.value===o.value?' active':'');b.innerHTML='<b>'+name.replace(/</g,'&lt;')+'</b><span>'+txt('tf','1m')+'</span><em>LIVE</em>';b.onclick=()=>{o.value=op.value;o.dispatchEvent(new Event('change',{bubbles:true}));buildPairs($('r7PairSearch').value)};host.appendChild(b)});$('r7PairCount').textContent='('+n+')';
+ }
+ function showAdvanced(on){$('r7Advanced').classList.toggle('show',!!on)}
+ function normalizeDirection(){let s=(txt('v47SignalMain','')+' '+txt('big','')+' '+txt('entryMain','')).toUpperCase();if(/BUY|CALL/.test(s))return 'BUY';if(/SELL|PUT/.test(s))return 'SELL';return 'WATCH'}
+ function confidence(){const s=[txt('qualityChip',''),txt('v47Quality',''),txt('qhQuality','')].join(' ');const m=s.match(/(\d{1,3})\s*%/);return m?Math.max(0,Math.min(100,+m[1])):0}
+ function mirror(){
+  const broker=$('broker'),market=$('market'),pair=$('pair'),tf=$('tf');
+  if(broker)$('r7Broker').textContent=broker.value;if(market)$('r7Market').textContent=market.value;if(tf){$('r7Tf').textContent=tf.value;$('r7Expiry').textContent=tf.value;$('r7TfSelect').value=tf.value;$('r7LeftMeta').textContent='5 strategies • '+tf.value+' timeframe'}
+  const pairText=pair?(pair.options[pair.selectedIndex]?.textContent||pair.value):'--';$('r7Asset').textContent=pairText;$('r7SigPair').textContent=pairText;
+  $('r7Quality').textContent=txt('v47Quality',txt('qhQuality','--')).replace(/^QUALITY\s*/i,'');$('r7Candles').textContent=txt('v47Candles',txt('candleCountState','--'));$('r7Frame').textContent=txt('lastFrame','--');$('r7Latency').textContent=txt('latencyState','--');
+  const cap=txt('captureState','OFF'), eng=txt('engineState','READY');const running=/LIVE|SCAN|WATCH/i.test(cap+' '+eng);$('r7Scanner').textContent=running?'RUNNING':'READY';$('r7LeftStatus').textContent=running?'LIVE SCANNING':'READY';$('r7Connected').textContent=running?'Connected / Scanning':'Scanner Ready';
+  const dir=normalizeDirection(),card=$('r7SigCard'),d=$('r7Direction');card.className='r7-sig-card '+(dir==='BUY'?'buy':dir==='SELL'?'sell':'watch');d.textContent=dir==='BUY'?'↑ BUY':dir==='SELL'?'↓ SELL':'WATCH';
+  $('r7State').textContent=txt('signalState',dir);$('r7Strategy').textContent=txt('strategy',txt('v47Setup','Waiting for confirmed setup')).replace(/^WATCH:\s*/i,'');$('r7Entry').textContent=txt('entryMain','--').replace(/BUY NOW|SELL NOW/i,'--');$('r7SigTime').textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});$('r7SigExpiry').textContent=(tf?tf.value:'1m').toUpperCase();
+  const c=confidence();$('r7ConfText').textContent=c?c+'%':'--';$('r7ConfFill').style.width=c+'%';
+  const next=txt('v47Count',txt('closeHud','--')).replace(/^NEXT CLOSE:\s*/i,'');$('r7Next').textContent=next||'--:--';const sec=(next.match(/(\d+):?(\d+)?/)||[]);let pct=70;if(sec.length){const remain=(+sec[1])*60+(+sec[2]||0);const tfsec=tf&&tf.value==='30s'?30:(parseInt(tf?.value)||1)*60;pct=Math.max(0,Math.min(100,100-remain/tfsec*100))}$('r7NextFill').style.width=pct+'%';
+  $('r7Feed').textContent=txt('v51Feed','WAIT');$('r7Feed').className=/LIVE|OK|PASS/i.test($('r7Feed').textContent)?'ok':'warn';$('r7PairDetect').textContent=txt('pairDetectState','--');$('r7Crop').textContent=txt('cropState','--');$('r7Alerts').textContent=txt('alertState','--');$('r7Gate').textContent=txt('gateState','--');
+  const st=$('stage'),ph=$('r7ChartPlaceholder');if(st&&ph){const vis=getComputedStyle(st).display!=='none';ph.style.display=vis?'none':'flex'}
+ }
+ function clock(){const d=new Date();$('r7Clock').textContent=d.toLocaleTimeString([], {hour12:false});$('r7Date').textContent=d.toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})}
+ function init(){
+  const stage=$('stage'),slot=$('r7ChartSlot');if(stage&&slot)slot.appendChild(stage);
+  const host=$('r7AdvancedHost'),controls=$('scannerControlsCard'),watch=$('v47CompactWatch'),result=$('result'),intro=$('scannerIntroCard');if(host){[intro,controls,watch,result].forEach(x=>{if(x)host.appendChild(x)})}
+  // Make original cards visible only inside Advanced modal.
+  if(intro)intro.style.display='block';if(controls)controls.style.display='block';if(watch)watch.style.display='block';if(result)result.style.display='block';
+  syncSelect('r7TfSelect','tf');clickThrough('r7Share','shareBtn');clickThrough('r7Camera','cameraBtn');clickThrough('r7Shot','shotBtn');clickThrough('r7Auto','autoDetectBtn');clickThrough('r7Confirm','confirmCropBtn');
+  $('r7AdvancedBtn').onclick=()=>showAdvanced(true);$('r7AdvancedClose').onclick=()=>showAdvanced(false);$('r7Advanced').addEventListener('click',e=>{if(e.target===$('r7Advanced'))showAdvanced(false)});
+  $('r7PairSearch').addEventListener('input',e=>buildPairs(e.target.value));const po=$('pair');if(po)po.addEventListener('change',()=>buildPairs($('r7PairSearch').value));
+  buildPairs();mirror();clock();setInterval(mirror,350);setInterval(clock,1000);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 
