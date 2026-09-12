@@ -4022,30 +4022,41 @@ body>.app,body>#signalBanner{display:none!important}
 #r7Advanced{position:fixed;z-index:9998;inset:6vh 5vw;display:none;overflow:auto;padding:12px;border:1px solid #2c5872;border-radius:14px;background:#03101d;box-shadow:0 25px 80px rgba(0,0,0,.75)}#r7Advanced.show{display:block}#r7AdvancedClose{position:sticky;top:0;float:right;z-index:2;height:34px;border:1px solid #24506d;border-radius:8px;background:#0b2034;color:white;padding:0 12px;font-weight:900}.r7-advanced-title{font-size:16px;font-weight:950;margin:4px 0 10px}.r7-advanced-note{font-size:10px;color:#86a3b8;margin-bottom:8px}
 @media(max-width:1200px){#rajaDesignV7{overflow:auto}.r7-main{grid-template-columns:220px minmax(600px,1fr) 255px;min-width:1100px}.r7-header{min-width:1100px}.r7-footer{min-width:1100px}}
 @media(max-height:780px){.r7-header{height:64px;padding-top:6px;padding-bottom:6px}.r7-brand h1{font-size:21px}.r7-main{padding-top:8px;padding-bottom:8px}.r7-strat{padding:6px 8px}.r7-bottomstats .r7-panel{padding:6px}.r7-sig-card{padding:10px}.r7-direction{font-size:34px}}
+
+/* V8 controls requested: home, broker selector, market groups, favorites, flags, manual area */
+.r7-header{grid-template-columns:minmax(340px,1fr) auto auto!important}.r8-home{height:38px;border:1px solid #1a4563;border-radius:9px;background:#07192b;color:#eef9ff;font-size:11px;font-weight:900;padding:0 13px;cursor:pointer}.r8-broker-wrap{display:flex;align-items:center;gap:7px}.r8-broker-wrap select{height:38px!important;width:128px!important;border:1px solid #1b4a68!important;border-radius:9px!important;background:#07192b!important;color:#fff!important;font-weight:900!important;padding:0 10px!important}.r8-top-actions{display:flex;gap:8px;align-items:center}.r8-market-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 10px 8px}.r8-market-grid button{height:34px;border:1px solid #173f5b;border-radius:8px;background:#07172a;color:#cbe5f5;font-size:9px;font-weight:900;cursor:pointer}.r8-market-grid button.active{background:linear-gradient(180deg,#157fe8,#0d56c3);border-color:#2bb3ff;color:white;box-shadow:0 0 15px rgba(32,151,255,.22)}.r7-tabs button{cursor:pointer}.r7-pair{grid-template-columns:30px minmax(0,1fr) 34px 56px 26px!important}.r8-flag{font-size:18px;line-height:1;white-space:nowrap}.r8-fav{border:0;background:transparent;color:#58768c;font-size:17px;cursor:pointer;padding:0}.r8-fav.on{color:#ffd44f;text-shadow:0 0 8px rgba(255,212,79,.35)}.r8-area-group{display:flex;gap:6px}.r8-area-group button{white-space:nowrap}.r8-manual{background:#0b2236!important;border-color:#2d607e!important}.r7-asset .r7-flag{min-width:34px;text-align:center}.r7-summary{grid-template-columns:repeat(4,minmax(92px,1fr))!important}.r7-stat.broker-card{display:none}.r8-broker-status{font-size:9px;color:#79a2bb}.r8-broker-status b{color:#39f0a3}.r7-search{margin-top:6px}.r7-panel-head{display:flex;justify-content:space-between;align-items:center}.r8-filter-label{font-size:8px;color:#6f94ab;font-weight:800}.r8-empty{padding:20px 10px;text-align:center;color:#7f9cb0;font-size:10px}
 </style>
 <div id="rajaDesignV7">
   <header class="r7-header">
-    <div class="r7-brand"><div class="r7-crown">♛</div><div><h1>RAJA AI <span>| Live Screen Scanner</span><span class="r7-live"><i class="r7-dot"></i> LIVE</span></h1><small>REAL-TIME SIGNALS • QUOTEX / POCKET OPTION (OTC)</small></div></div>
-    <div class="r7-summary">
-      <div class="r7-stat"><small>BROKER</small><strong id="r7Broker">Quotex</strong></div>
-      <div class="r7-stat green"><small>MARKET</small><strong id="r7Market">OTC</strong></div>
-      <div class="r7-stat"><small>TIMEFRAME</small><strong id="r7Tf">1m</strong></div>
-      <div class="r7-stat"><small>EXPIRY</small><strong id="r7Expiry">1m</strong></div>
-      <div class="r7-stat green"><small>SCANNER</small><strong id="r7Scanner">READY</strong></div>
+    <div class="r7-brand"><div class="r7-crown">♛</div><div><h1>RAJA AI <span>| Live Screen Scanner</span><span class="r7-live"><i class="r7-dot"></i> LIVE</span></h1><small>REAL-TIME SIGNALS • QUOTEX / POCKET OPTION</small></div></div>
+    <div class="r8-top-actions">
+      <button class="r8-home" id="r8Home">⌂ HOME</button>
+      <div class="r8-broker-wrap"><select id="r8BrokerSelect"><option>Quotex</option><option>Pocket Option</option></select></div>
+      <div class="r7-summary">
+        <div class="r7-stat green"><small>MARKET</small><strong id="r7Market">OTC</strong></div>
+        <div class="r7-stat"><small>TIMEFRAME</small><strong id="r7Tf">1m</strong></div>
+        <div class="r7-stat"><small>EXPIRY</small><strong id="r7Expiry">1m</strong></div>
+        <div class="r7-stat green"><small>SCANNER</small><strong id="r7Scanner">READY</strong></div>
+      </div>
     </div>
-    <div><div class="r7-clock" id="r7Clock">--:--:--</div><div class="r7-clock-date" id="r7Date">--</div></div>
+    <div><div class="r7-clock" id="r7Clock">--:--:--</div><div class="r7-clock-date" id="r7Date">--</div><div class="r8-broker-status">Broker: <b id="r7Broker">Quotex</b></div></div>
   </header>
   <main class="r7-main">
     <aside class="r7-panel r7-left">
-      <div class="r7-panel-head">PAIRS <span id="r7PairCount"></span></div>
+      <div class="r7-panel-head"><span>SELECT MARKET</span><span class="r8-filter-label" id="r8FilterLabel">FOREX OTC</span></div>
+      <div class="r8-market-grid" id="r8MarketGrid">
+        <button data-cat="forex">🌐 FOREX</button><button class="active" data-cat="forex-otc">🌐 FOREX OTC</button>
+        <button data-cat="crypto">₿ CRYPTO</button><button data-cat="crypto-otc">🪙 CRYPTO OTC</button>
+      </div>
       <div class="r7-search"><input id="r7PairSearch" placeholder="Search pair..." autocomplete="off"></div>
-      <div class="r7-tabs"><button>ALL</button><button class="active">OTC</button><button>FAVORITES</button></div>
+      <div class="r7-tabs" id="r8Tabs"><button data-view="all">ALL</button><button class="active" data-view="otc">OTC</button><button data-view="favorites">FAVORITES</button></div>
+      <div class="r7-panel-head" style="padding-top:7px;padding-bottom:7px">PAIRS <span id="r7PairCount"></span></div>
       <div class="r7-pairs" id="r7Pairs"></div>
       <div class="r7-left-status">SCANNER STATUS <strong id="r7LeftStatus">READY</strong><br><span id="r7LeftMeta">5 strategies • 1m timeframe</span></div>
     </aside>
     <section class="r7-center">
       <div class="r7-panel r7-assetbar">
-        <div class="r7-asset"><div class="r7-flag">🌐</div><div><b id="r7Asset">--</b><small>Live chart scanner</small></div></div>
+        <div class="r7-asset"><div class="r7-flag" id="r8AssetFlag">🌐</div><div><b id="r7Asset">--</b><small>Live chart scanner</small></div></div>
         <div class="r7-quote price"><small>PRICE</small><strong id="r7Price">--</strong></div>
         <div class="r7-quote change"><small>QUALITY</small><strong id="r7Quality">--</strong></div>
         <div class="r7-quote"><small>CANDLES</small><strong id="r7Candles">--</strong></div>
@@ -4055,7 +4066,7 @@ body>.app,body>#signalBanner{display:none!important}
       <div class="r7-toolbar">
         <select id="r7TfSelect"><option>30s</option><option selected>1m</option><option>2m</option><option>3m</option><option>5m</option><option>10m</option><option>15m</option><option>30m</option></select>
         <button id="r7Share" class="primary">🖥 Screen</button><button id="r7Camera">📷 Camera</button><button id="r7Shot">🖼 Screenshot</button>
-        <div class="spacer"></div><button id="r7Auto">◎ Auto Area</button><button id="r7Confirm">✓ Confirm</button><button id="r7AdvancedBtn" class="tiny">⚙</button>
+        <div class="spacer"></div><div class="r8-area-group"><button id="r7Auto">⚡ Auto Area</button><button id="r8Manual" class="r8-manual">✋ Manual Area</button><button id="r7Confirm">✓ Confirm</button></div><button id="r7AdvancedBtn" class="tiny">⚙</button>
       </div>
       <div class="r7-chart" id="r7ChartSlot"><div class="r7-chart-grid"></div><div class="r7-chart-placeholder" id="r7ChartPlaceholder"><b>LIVE CHART AREA</b><span>Start Screen Share, Camera or Screenshot</span></div><div class="r7-indicator-labels"><span>Bollinger Bands</span><span>EMA 20</span><span>EMA 50</span></div></div>
       <div class="r7-strategies">
@@ -4081,9 +4092,22 @@ const $=id=>document.getElementById(id);
 const txt=(id,f='--')=>{const e=$(id);return e&&String(e.textContent||'').trim()||f};
 function syncSelect(copyId,origId){const c=$(copyId),o=$(origId);if(!c||!o)return;c.value=o.value;c.onchange=()=>{o.value=c.value;o.dispatchEvent(new Event('change',{bubbles:true}))};o.addEventListener('change',()=>c.value=o.value)}
 function clickThrough(copyId,origId){const c=$(copyId),o=$(origId);if(c&&o)c.onclick=()=>o.click()}
-function buildPairs(filter=''){
- const o=$('pair'),host=$('r7Pairs');if(!o||!host)return;host.innerHTML='';const q=filter.trim().toLowerCase();let n=0;
- [...o.options].forEach((op,i)=>{const name=(op.textContent||op.value||'').trim();if(!name|| (q&&!name.toLowerCase().includes(q)))return;n++;const b=document.createElement('button');b.className='r7-pair'+(op.value===o.value?' active':'');b.innerHTML='<b>'+name.replace(/</g,'&lt;')+'</b><span>'+txt('tf','1m')+'</span><em>LIVE</em>';b.onclick=()=>{o.value=op.value;o.dispatchEvent(new Event('change',{bubbles:true}));buildPairs($('r7PairSearch').value)};host.appendChild(b)});$('r7PairCount').textContent='('+n+')';
+function esc8(v){return String(v||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]||m))}
+ const cryptoWords=['BITCOIN','BTC','ETHEREUM','ETH','LITECOIN','LTC','DOGE','SOLANA','SOL','CARDANO','ADA','RIPPLE','XRP','BINANCE','BNB','CHAINLINK','LINK','POLKADOT','DOT','AVALANCHE','AVAX','TRON','TRX','COSMOS','ATOM','AXIE','ZCASH','DASH','MONERO'];
+ const flagMap={EUR:'🇪🇺',USD:'🇺🇸',GBP:'🇬🇧',JPY:'🇯🇵',AUD:'🇦🇺',CAD:'🇨🇦',CHF:'🇨🇭',NZD:'🇳🇿',BRL:'🇧🇷',MXN:'🇲🇽',INR:'🇮🇳',IDR:'🇮🇩',TRY:'🇹🇷',ZAR:'🇿🇦',SGD:'🇸🇬',HKD:'🇭🇰',NOK:'🇳🇴',SEK:'🇸🇪',DKK:'🇩🇰',PLN:'🇵🇱',CNY:'🇨🇳',ARS:'🇦🇷',COP:'🇨🇴',CLP:'🇨🇱',PHP:'🇵🇭',THB:'🇹🇭',MYR:'🇲🇾'};
+ let r8Category='forex-otc',r8View='otc';
+ function isCrypto(name){const u=String(name).toUpperCase();return cryptoWords.some(x=>new RegExp('(^|[^A-Z])'+x+'([^A-Z]|$)').test(u))}
+ function isOtc(name){return /\(OTC\)|\bOTC\b/i.test(name)}
+ function flagsFor(name){const u=String(name).toUpperCase();if(isCrypto(u))return '🪙';const base=u.replace(/\s*\(OTC\).*/i,'').replace(/[^A-Z/]/g,'');const parts=base.split('/').filter(Boolean);const fs=parts.slice(0,2).map(x=>flagMap[x]||'').join('');return fs||'🌐'}
+ function favorites(){try{return new Set(JSON.parse(localStorage.getItem('raja_r8_favorites')||'[]'))}catch(_){return new Set()}}
+ function saveFavorites(set){try{localStorage.setItem('raja_r8_favorites',JSON.stringify([...set]))}catch(_){}}
+ function catPass(name){const c=isCrypto(name),o=isOtc(name);if(r8Category==='forex')return !c&&!o;if(r8Category==='forex-otc')return !c&&o;if(r8Category==='crypto')return c&&!o;if(r8Category==='crypto-otc')return c&&o;return true}
+ function viewPass(name,val){if(r8View==='otc'&&!isOtc(name))return false;if(r8View==='favorites'&&!favorites().has(val))return false;return true}
+ function buildPairs(filter=''){
+  const o=$('pair'),host=$('r7Pairs');if(!o||!host)return;host.innerHTML='';const q=filter.trim().toLowerCase();let n=0;const fav=favorites();
+  [...o.options].forEach((op)=>{const name=(op.textContent||op.value||'').trim(),val=op.value;if(!name||!catPass(name)||!viewPass(name,val)||(q&&!name.toLowerCase().includes(q)))return;n++;const b=document.createElement('button');b.className='r7-pair'+(val===o.value?' active':'');b.innerHTML='<span class="r8-flag">'+flagsFor(name)+'</span><b>'+esc8(name)+'</b><span>'+esc8(txt('tf','1m'))+'</span><em>'+ (isOtc(name)?'OTC':'LIVE') +'</em><span class="r8-fav '+(fav.has(val)?'on':'')+'" title="Favorite">★</span>';
+    b.onclick=(ev)=>{if(ev.target.classList.contains('r8-fav')){ev.stopPropagation();const f=favorites();f.has(val)?f.delete(val):f.add(val);saveFavorites(f);buildPairs($('r7PairSearch').value);return;}o.value=val;o.dispatchEvent(new Event('change',{bubbles:true}));buildPairs($('r7PairSearch').value)};host.appendChild(b)});
+  $('r7PairCount').textContent='('+n+')';if(!n)host.innerHTML='<div class="r8-empty">No pairs in this filter.</div>';
  }
  function showAdvanced(on){$('r7Advanced').classList.toggle('show',!!on)}
  function normalizeDirection(){let s=(txt('v47SignalMain','')+' '+txt('big','')+' '+txt('entryMain','')).toUpperCase();if(/BUY|CALL/.test(s))return 'BUY';if(/SELL|PUT/.test(s))return 'SELL';return 'WATCH'}
@@ -4091,7 +4115,7 @@ function buildPairs(filter=''){
  function mirror(){
   const broker=$('broker'),market=$('market'),pair=$('pair'),tf=$('tf');
   if(broker)$('r7Broker').textContent=broker.value;if(market)$('r7Market').textContent=market.value;if(tf){$('r7Tf').textContent=tf.value;$('r7Expiry').textContent=tf.value;$('r7TfSelect').value=tf.value;$('r7LeftMeta').textContent='5 strategies • '+tf.value+' timeframe'}
-  const pairText=pair?(pair.options[pair.selectedIndex]?.textContent||pair.value):'--';$('r7Asset').textContent=pairText;$('r7SigPair').textContent=pairText;
+  const pairText=pair?(pair.options[pair.selectedIndex]?.textContent||pair.value):'--';$('r7Asset').textContent=pairText;$('r7SigPair').textContent=pairText;if($('r8AssetFlag'))$('r8AssetFlag').textContent=flagsFor(pairText);if($('r8BrokerSelect')&&broker)$('r8BrokerSelect').value=broker.value;
   $('r7Quality').textContent=txt('v47Quality',txt('qhQuality','--')).replace(/^QUALITY\s*/i,'');$('r7Candles').textContent=txt('v47Candles',txt('candleCountState','--'));$('r7Frame').textContent=txt('lastFrame','--');$('r7Latency').textContent=txt('latencyState','--');
   const cap=txt('captureState','OFF'), eng=txt('engineState','READY');const running=/LIVE|SCAN|WATCH/i.test(cap+' '+eng);$('r7Scanner').textContent=running?'RUNNING':'READY';$('r7LeftStatus').textContent=running?'LIVE SCANNING':'READY';$('r7Connected').textContent=running?'Connected / Scanning':'Scanner Ready';
   const dir=normalizeDirection(),card=$('r7SigCard'),d=$('r7Direction');card.className='r7-sig-card '+(dir==='BUY'?'buy':dir==='SELL'?'sell':'watch');d.textContent=dir==='BUY'?'↑ BUY':dir==='SELL'?'↓ SELL':'WATCH';
@@ -4109,8 +4133,12 @@ function buildPairs(filter=''){
   if(intro)intro.style.display='block';if(controls)controls.style.display='block';if(watch)watch.style.display='block';if(result)result.style.display='block';
   syncSelect('r7TfSelect','tf');clickThrough('r7Share','shareBtn');clickThrough('r7Camera','cameraBtn');clickThrough('r7Shot','shotBtn');clickThrough('r7Auto','autoDetectBtn');clickThrough('r7Confirm','confirmCropBtn');
   $('r7AdvancedBtn').onclick=()=>showAdvanced(true);$('r7AdvancedClose').onclick=()=>showAdvanced(false);$('r7Advanced').addEventListener('click',e=>{if(e.target===$('r7Advanced'))showAdvanced(false)});
-  $('r7PairSearch').addEventListener('input',e=>buildPairs(e.target.value));const po=$('pair');if(po)po.addEventListener('change',()=>buildPairs($('r7PairSearch').value));
-  buildPairs();mirror();clock();setInterval(mirror,350);setInterval(clock,1000);
+  $('r7PairSearch').addEventListener('input',e=>buildPairs(e.target.value));const po=$('pair');if(po)po.addEventListener('change',()=>{buildPairs($('r7PairSearch').value);const nm=po.options[po.selectedIndex]?.textContent||po.value;$('r8AssetFlag').textContent=flagsFor(nm)});
+  const bsel=$('r8BrokerSelect'),borig=$('broker');if(bsel&&borig){bsel.value=borig.value;bsel.onchange=()=>{borig.value=bsel.value;borig.dispatchEvent(new Event('change',{bubbles:true}))};borig.addEventListener('change',()=>bsel.value=borig.value)}
+  $('r8Home').onclick=()=>window.location.replace(window.location.origin+'/index.html?home=1');clickThrough('r8Manual','cropBtn');
+  document.querySelectorAll('#r8MarketGrid button').forEach(btn=>btn.onclick=()=>{r8Category=btn.dataset.cat;document.querySelectorAll('#r8MarketGrid button').forEach(x=>x.classList.toggle('active',x===btn));$('r8FilterLabel').textContent=btn.textContent.trim().replace(/^[^A-Z]+/,'');const m=$('market');if(m){m.value=r8Category.includes('otc')?'OTC':'LIVE';m.dispatchEvent(new Event('change',{bubbles:true}))}buildPairs($('r7PairSearch').value)});
+  document.querySelectorAll('#r8Tabs button').forEach(btn=>btn.onclick=()=>{r8View=btn.dataset.view;document.querySelectorAll('#r8Tabs button').forEach(x=>x.classList.toggle('active',x===btn));buildPairs($('r7PairSearch').value)});
+  buildPairs();if(po)$('r8AssetFlag').textContent=flagsFor(po.options[po.selectedIndex]?.textContent||po.value);mirror();clock();setInterval(mirror,350);setInterval(clock,1000);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
