@@ -4528,6 +4528,134 @@ else observe();
 })();
 </script>
 
+
+<!-- RAJA v14: clean pair rows + reliable favorites -->
+<style id="raja-v14-pairs-style">
+.r7-pair{
+  grid-template-columns:34px minmax(0,1fr) 30px!important;
+  gap:8px!important;
+  padding:9px 7px!important;
+}
+.r7-pair .r8-flag{justify-content:center}
+.r7-pair .r14-name{
+  min-width:0;
+  font-size:11px!important;
+  font-weight:900;
+  color:#f2f8ff;
+  line-height:1.15;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.r7-pair .r8-fav{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  border-radius:7px;
+  font-size:19px!important;
+  line-height:1;
+  color:#607d92;
+  cursor:pointer;
+  user-select:none;
+  transition:.15s ease;
+}
+.r7-pair .r8-fav:hover{background:#102a3e;color:#ffd84d;transform:scale(1.05)}
+.r7-pair .r8-fav.on{color:#ffd84d;text-shadow:0 0 9px rgba(255,216,77,.32)}
+</style>
+
+<script id="raja-v14-pairs-script">
+(function(){
+'use strict';
+
+function r14Favs(){
+  try{return new Set(JSON.parse(localStorage.getItem('raja_r8_favorites')||'[]'))}
+  catch(_){return new Set()}
+}
+function r14SaveFavs(set){
+  try{localStorage.setItem('raja_r8_favorites',JSON.stringify([...set]))}catch(_){}
+}
+
+window.buildPairs = buildPairs = function(filter=''){
+  const o=document.getElementById('pair');
+  const host=document.getElementById('r7Pairs');
+  if(!o||!host)return;
+
+  host.innerHTML='';
+  const q=String(filter||'').trim().toLowerCase();
+  const fav=r14Favs();
+  let n=0;
+
+  [...o.options].forEach(op=>{
+    const name=(op.textContent||op.value||'').trim();
+    const val=op.value;
+    if(!name) return;
+    if(typeof catPass==='function' && !catPass(name)) return;
+    if(typeof viewPass==='function' && !viewPass(name,val)) return;
+    if(q && !name.toLowerCase().includes(q)) return;
+
+    n++;
+    const row=document.createElement('button');
+    row.type='button';
+    row.className='r7-pair'+(val===o.value?' active':'');
+    row.dataset.value=val;
+
+    row.innerHTML =
+      '<span class="r8-flag">'+(typeof flagHtml==='function'?flagHtml(name):'🌐')+'</span>'+
+      '<span class="r14-name">'+(typeof esc8==='function'?esc8(name):name)+'</span>'+
+      '<span class="r8-fav '+(fav.has(val)?'on':'')+'" data-fav="'+
+        String(val).replace(/"/g,'&quot;')+'" title="'+(fav.has(val)?'Remove favorite':'Add favorite')+'">'+
+        (fav.has(val)?'★':'☆')+
+      '</span>';
+
+    row.addEventListener('click',ev=>{
+      const star=ev.target.closest('.r8-fav');
+      if(star){
+        ev.preventDefault();
+        ev.stopPropagation();
+        const set=r14Favs();
+        if(set.has(val)) set.delete(val); else set.add(val);
+        r14SaveFavs(set);
+        window.buildPairs(document.getElementById('r7PairSearch')?.value||'');
+        return;
+      }
+      o.value=val;
+      o.dispatchEvent(new Event('change',{bubbles:true}));
+      window.buildPairs(document.getElementById('r7PairSearch')?.value||'');
+    });
+
+    host.appendChild(row);
+  });
+
+  const count=document.getElementById('r7PairCount');
+  if(count)count.textContent='('+n+')';
+  if(!n)host.innerHTML='<div class="r8-empty">'+
+    ((window.r8View||'')==='favorites'?'No favorite pairs selected yet.':'No pairs in this filter.')+
+    '</div>';
+};
+
+function r14BindTabs(){
+  document.querySelectorAll('#r8Tabs button').forEach(btn=>{
+    btn.onclick=()=>{
+      window.r8View = r8View = btn.dataset.view || 'all';
+      document.querySelectorAll('#r8Tabs button').forEach(x=>x.classList.toggle('active',x===btn));
+      window.buildPairs(document.getElementById('r7PairSearch')?.value||'');
+    };
+  });
+}
+
+function boot(){
+  r14BindTabs();
+  window.buildPairs(document.getElementById('r7PairSearch')?.value||'');
+  const s=document.getElementById('r7PairSearch');
+  if(s){
+    s.oninput=e=>window.buildPairs(e.target.value);
+  }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,80),{once:true});
+else setTimeout(boot,80);
+})();
+</script>
+
 </body>
 </html>
 
