@@ -4115,11 +4115,45 @@ function esc8(v){return String(v||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'
   $('r7PairCount').textContent='('+n+')';if(!n)host.innerHTML='<div class="r8-empty">No pairs in this filter.</div>';
  }
  function showAdvanced(on){$('r7Advanced').classList.toggle('show',!!on)}
- let r8SignalKey='',r8SignalUntil=0,r8SignalDir='WATCH',r8SignalStrategy='',r8SignalTime='--';
+ let r8SignalKey='',r8SignalUntil=0,r8SignalDir='WATCH',r8SignalStrategy='',r8SignalTime='--',r8LastRawSignal='WATCH';
  function rawDirection(){let s=(txt('v47SignalMain','')+' '+txt('big','')+' '+txt('entryMain','')).toUpperCase();if(/BUY|CALL/.test(s))return 'BUY';if(/SELL|PUT/.test(s))return 'SELL';return 'WATCH'}
- function signalFingerprint(dir){const key=txt('proofKey','');const pair=$('pair')?.value||'';const strat=txt('strategy',txt('v47Setup',''));const close=txt('proofClose','');return key&&key!=='--'?key:[pair,dir,strat,close].join('|')}
- function normalizeDirection(){const raw=rawDirection(),now=Date.now();if(raw==='BUY'||raw==='SELL'){const k=signalFingerprint(raw);if(k&&k!==r8SignalKey){r8SignalKey=k;r8SignalUntil=now+30000;r8SignalDir=raw;r8SignalStrategy=txt('strategy',txt('v47Setup','Waiting for confirmed setup')).replace(/^WATCH:\s*/i,'');r8SignalTime=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});}}return now<r8SignalUntil?r8SignalDir:'WATCH'}
- function updateSignalHoldUI(){const left=Math.max(0,r8SignalUntil-Date.now()),el=$('r8SignalLeft');if(el){if(left>0){el.classList.add('show');el.textContent='SIGNAL '+String(Math.ceil(left/1000)).padStart(2,'0')+'s / 30s'}else{el.classList.remove('show');el.textContent='SIGNAL 30s / 30s'}}}
+ function signalFingerprint(dir){const pair=$('pair')?.value||'';const strat=txt('strategy',txt('v47Setup',''));return [pair,dir,strat].join('|')}
+ function normalizeDirection(){
+   const raw=rawDirection(),now=Date.now();
+
+   // Arm only on a genuine state transition into BUY/SELL.
+   // If backend keeps showing old CALL/PUT, it cannot restart the 30s timer.
+   if((raw==='BUY'||raw==='SELL') && raw!==r8LastRawSignal){
+     r8SignalKey=signalFingerprint(raw);
+     r8SignalUntil=now+30000;
+     r8SignalDir=raw;
+     r8SignalStrategy=txt('strategy',txt('v47Setup','Waiting for confirmed setup')).replace(/^WATCH:\s*/i,'');
+     r8SignalTime=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+   }
+
+   // If source returns WATCH, allow a future fresh signal to arm again.
+   r8LastRawSignal=raw;
+
+   // Hard stop at 30 seconds.
+   if(r8SignalUntil>0 && now>=r8SignalUntil){
+     r8SignalUntil=0;
+     r8SignalDir='WATCH';
+   }
+
+   return (r8SignalUntil>now && (r8SignalDir==='BUY'||r8SignalDir==='SELL')) ? r8SignalDir : 'WATCH';
+ }
+ function updateSignalHoldUI(){
+   const left=Math.max(0,r8SignalUntil-Date.now()),el=$('r8SignalLeft');
+   if(el){
+     if(left>0){
+       el.classList.add('show');
+       el.textContent='SIGNAL '+String(Math.ceil(left/1000)).padStart(2,'0')+'s / 30s';
+     }else{
+       el.classList.remove('show');
+       el.textContent='';
+     }
+   }
+ }
  function confidence(){const s=[txt('qualityChip',''),txt('v47Quality',''),txt('qhQuality','')].join(' ');const m=s.match(/(\d{1,3})\s*%/);return m?Math.max(0,Math.min(100,+m[1])):0}
  function mirror(){
   const broker=$('broker'),market=$('market'),pair=$('pair'),tf=$('tf');
@@ -4322,95 +4356,6 @@ function boot(){
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});
 else setTimeout(boot,120);
-})();
-</script>
-
-
-<!-- RAJA v12: hard 30-second signal expiry + duplicate lock -->
-<script id="raja-v12-signal-lock">
-(function(){
-'use strict';
-
-let v12ActiveKey = '';
-let v12SeenKeys = new Map();
-let v12LastRaw = 'WATCH';
-let v12LastProofKey = '';
-const V12_HOLD_MS = 30000;
-const V12_SEEN_TTL_MS = 10 * 60 * 1000;
-
-function v12CleanSeen(now){
-  for (const [k,t] of v12SeenKeys.entries()){
-    if(now - t > V12_SEEN_TTL_MS) v12SeenKeys.delete(k);
-  }
-}
-function v12StableKey(dir){
-  const proof=(typeof txt==='function'?txt('proofKey',''):'').trim();
-  const pair=document.getElementById('pair')?.value || '';
-  const strat=(typeof txt==='function'?txt('strategy',txt('v47Setup','')):'').trim();
-  if(proof && proof !== '--') return 'proof|' + pair + '|' + dir + '|' + proof;
-  // Fallback intentionally excludes changing close/countdown text.
-  // This prevents an old CALL/PUT from restarting its own 30s timer.
-  return 'fallback|' + pair + '|' + dir + '|' + strat;
-}
-
-window.normalizeDirection = function(){
-  const raw = (typeof rawDirection==='function' ? rawDirection() : 'WATCH');
-  const now = Date.now();
-  v12CleanSeen(now);
-
-  if(raw === 'BUY' || raw === 'SELL'){
-    const key = v12StableKey(raw);
-    const proof=(typeof txt==='function'?txt('proofKey',''):'').trim();
-    const hasFreshProof = proof && proof !== '--' && proof !== v12LastProofKey;
-
-    // Arm only once for a new confirmed signal.
-    // Same backend CALL/PUT cannot restart the timer after expiry.
-    if(!v12SeenKeys.has(key) && (v12LastRaw === 'WATCH' || hasFreshProof || !v12ActiveKey)){
-      v12SeenKeys.set(key, now);
-      v12ActiveKey = key;
-      r8SignalKey = key;
-      r8SignalUntil = now + V12_HOLD_MS;
-      r8SignalDir = raw;
-      r8SignalStrategy = (typeof txt==='function'
-        ? txt('strategy',txt('v47Setup','Waiting for confirmed setup'))
-        : 'Confirmed signal').replace(/^WATCH:\s*/i,'');
-      r8SignalTime = new Date().toLocaleTimeString([],{
-        hour:'2-digit',minute:'2-digit',second:'2-digit'
-      });
-    }
-
-    if(proof && proof !== '--') v12LastProofKey = proof;
-  }
-
-  v12LastRaw = raw;
-
-  if(now < r8SignalUntil && (r8SignalDir === 'BUY' || r8SignalDir === 'SELL')){
-    return r8SignalDir;
-  }
-
-  // Hard expiry: exactly 30 seconds maximum.
-  // Old CALL/PUT text may still exist in legacy/backend panels, but dashboard returns WATCH.
-  if(r8SignalUntil && now >= r8SignalUntil){
-    r8SignalUntil = 0;
-    r8SignalDir = 'WATCH';
-    v12ActiveKey = '';
-  }
-  return 'WATCH';
-};
-
-// Make the visible countdown explicitly show hard expiry.
-window.updateSignalHoldUI = function(){
-  const el=document.getElementById('r8SignalLeft');
-  if(!el) return;
-  const left=Math.max(0,(Number(r8SignalUntil)||0)-Date.now());
-  if(left>0){
-    el.classList.add('show');
-    el.textContent='SIGNAL '+String(Math.ceil(left/1000)).padStart(2,'0')+'s / 30s';
-  }else{
-    el.classList.remove('show');
-    el.textContent='SIGNAL 30s / 30s';
-  }
-};
 })();
 </script>
 
