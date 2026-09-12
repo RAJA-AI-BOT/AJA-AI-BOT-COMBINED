@@ -4153,6 +4153,178 @@ function esc8(v){return String(v||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'
 })();
 </script>
 
+
+<!-- RAJA v11: fullscreen + stronger live chart follow -->
+<style id="raja-v11-follow-style">
+#r11Fullscreen{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-width:38px;height:30px;padding:0 10px;border:1px solid #164867;
+  border-radius:8px;background:#071b2b;color:#eaf8ff;font-weight:900;
+  font-size:10px;cursor:pointer;transition:.15s ease
+}
+#r11Fullscreen:hover{border-color:#17c9ff;background:#0a2940;box-shadow:0 0 14px rgba(23,201,255,.15)}
+#r11FollowBadge{
+  position:absolute;right:10px;top:10px;z-index:12;pointer-events:none;
+  display:none;padding:4px 7px;border-radius:999px;border:1px solid rgba(0,255,160,.5);
+  background:rgba(0,20,26,.82);color:#35ffc1;font-size:8px;font-weight:1000;letter-spacing:.35px
+}
+#r11FollowBadge.show{display:block}
+body:fullscreen #r11Fullscreen,
+:fullscreen #r11Fullscreen{border-color:#35ffc1}
+:fullscreen .r7-shell{min-height:100vh}
+</style>
+
+<script id="raja-v11-follow-script">
+(function(){
+'use strict';
+const q=id=>document.getElementById(id);
+let followTimer=null,boundaryTimer=null,lastBoundaryBucket=-1,lastFollowAt=0;
+const FOLLOW_EVERY_MS=7000;
+
+function addFullscreenButton(){
+  if(q('r11Fullscreen'))return;
+  const btn=document.createElement('button');
+  btn.id='r11Fullscreen';
+  btn.type='button';
+  btn.innerHTML='⛶ FULL';
+  btn.title='Full screen';
+  const anchor=q('r8Home') || q('r7AdvancedBtn');
+  if(anchor && anchor.parentElement){
+    anchor.parentElement.insertBefore(btn, anchor.nextSibling);
+  }else{
+    const bar=document.querySelector('.r7-topbar,.r7-header,#v56BrandBar');
+    if(bar)bar.appendChild(btn);
+  }
+  btn.onclick=async()=>{
+    try{
+      if(!document.fullscreenElement){
+        const target=document.documentElement;
+        await (target.requestFullscreen?.() || target.webkitRequestFullscreen?.());
+      }else{
+        await (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
+      }
+    }catch(_){}
+  };
+  const sync=()=>{btn.innerHTML=document.fullscreenElement?'⛶ EXIT':'⛶ FULL';};
+  document.addEventListener('fullscreenchange',sync);
+}
+
+function addFollowBadge(){
+  const stage=q('stage');
+  if(!stage || q('r11FollowBadge'))return;
+  const b=document.createElement('div');
+  b.id='r11FollowBadge';
+  b.textContent='● AUTO FOLLOW';
+  stage.appendChild(b);
+}
+
+function setFollowBadge(on,text){
+  const b=q('r11FollowBadge'); if(!b)return;
+  b.classList.toggle('show',!!on);
+  if(text)b.textContent=text;
+}
+
+function forceAutoRecalOn(){
+  const a=q('autoRecal');
+  if(a && !a.checked){
+    a.checked=true;
+    try{a.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}
+  }
+}
+
+async function hardFollow(reason){
+  if(!window.stream || !['SCREEN','CAMERA'].includes(String(window.sourceMode||'')))return;
+  forceAutoRecalOn();
+  if(typeof performAutoRecalibration!=='function')return;
+  const now=Date.now();
+  if(now-lastFollowAt<5800)return;
+  lastFollowAt=now;
+  setFollowBadge(true,'● FOLLOWING CHART');
+  try{
+    await performAutoRecalibration(reason||'Live chart follow');
+  }catch(_){}
+  setTimeout(()=>setFollowBadge(true,'● AUTO FOLLOW'),700);
+}
+
+function startContinuousFollow(){
+  if(followTimer)clearInterval(followTimer);
+  followTimer=setInterval(()=>{
+    if(!window.stream)return;
+    hardFollow('Live chart movement follow');
+  },FOLLOW_EVERY_MS);
+
+  if(boundaryTimer)clearInterval(boundaryTimer);
+  boundaryTimer=setInterval(()=>{
+    if(!window.stream)return;
+    const tf=q('tf')?.value||'1m';
+    const dur=({'30s':30,'1m':60,'2m':120,'3m':180,'5m':300,'10m':600,'15m':900,'30m':1800})[tf]||60;
+    const nowMs=(typeof serverNowMs==='function'?serverNowMs():Date.now());
+    const bucket=Math.floor(nowMs/1000/dur);
+    if(lastBoundaryBucket<0){lastBoundaryBucket=bucket;return;}
+    if(bucket!==lastBoundaryBucket){
+      lastBoundaryBucket=bucket;
+      // New candle has started: re-lock shortly after it appears on the broker chart.
+      setTimeout(()=>hardFollow('New candle follow'),900);
+    }
+  },350);
+}
+
+function enhanceAutoArea(){
+  const btn=q('autoDetectBtn');
+  if(!btn || btn.dataset.v11enhanced==='1')return;
+  btn.dataset.v11enhanced='1';
+  const old=btn.onclick;
+  btn.onclick=async function(ev){
+    forceAutoRecalOn();
+    setFollowBadge(true,'● DETECTING CHART');
+    try{
+      if(typeof old==='function') await old.call(this,ev);
+      else if(typeof runAutoDetect==='function') await runAutoDetect();
+      // Auto Detect should finish the job: test + confirm automatically when possible.
+      if(window.roi || (typeof roi!=='undefined' && roi)){
+        if(typeof confirmCrop==='function'){
+          try{await confirmCrop();}catch(_){}
+        }
+      }
+    }finally{
+      setTimeout(()=>setFollowBadge(true,'● AUTO FOLLOW'),500);
+    }
+  };
+}
+
+function hookSourceButtons(){
+  ['shareBtn','cameraBtn','r7Share','r7Camera'].forEach(id=>{
+    const el=q(id); if(!el || el.dataset.v11hook==='1')return;
+    el.dataset.v11hook='1';
+    el.addEventListener('click',()=>{
+      forceAutoRecalOn();
+      setTimeout(()=>hardFollow('Source started / refreshed'),1800);
+    },{passive:true});
+  });
+}
+
+function boot(){
+  addFullscreenButton();
+  addFollowBadge();
+  forceAutoRecalOn();
+  enhanceAutoArea();
+  hookSourceButtons();
+  startContinuousFollow();
+  setFollowBadge(!!window.stream,'● AUTO FOLLOW');
+
+  // Keep overlay aligned whenever the shared tab/browser layout shifts.
+  const stage=q('stage');
+  if(stage && 'ResizeObserver' in window){
+    const ro=new ResizeObserver(()=>{try{drawRoi?.();redrawScreenArrows?.();}catch(_){}});
+    ro.observe(stage);
+  }
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});
+else setTimeout(boot,120);
+})();
+</script>
+
 </body>
 </html>
 
