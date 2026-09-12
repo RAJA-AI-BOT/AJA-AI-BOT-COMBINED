@@ -6325,88 +6325,6 @@ body:not(.raja-authenticated).raja-mobile-scanning {
 }
 html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradient(180deg,#f8fcff,#eef6fb);border-color:#b8d3df;box-shadow:0 12px 30px rgba(36,74,95,.10)}
 </style>
-
-<style id="raja-mobile-top-controls-final">
-@media (max-width: 600px){
-  /* Put the real broker/pair controls at the top of the dashboard on phones. */
-  #rajaMobileTopControls{
-    display:block !important;
-    margin:8px 8px 10px !important;
-    padding:10px !important;
-    border:1px solid rgba(65,239,190,.28) !important;
-    border-radius:14px !important;
-    background:linear-gradient(180deg,rgba(4,20,31,.96),rgba(2,10,19,.98)) !important;
-    box-shadow:0 8px 28px rgba(0,0,0,.28);
-  }
-  #rajaMobileTopControls .mobile-top-title{
-    color:#60efff;font-size:11px;font-weight:950;letter-spacing:.7px;
-    margin:0 0 8px;
-  }
-  #rajaMobileTopControls .mobile-top-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:7px;
-  }
-  #rajaMobileTopControls .mobile-top-grid .mobile-top-wide{grid-column:1/-1}
-  #rajaMobileTopControls .mobile-top-label{
-    display:block;color:#60efff;font-size:8px;font-weight:900;margin:0 0 4px;
-  }
-  #rajaMobileTopControls select,
-  #rajaMobileTopControls input{
-    width:100%;min-height:40px;box-sizing:border-box;
-    border:1px solid rgba(96,239,255,.22);border-radius:9px;
-    background:#071321;color:#e8f7ff;padding:8px;font-size:10px;
-  }
-  #rajaMobileTopControls .mobile-top-time{
-    grid-column:1/-1;
-    display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
-  }
-  #rajaMobileTopControls .mobile-top-time button{
-    min-height:36px;border:1px solid rgba(83,177,255,.18);
-    border-radius:8px;background:#071221;color:#9fdfff;font-size:9px;font-weight:900;
-  }
-  #rajaMobileTopControls .mobile-top-time button.active{
-    background:linear-gradient(90deg,#13e9ac,#22d3ee);
-    color:#00131b;border-color:#27e9cf;
-  }
-  #rajaMobileTopControls .mobile-top-actions{
-    grid-column:1/-1;display:grid;grid-template-columns:1fr 2fr 1fr;gap:5px;
-    margin-top:2px;
-  }
-  #rajaMobileTopControls .mobile-top-actions button{
-    min-height:42px;border-radius:9px;font-size:9px;font-weight:950;
-    border:1px solid rgba(83,177,255,.2);background:#071221;color:#bcecff;
-  }
-  #rajaMobileTopControls .mobile-top-actions #mobileTopScan{
-    background:linear-gradient(90deg,#13e9ac,#22d3ee,#3ba7ff);
-    color:#00131b;border-color:#1cebc5;
-  }
-  #rajaMobileTopControls .mobile-top-actions #mobileTopStop{
-    background:linear-gradient(180deg,#551725,#32101a);
-    color:#ff8fa5;border-color:rgba(255,66,106,.45);
-  }
-  #rajaMobileTopControls .mobile-top-auto{
-    grid-column:1/-1;min-height:38px;border-radius:9px;
-    border:1px solid rgba(255,204,74,.22);background:#071321;
-    color:#ffd96a;font-size:9px;font-weight:900;
-  }
-
-  /* Hide the old mobile settings/scan sheet controls; the same real controls
-     are exposed in the top panel above. */
-  #mainAppContent .config-panel .raja-mobile-sheet-inline-actions{display:none !important;}
-
-  /* Keep the original configuration section from creating a second full
-     broker/pair block on narrow screens. */
-  #mainAppContent .config-panel .selection-card,
-  #mainAppContent .config-panel .expiry-wide{
-    display:none !important;
-  }
-
-  #rajaMobileTopControls{position:relative;z-index:20}
-}
-@media (min-width:601px){
-  #rajaMobileTopControls{display:none !important}
-}
-</style>
-
 </head>
 <body>
 
@@ -6795,7 +6713,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                                         <div class="scan-stage-title">LIVE SCAN PROCESS</div>
                                         <div class="scan-stage-list">
                                             <div id="scanStageCollect" class="scan-stage active"><span class="scan-dot"></span><span>Collecting market data</span><span class="scan-stage-status">RUNNING</span></div>
-                                            <div id="scanStageAnalyze" class="scan-stage"><span class="scan-dot"></span><span>Checking 3 active strategy rules</span><span class="scan-stage-status">PENDING</span></div>
+                                            <div id="scanStageAnalyze" class="scan-stage"><span class="scan-dot"></span><span>Checking RAJA 24 strategy rules</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageAssets" class="scan-stage"><span class="scan-dot"></span><span>Scanning eligible assets</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageConditions" class="scan-stage"><span class="scan-dot"></span><span>Running exact rule + conflict gate</span><span class="scan-stage-status">PENDING</span></div>
                                             <div id="scanStageFinal" class="scan-stage"><span class="scan-dot"></span><span>Selecting exact pattern setup</span><span class="scan-stage-status">PENDING</span></div>
@@ -6917,7 +6835,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
                                     
 
-                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>3 ACTIVE STRATEGIES:✔</span> | <span>CLOSED CANDLES:✔</span> | <span>CONFLICT GATE:✔</span> | <span>NO INDICATORS:✔</span> | <span>NEXT CANDLE:✔</span></div>
+                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>RAJA 24:✔</span> | <span>CLOSED CANDLES:✔</span> | <span>CONFLICT GATE:✔</span> | <span>NO INDICATORS:✔</span> | <span>NEXT CANDLE:✔</span></div>
                                     <div id="signalConfidenceRing" class="signal3d-confidence"><div><strong>--</strong><span>CONFIDENCE</span></div></div>
                                     <div class="mtf-heading psr-mtf-heading">SK PATTERN TYPE 1-25 · SELECTED TIMEFRAME</div>
                                     <div id="tfBreakdown" class="tf-breakdown"></div>
@@ -7130,7 +7048,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                                     </div>
                                 </div>
 
-                                <div class="inline-list-box"><div class="inline-item"><span>Signal Engine:</span><span style="color:#00ff87;">3 ACTIVE STRATEGIES ✔</span></div><div class="inline-item"><span>Closed Candle Lock:</span><span id="settingsModeStatus" style="color:#00ff87;">BALANCED ✔</span></div><div class="inline-item"><span>Auto Signals:</span><span style="color:#00ff87;">3 Minutes · Strong Signals Feed ✔</span></div><div class="inline-item"><span>OTC:</span><span style="color:#facc15;">Underlying proxy feed</span></div></div><button class="menu-back-btn" onclick="showDefaultView()">🏠 Dashboard</button>
+                                <div class="inline-list-box"><div class="inline-item"><span>Signal Engine:</span><span style="color:#00ff87;">RAJA 24 SELECTED STRATEGIES ✔</span></div><div class="inline-item"><span>Closed Candle Lock:</span><span id="settingsModeStatus" style="color:#00ff87;">BALANCED ✔</span></div><div class="inline-item"><span>Auto Signals:</span><span style="color:#00ff87;">3 Minutes · Strong Signals Feed ✔</span></div><div class="inline-item"><span>OTC:</span><span style="color:#facc15;">Underlying proxy feed</span></div></div><button class="menu-back-btn" onclick="showDefaultView()">🏠 Dashboard</button>
                             </div>
                             <div id="newsInlineView" class="inline-content-view">
                                 <div class="inline-title">📰 Live Economic News / Calendar</div>
@@ -7225,7 +7143,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
 
                     <div class="status-grid">
-                        <section class="scan-summary-card"><div id="targetPairBoxContainer" class="selected-pair-box"><div class="selected-pair-head"><span class="selected-pair-label">SELECTED TARGET PAIR</span><div class="selected-pair-badges"><span id="selectedBrokerBadge" class="target-context-badge broker-badge">⚡ QUOTEX</span><span id="selectedMarketBadge" class="target-context-badge market-badge">📈 CRYPTO LIVE</span></div></div><span id="targetPairDisplay" class="selected-pair-name">NZD/CAD (OTC)</span><div class="metric-note">✓ All-pairs 3-strategy scanner</div></div></section>
+                        <section class="scan-summary-card"><div id="targetPairBoxContainer" class="selected-pair-box"><div class="selected-pair-head"><span class="selected-pair-label">SELECTED TARGET PAIR</span><div class="selected-pair-badges"><span id="selectedBrokerBadge" class="target-context-badge broker-badge">⚡ QUOTEX</span><span id="selectedMarketBadge" class="target-context-badge market-badge">📈 CRYPTO LIVE</span></div></div><span id="targetPairDisplay" class="selected-pair-name">NZD/CAD (OTC)</span><div class="metric-note">✓ All-pairs RAJA 24 strategy scanner</div></div></section>
                         <section class="scan-summary-card"><div class="card-label">CURRENT MARKET SNAPSHOT</div><div class="snapshot-grid"><div class="snapshot-cell"><small>Analysis</small><strong>Selected TF</strong></div><div class="snapshot-cell"><small>Confirmation</small><strong>Exact Rules</strong></div><div class="snapshot-cell"><small>Protection</small><strong>Active</strong></div><div class="snapshot-cell"><small>Base Feed</small><strong id="rajaBaseFeedLabel">BROKER NATIVE M1</strong></div><div class="snapshot-cell"><small>Auto Signals</small><strong>3 min</strong></div><div class="snapshot-cell"><small>Signal Mode</small><strong>Balanced</strong></div></div></section>
                     </div>
 
@@ -8595,7 +8513,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             } else if (safe >= 25) {
                 level = 'moderate';
                 label = 'MODERATE';
-                title = '3-strategy scan active';
+                title = 'RAJA 24 strategy scan active';
                 copy = 'Momentum, trend and volatility filters are converging.';
             }
 
@@ -8626,7 +8544,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             const telemetryProgress = document.getElementById('scanTelemetryProgress');
             if (telemetryProgress) telemetryProgress.innerText = Math.round(safe) + '%';
             const telemetryStage = document.getElementById('scanTelemetryStage');
-            if (telemetryStage) telemetryStage.innerText = safe < 28 ? 'Collecting Data' : (safe < 55 ? '3-Strategy Pattern Check' : (safe < 82 ? 'Exact Setup Scan' : 'Conflict Gate'));
+            if (telemetryStage) telemetryStage.innerText = safe < 28 ? 'Collecting Data' : (safe < 55 ? 'RAJA 24 Pattern Check' : (safe < 82 ? 'Exact Setup Scan' : 'Conflict Gate'));
             if (scanSessionState.running && scanSessionState.startedAt) {
                 const elapsed = Math.max(0, Math.floor((Date.now() - scanSessionState.startedAt) / 1000));
                 const elapsedEl = document.getElementById('scanElapsedValue');
@@ -8645,7 +8563,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 'Building 2m / 5m / 10m / 15m / 30m structures...',
                 'Checking closed-candle colour, body, wick and sequence rules...',
                 'Evaluating support/resistance and exact Pattern Type conditions...',
-                'Scanning every configured pair for an exact 3-strategy setup...',
+                'Scanning every configured pair for an exact RAJA 24 setup...',
                 'Ranking high-quality setups and entry conditions...'
             ];
             scanAnimationInterval = setInterval(() => {
@@ -10126,7 +10044,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
 
 
         // ==========================================
-        // REAL BACKEND RAJA 3-STRATEGY ENGINE
+        // REAL BACKEND RAJA 24 STRATEGY ENGINE
         // Live OHLC market data + RAJA selected 24-strategy engine
         // ==========================================
         function normalizeBackendSignal(data, fallbackPair) {
@@ -12422,7 +12340,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             },
             {
                 title:'Read Signal & Entry Timing',
-                text:'A confirmed RAJA UP/DOWN signal appears only after an exact closed-candle setup. Use the countdown before entering.',
+                text:'A confirmed RAJA 24 UP/DOWN signal appears only after an exact closed-candle setup. Use the countdown before entering.',
                 selector:'#hudBoxContainer'
             }
         ];
@@ -16292,12 +16210,24 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     }
 
     function installBridgeButton() {
-        const existing = document.getElementById('rajaBrokerBridgeBtn');
-        if (existing) existing.remove();
+        let btn = document.getElementById('rajaBrokerBridgeBtn');
         const old = document.getElementById('rajaQuotexBridgeBtn');
         if (old) old.remove();
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'rajaBrokerBridgeBtn';
+            btn.className = 'raja-visual-pair-btn';
+            btn.style.width = '100%';
+            btn.style.marginTop = '8px';
+            btn.onclick = createBridgePairCode;
+            const tools = document.getElementById('rajaVisualPairTools');
+            const pairSelect = document.getElementById('pairSelect');
+            if (tools) tools.appendChild(btn);
+            else if (pairSelect?.parentElement) pairSelect.parentElement.appendChild(btn);
+        }
         updateBridgeUi(null);
-        return;
+        refreshBridgeStatus();
     }
 
     window.rajaCreateBrokerBridgePairCode = createBridgePairCode;
@@ -17650,7 +17580,7 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
       else tickState(t.reason?`LIVE TICK: ${String(t.reason).slice(0,80)}`:'LIVE TICK: minute refresh only',false);
     }catch(e){tickState('LIVE TICK: reconnecting…',false)}finally{tickBusy=false}
   }
-  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st){const pt=Number(data.pattern_type||0);const names={1:'TYPE 1 · WICK REJECTION',2:'TYPE 2 · BOLLINGER REJECTION',3:'TYPE 3 · RSI REVERSAL'};st.textContent=names[pt]||'--';}const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>refreshLiveTick(),120)}
+  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st)st.textContent=data.pattern_type?`TYPE ${data.pattern_type}`:'--';const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>refreshLiveTick(),120)}
   async function refresh(force=false){const card=ensure();if(!card||busy)return;if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}busy=true;try{const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),...(typeof getAuthPayload==='function'?getAuthPayload():{})};const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify(payload)});const j=await r.json();if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');paint(j.data||{});lastPair=x.pair}catch(e){const s=document.getElementById('rajaLiveStatus');if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses Dukascopy JForex; Crypto Live uses Dukascopy then Twelve Data fallback.'}}finally{busy=false}}
   function boot(){ensure();setTimeout(()=>refresh(true),1800);timer=setInterval(()=>{if(!auto)return;const p=selected().pair;if(p!==lastPair||!busy)refresh(false)},6000);tickTimer=setInterval(()=>{refreshLiveTick()},1000);window.addEventListener('resize',()=>{if(lastData)setTimeout(()=>renderChart(lastData),120)})}
   document.addEventListener('DOMContentLoaded',boot);window.refreshRajaLiveOpenChart=()=>refresh(true);
@@ -17833,121 +17763,6 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
   setTimeout(moveScanActionsIntoActiveScan,300);
 })();
 </script>
-
-<script id="raja-mobile-top-controls-final-js">
-(function(){
-  'use strict';
-
-  function mount(){
-    if (window.innerWidth > 600) return;
-    if (document.getElementById('rajaMobileTopControls')) return;
-
-    const broker = document.getElementById('brokerSelect');
-    const market = document.getElementById('marketType');
-    const pair = document.getElementById('pairSelect');
-    const pairSearch = document.getElementById('pairSearchInput');
-    const expiry = document.querySelectorAll('.expiry-btn[data-time]');
-    const scan = document.getElementById('scanBtn');
-    const stop = document.getElementById('stopScanBtn');
-    const auto = document.getElementById('rajaAutoBestPairBtn');
-    if(!broker || !market || !pair || !scan) return;
-
-    const panel = document.createElement('section');
-    panel.id='rajaMobileTopControls';
-    panel.innerHTML = `
-      <div class="mobile-top-title">📊 BROKER &amp; PAIR</div>
-      <div class="mobile-top-grid">
-        <div>
-          <span class="mobile-top-label">1. SELECT BROKER PLATFORM</span>
-          <div id="mobileTopBroker"></div>
-        </div>
-        <div>
-          <span class="mobile-top-label">2. SELECT MARKET TYPE</span>
-          <div id="mobileTopMarket"></div>
-        </div>
-        <div class="mobile-top-wide">
-          <span class="mobile-top-label">3. SELECT PAIR / ASSET</span>
-          <div id="mobileTopPair"></div>
-        </div>
-        <div class="mobile-top-wide">
-          <span class="mobile-top-label">4. SELECT TIMEFRAME (MINUTES)</span>
-          <div class="mobile-top-time" id="mobileTopTime"></div>
-        </div>
-        <div class="mobile-top-actions">
-          <button id="mobileTopScanMode" type="button">🔎 SCAN: 1M</button>
-          <button id="mobileTopScan" type="button">▶ START AI MARKET SCAN</button>
-          <button id="mobileTopStop" type="button">■ STOP SCAN</button>
-        </div>
-        <button id="mobileTopAuto" class="mobile-top-auto" type="button">✨ AUTO SCAN BEST PAIR</button>
-      </div>`;
-
-    const host = document.querySelector('#mainAppContent .main-panel-card') ||
-                 document.querySelector('#mainAppContent');
-    if(!host) return;
-    host.parentNode.insertBefore(panel, host);
-
-    // Move the real controls (not clones) so all existing handlers/state remain intact.
-    panel.querySelector('#mobileTopBroker').appendChild(broker.closest('.config-field'));
-    panel.querySelector('#mobileTopMarket').appendChild(market.closest('.config-field'));
-
-    const pairField = pair.closest('.config-field');
-    panel.querySelector('#mobileTopPair').appendChild(pairField);
-
-    // Keep pair search visible and compact.
-    const timeBox = panel.querySelector('#mobileTopTime');
-    expiry.forEach(btn=>{
-      const b=document.createElement('button');
-      b.type='button';
-      b.textContent=btn.textContent.trim();
-      b.dataset.time=btn.dataset.time;
-      b.className=btn.classList.contains('active')?'active':'';
-      b.disabled=btn.disabled;
-      b.onclick=()=>{ btn.click(); syncTimes(); };
-      timeBox.appendChild(b);
-    });
-
-    panel.querySelector('#mobileTopScan').onclick=()=>scan.click();
-    panel.querySelector('#mobileTopStop').onclick=()=>stop?.click();
-    panel.querySelector('#mobileTopAuto').onclick=()=>auto?.click();
-
-    function syncTimes(){
-      timeBox.querySelectorAll('button').forEach(b=>{
-        const real=[...expiry].find(x=>x.dataset.time===b.dataset.time);
-        b.classList.toggle('active',!!real?.classList.contains('active'));
-      });
-      const active=[...expiry].find(x=>x.classList.contains('active'));
-      const t=active?.dataset.time||'1m';
-      panel.querySelector('#mobileTopScanMode').textContent='🔎 SCAN: '+t.toUpperCase();
-    }
-    const observer=new MutationObserver(syncTimes);
-    expiry.forEach(x=>observer.observe(x,{attributes:true,attributeFilter:['class','disabled']}));
-    syncTimes();
-
-    // Keep mobile scan button text synchronized with the real button.
-    const scanObserver=new MutationObserver(()=>{
-      panel.querySelector('#mobileTopScan').textContent=scan.textContent||'▶ START AI MARKET SCAN';
-      panel.querySelector('#mobileTopScan').disabled=scan.disabled;
-    });
-    scanObserver.observe(scan,{childList:true,characterData:true,subtree:true,attributes:true});
-    panel.querySelector('#mobileTopScan').disabled=scan.disabled;
-
-    // Hide only the old duplicate visual controls after moving the real fields.
-    panel.querySelectorAll('.config-field').forEach(f=>{
-      f.style.display='block';
-      f.style.margin='0';
-    });
-
-    // Re-sync pair list/search if the original code exposes these helpers.
-    try{ window.syncMobilePairListbox?.(); }catch(_){}
-    try{ window.syncTargetPairDisplay?.(); }catch(_){}
-  }
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,250),{once:true});
-  else setTimeout(mount,250);
-  window.addEventListener('resize',()=>{ if(innerWidth<=600 && !document.getElementById('rajaMobileTopControls')) setTimeout(mount,100); });
-})();
-</script>
-
 </body>
 <!-- RAJA UI BROKER-PAIR-LAUNCH V1 · AUDNZD SKIP · HISTORY WINLOSS · 2026-08-28 -->
 <!-- RAJA STRONG SIGNAL FEED V1 · TOP4 POWER · AUTO BUTTON RESTORED · 2026-08-28 -->
