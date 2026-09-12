@@ -1,0 +1,10 @@
+RAJA AI BOT — PYTHON-ONLY RAILWAY BUILD
+
+Removed from this package:
+- Java / JForex source tree
+- Maven pom.xml
+- Maven Java build stage
+- OpenJDK runtime installation
+- Dukascopy bridge JAR build/copy
+
+Railway can use either Dockerfile or Dockerfile.ai; both are Python-only.
