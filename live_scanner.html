@@ -36,6 +36,27 @@
 /* Screen Share latest-signal arrow only; camera/screenshot modes are untouched. */
 .screen-arrow-layer{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}.screen-arrow{position:absolute;width:0;height:0;filter:drop-shadow(0 0 5px rgba(0,0,0,.9));transform:translate(-50%,-50%)}.screen-arrow.up{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid var(--green)}.screen-arrow.down{border-left:6px solid transparent;border-right:6px solid transparent;border-top:11px solid var(--red)}.screen-arrow.latest{z-index:3}.screen-arrow.latest.up{border-left-width:9px;border-right-width:9px;border-bottom-width:16px;filter:drop-shadow(0 0 8px rgba(0,255,135,.9))}.screen-arrow.latest.down{border-left-width:9px;border-right-width:9px;border-top-width:16px;filter:drop-shadow(0 0 8px rgba(255,66,106,.9))}.screen-arrow-label{position:absolute;transform:translate(-50%,-50%);font-size:7px;font-weight:1000;letter-spacing:.4px;padding:2px 4px;border-radius:999px;background:rgba(0,0,0,.78);white-space:nowrap}.screen-arrow-label.up{color:var(--green);border:1px solid rgba(0,255,135,.55)}.screen-arrow-label.down{color:var(--red);border:1px solid rgba(255,66,106,.55)}
 </style>
+
+<style id="raja-compact-new-design">
+:root{--nd-bg:#020711;--nd-card:#07111f;--nd-line:#15395a;--nd-blue:#1da1ff;--nd-cyan:#3fe5ff;--nd-green:#00f28a;--nd-red:#ff465d;--nd-gold:#ffc74f}
+html,body{height:100%;overflow:hidden;background:radial-gradient(circle at 50% -18%,#0a2a50 0,#04101e 34%,#01050b 78%)!important}
+body{padding:0!important}.app{width:100%!important;max-width:none!important;height:100vh;margin:0!important;padding:0 12px 10px;display:grid;grid-template-rows:auto 1fr auto;gap:8px}
+.top{min-height:66px;margin:0!important;padding:8px 4px!important;border-bottom:1px solid rgba(64,171,255,.18);background:rgba(2,8,17,.92);backdrop-filter:blur(14px);display:grid!important;grid-template-columns:minmax(280px,1fr) repeat(5,minmax(90px,135px));gap:8px;align-items:center}
+.top .back{font-size:0!important;display:block!important}.top .back:before{content:'♛ RAJA AI  |  Live Screen Scanner';font-size:24px;font-weight:1000;color:#eef8ff;letter-spacing:-.6px}.top .back:after{content:'  •  REAL-TIME SIGNALS';display:block;margin-top:2px;font-size:9px;letter-spacing:1px;color:#7898b4}
+.top .pill{display:none!important}.nd-head-tile{height:48px;border:1px solid #123a5d;border-radius:10px;background:linear-gradient(180deg,#08192c,#06111f);padding:6px 10px;display:flex;flex-direction:column;justify-content:center}.nd-head-tile small{color:#6ca7d1;font-size:8px;font-weight:900;letter-spacing:.5px}.nd-head-tile b{margin-top:2px;font-size:14px;color:#fff}.nd-head-tile.live b,.nd-head-tile.market b{color:var(--nd-green)}
+#scannerIntroCard{display:none!important}#scannerControlsCard,#v47CompactWatch,#result{margin:0!important;border-radius:12px!important;background:linear-gradient(180deg,rgba(5,15,28,.98),rgba(2,8,16,.99))!important;border:1px solid rgba(35,115,175,.42)!important;box-shadow:none!important}
+#scannerControlsCard{height:100%;min-height:0;padding:0!important;display:block!important;overflow:hidden}.nd-workspace{height:100%;display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:10px}.nd-sidebar,.nd-center,.nd-right{min-width:0;min-height:0;border:1px solid rgba(46,127,188,.28);border-radius:12px;background:#030a13}.nd-sidebar{padding:12px;overflow:auto}.nd-center{padding:10px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px}.nd-right{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.nd-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.nd-title h2{font-size:17px;margin:0}.nd-live{font-size:9px;padding:5px 8px;border-radius:999px;color:#7dffc1;border:1px solid rgba(0,242,138,.38);background:rgba(0,242,138,.08);font-weight:950}.nd-sub{font-size:9px;color:#7892a8}.nd-pair-title{font-size:15px;font-weight:950;margin-bottom:8px}.nd-control-block{margin-bottom:8px}.nd-control-block label{font-size:7px;margin:4px 0 3px}.nd-control-block select,.nd-control-block input{height:34px;border-radius:7px}.nd-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.nd-actions .btn{min-height:36px;font-size:8px;padding:7px}.nd-actions .btn:first-child{grid-column:1/-1}.nd-checks{margin-top:8px;border-top:1px solid rgba(96,239,255,.1);padding-top:6px}.nd-checks .switchrow{margin-top:4px}.nd-checks .switchrow label{font-size:7.5px!important}.nd-checks .switchrow:nth-child(2),.nd-checks .switchrow:nth-child(3),.nd-checks .switchrow:nth-child(4){display:none!important}
+#stage{display:block!important;margin:0!important;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;aspect-ratio:auto!important;border-radius:10px!important;border-color:rgba(30,126,195,.52)!important;background:#000}.nd-stage-wrap{min-height:0;position:relative}.nd-stage-wrap #stage{position:absolute;inset:0}.hud span{font-size:7px!important}.crop{border-color:var(--nd-green)!important}.screen-arrow-layer{position:absolute;inset:0;z-index:8;pointer-events:none}.screen-arrow{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border:0!important;border-radius:50%;display:grid;place-items:center;font-size:0;filter:drop-shadow(0 0 8px currentColor)}.screen-arrow:after{font-size:34px;line-height:1;font-weight:1000}.screen-arrow.up{color:var(--nd-green)}.screen-arrow.up:after{content:'⬆'}.screen-arrow.down{color:var(--nd-red)}.screen-arrow.down:after{content:'⬇'}.screen-arrow.latest{animation:ndPulse .9s ease-in-out infinite alternate}@keyframes ndPulse{from{transform:translate(-50%,-50%) scale(.9)}to{transform:translate(-50%,-50%) scale(1.14)}}
+.nd-chart-head{display:grid;grid-template-columns:minmax(180px,1fr) repeat(4,minmax(78px,120px));gap:6px;align-items:stretch}.nd-pairbox,.nd-stat{border:1px solid rgba(37,116,177,.25);border-radius:8px;background:#06111f;padding:7px 9px}.nd-pairbox b{font-size:18px}.nd-pairbox small,.nd-stat small{display:block;color:#7591aa;font-size:7px;font-weight:900}.nd-stat b{display:block;margin-top:2px;font-size:12px}.nd-stat.good b{color:var(--nd-green)}
+.nd-status-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nd-mini{padding:8px;border-radius:8px;border:1px solid rgba(40,120,180,.22);background:#04101c;text-align:center}.nd-mini small{display:block;color:#6e8aa3;font-size:7px;font-weight:900}.nd-mini b{display:block;margin-top:2px;font-size:10px}.nd-mini.good b{color:var(--nd-green)}
+#v47CompactWatch{display:none!important}.nd-right #v47SignalCard{display:block!important;border:1px solid rgba(0,242,138,.44)!important;border-radius:11px!important;padding:16px!important;background:radial-gradient(circle at 50% 0,rgba(0,242,138,.16),rgba(3,12,21,.98) 62%)!important;text-align:center}.nd-right #v47SignalCard small{font-size:8px}.nd-right #v47SignalCard strong{font-size:34px!important;line-height:1.1}.nd-right #v47SignalCard.call strong{color:var(--nd-green)!important}.nd-right #v47SignalCard.put strong{color:var(--nd-red)!important}.nd-right #v47SignalCard span{font-size:9px!important}.nd-right .v47-state,.nd-right .v47-count{padding:9px!important}.nd-right .v47-count strong{font-size:24px!important}.nd-right .v47-state span{display:none!important}.nd-right .v47-state strong{font-size:10px!important}.nd-signal-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px}.nd-signal-meta .v47-state:last-child{grid-column:1/-1}.nd-right .v51-health,.nd-right .v51-decision,.nd-right .v51-replay,.nd-right .learning-panel,.nd-right .v47-details{display:none!important}
+#result{display:none!important}.statusbar,.safetybar,#qualityHud,#preflightHint,#status,#preview{display:none!important}.nd-strategies{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nd-strategy{border:1px solid rgba(30,126,195,.28);border-radius:8px;background:#05101d;padding:8px 7px;font-size:8px;font-weight:900;color:#dce9f3}.nd-strategy span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;margin-right:5px;background:#0e72d8;color:#fff}.nd-strategy.s1{border-color:rgba(0,242,138,.45)}.nd-strategy.s3{border-color:rgba(255,164,43,.45)}.nd-strategy.s4{border-color:rgba(185,65,255,.5)}.nd-strategy.s5{border-color:rgba(0,208,255,.45)}
+.nd-footer{height:54px;display:grid;grid-template-columns:250px repeat(4,1fr);gap:8px}.nd-footbox{border:1px solid rgba(37,116,177,.25);border-radius:9px;background:#04101c;padding:7px 10px;display:flex;align-items:center;justify-content:space-between}.nd-footbox small{color:#7892a8;font-size:7px;font-weight:900}.nd-footbox b{font-size:14px}.nd-footbox.good b{color:var(--nd-green)}.nd-footbox.bad b{color:var(--nd-red)}
+@media(max-width:1050px){html,body{overflow:auto}.app{height:auto;min-height:100vh;display:block;padding:8px}.top{grid-template-columns:1fr 1fr 1fr;min-height:auto;position:relative!important}.top .back{grid-column:1/-1}.nd-workspace{grid-template-columns:220px minmax(0,1fr);height:760px}.nd-right{grid-column:1/-1;display:grid;grid-template-columns:1.2fr 1fr 1fr}.nd-footer{grid-template-columns:repeat(2,1fr);height:auto;margin-top:8px}.nd-footer .nd-footbox:first-child{grid-column:1/-1}}
+@media(max-width:720px){.top{grid-template-columns:1fr 1fr}.top .back:before{font-size:19px}.nd-workspace{display:block;height:auto}.nd-sidebar,.nd-center,.nd-right{margin-bottom:8px}.nd-sidebar{max-height:none}.nd-center{height:560px}.nd-right{display:block}.nd-chart-head{grid-template-columns:1fr 1fr}.nd-pairbox{grid-column:1/-1}.nd-strategies{grid-template-columns:1fr 1fr}.nd-status-strip{grid-template-columns:1fr 1fr}.nd-footer{grid-template-columns:1fr 1fr}}
+</style>
+
 </head>
 <body><script id="raja-scanner-network-guard">
 window.__rajaScannerFetch = async function(url, options={}, timeoutMs=12000){
@@ -800,16 +821,16 @@ function alertConfirmedSignal(up){if(!$('signalAlerts')?.checked)return;playSign
 function startEntry(x,state){
   if(entryTimer)clearInterval(entryTimer);entryTimer=null;hideSignalBanner(true);
   const box=$('entry'),bias=String(x.bias||'').toUpperCase(),up=bias.startsWith('UP'),down=bias.startsWith('DOWN');
-  if(!up&&!down){box.style.display='none';syncV47SignalCard(null);return;}
+  if(!up&&!down){box.style.display='none';window.syncV47SignalCard?.(null);return;}
   const dir=up?'CALL (UP)':'PUT (DOWN)',entryMs=Number(x.entry_epoch_ms||Number(x.entry_epoch||0)*1000),expiryMs=Number(x.expiry_epoch_ms||0),grace=Math.max(3,Number(x.entry_window_seconds||10))*1000;
   box.style.display='block';box.className='entry '+(up?'up':'down')+((state==='DUPLICATE'||state==='EXPIRED')?' blocked':'');
-  if(state==='DUPLICATE'){$('entryMain').textContent=dir+' · DUPLICATE BLOCKED';$('entrySub').textContent='This candle signal was already shown. Wait for a fresh signal.';syncV47SignalCard({up,dir,state:'DUPLICATE',text:'Duplicate blocked'});return;}
+  if(state==='DUPLICATE'){$('entryMain').textContent=dir+' · DUPLICATE BLOCKED';$('entrySub').textContent='This candle signal was already shown. Wait for a fresh signal.';window.syncV47SignalCard?.({up,dir,state:'DUPLICATE',text:'Duplicate blocked'});return;}
   if(state==='EXPIRED'||!entryMs){
     $('entryMain').textContent=dir+' · SIGNAL EXPIRED';$('entrySub').textContent='Fresh scan required.';
-    syncV47SignalCard({up,dir,state:'EXPIRED',text:'Fresh scan required'});
+    window.syncV47SignalCard?.({up,dir,state:'EXPIRED',text:'Fresh scan required'});
     // Live scanner loops already keep running. Release the expired card shortly
     // afterwards so the user can see that the next boundary is being watched.
-    setTimeout(()=>{try{if(!busy){syncV47SignalCard(null);setSignalState('WATCH','warn');setStatus('Expired signal cleared · AUTO SCAN is watching the next candle boundary.');}}catch(_){}},1500);
+    setTimeout(()=>{try{if(!busy){window.syncV47SignalCard?.(null);setSignalState('WATCH','warn');setStatus('Expired signal cleared · AUTO SCAN is watching the next candle boundary.');}}catch(_){}},1500);
     return;
   }
   const tick=()=>{
@@ -818,23 +839,23 @@ function startEntry(x,state){
       const sec=Math.ceil(untilEntry/1000);
       $('entryMain').textContent=dir;
       $('entrySub').textContent=(sec<=10?`ENTRY COUNTDOWN ${sec}`:`Entry in ${fmtRemain(untilEntry)}`)+` · Expiry ${fmtClock(expiryMs)}`;
-      syncV47SignalCard({up,dir,state:'COUNTDOWN',seconds:sec,entryMs,expiryMs});
+      window.syncV47SignalCard?.({up,dir,state:'COUNTDOWN',seconds:sec,entryMs,expiryMs});
       hideSignalBanner();
     }else if(windowLeft>=0&&x.entry_allowed){
       const sec=Math.max(0,Math.ceil(windowLeft/1000));
       $('entryMain').textContent=dir;
       $('entrySub').textContent=`ENTRY NOW · ${sec}s window · Expiry ${fmtClock(expiryMs)}`;
-      syncV47SignalCard({up,dir,state:'ENTRY',seconds:sec,entryMs,expiryMs});
+      window.syncV47SignalCard?.({up,dir,state:'ENTRY',seconds:sec,entryMs,expiryMs});
       showSignalBanner(up?'UP':'DOWN',$('pair').value,entryMs,expiryMs,windowLeft);
     }else if(expiryMs&&untilExpiry>0){
       $('entryMain').textContent=dir;
       $('entrySub').textContent=`ENTRY WINDOW CLOSED · Signal remains visible · Expires in ${fmtRemain(untilExpiry)}`;
-      syncV47SignalCard({up,dir,state:'ACTIVE',seconds:Math.ceil(untilExpiry/1000),entryMs,expiryMs});
+      window.syncV47SignalCard?.({up,dir,state:'ACTIVE',seconds:Math.ceil(untilExpiry/1000),entryMs,expiryMs});
       hideSignalBanner();
     }else{
       $('entryMain').textContent=dir+' · SIGNAL EXPIRED';
       $('entrySub').textContent='Fresh scan required.';
-      syncV47SignalCard({up,dir,state:'EXPIRED',text:'Fresh scan required'});
+      window.syncV47SignalCard?.({up,dir,state:'EXPIRED',text:'Fresh scan required'});
       hideSignalBanner();setSignalState('EXPIRED','block');if(entryTimer){clearInterval(entryTimer);entryTimer=null;}
     }
   };
@@ -4001,5 +4022,43 @@ function render(){
 document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{restoreAutoWrites();ensure();render()},50);setInterval(()=>{restoreAutoWrites();render()},800)},{once:true});
 })();
 </script>
+
+<script id="raja-compact-new-design-js">
+(function(){
+  const q=id=>document.getElementById(id);
+  function mk(cls,html=''){const d=document.createElement('div');d.className=cls;d.innerHTML=html;return d}
+  function headTile(label,value,cls=''){const d=mk('nd-head-tile '+cls,`<small>${label}</small><b>${value}</b>`);return d}
+  function init(){
+    const top=document.querySelector('.top'),controls=q('scannerControlsCard'),watch=q('v47CompactWatch'); if(!top||!controls||!watch)return;
+    if(!top.querySelector('.nd-head-tile')){top.append(headTile('BROKER',q('broker')?.value||'Quotex'));top.append(headTile('MARKET',q('market')?.value||'OTC','market'));top.append(headTile('TIMEFRAME',q('tf')?.value||'1m'));top.append(headTile('EXPIRY','1m'));top.append(headTile('SCANNER','RUNNING','live'));}
+    const ws=mk('nd-workspace'),side=mk('nd-sidebar'),center=mk('nd-center'),right=mk('nd-right'); controls.append(ws);ws.append(side,center,right);
+    side.append(mk('nd-pair-title','PAIRS / SOURCE'));
+    const ids=['broker','market','pairSearch','pairSearchClear','pairSearchCount','pair','tf','interval','quality'];
+    ids.forEach(id=>{const el=q(id);if(!el)return; let wrap=el.closest('.pair-search-wrap')||el.parentElement; if(wrap&&wrap!==side&&!side.contains(wrap)){const b=mk('nd-control-block');const lab=wrap.querySelector(':scope > label');if(lab)b.append(lab);b.append(wrap);side.append(b);}});
+    const actions=mk('nd-actions');['shareBtn','cameraBtn','shotBtn','autoDetectBtn','confirmCropBtn','cropBtn','testFrameBtn','stopBtn'].forEach(id=>{const el=q(id);if(el)actions.append(el)});side.append(actions);
+    const checks=mk('nd-checks');['autoScan','autoPair','autoBroker','autoRecal','signalAlerts'].forEach(id=>{const el=q(id);const row=el?.closest('.switchrow');if(row)checks.append(row)});side.append(checks);
+    const chartHead=mk('nd-chart-head');chartHead.append(mk('nd-pairbox',`<small>ACTIVE PAIR</small><b id="ndPair">${q('pair')?.value||'--'}</b><small>Live scanner chart</small>`),mk('nd-stat good','<small>MARKET</small><b id="ndMarket">OTC</b>'),mk('nd-stat','<small>TIMEFRAME</small><b id="ndTf">1m</b>'),mk('nd-stat','<small>QUALITY</small><b id="ndQuality">--</b>'),mk('nd-stat','<small>TIME</small><b id="ndTime">--:--:--</b>'));center.append(chartHead);
+    const sw=mk('nd-stage-wrap');sw.append(q('stage'));center.append(sw);
+    const strategies=mk('nd-strategies');['Wick Rejection S/R','Bollinger Bands Rejection','RSI Reversal S/R','Order Block + S/R','Breakout + Retest'].forEach((x,i)=>strategies.append(mk('nd-strategy s'+(i+1),`<span>${i+1}</span>${x}`)));center.append(strategies);
+    right.append(mk('nd-title','<div><h2>LIVE SIGNAL</h2><div class="nd-sub">Closed-candle signal only</div></div><span class="nd-live">● LIVE</span>'));
+    right.append(q('v47SignalCard')); const meta=mk('nd-signal-meta');meta.append(q('v47Setup').closest('.v47-state'),q('v47Rules').closest('.v47-state'),q('v47Entry').closest('.v47-state'));right.append(meta);right.append(q('v47Count').closest('.v47-count'));
+    const status=mk('nd-status-strip'); status.innerHTML='<div class="nd-mini good"><small>CAPTURE</small><b id="ndCapture">OFF</b></div><div class="nd-mini"><small>CHART</small><b id="ndChart">WAIT</b></div><div class="nd-mini"><small>CANDLES</small><b id="ndCandles">--</b></div><div class="nd-mini"><small>LATENCY</small><b id="ndLatency">--</b></div><div class="nd-mini good"><small>ALERTS</small><b id="ndAlerts">ARMED</b></div>';right.append(status);
+    const footer=mk('nd-footer');footer.innerHTML='<div class="nd-footbox good"><div><small>SCANNER STATUS</small><b>● LIVE SCANNING</b></div><small>5 strategies</small></div><div class="nd-footbox"><small>SIGNAL STATE</small><b id="ndSignalState">WATCH</b></div><div class="nd-footbox good"><small>PAIR</small><b id="ndPairFoot">--</b></div><div class="nd-footbox"><small>CANDLES</small><b id="ndCandlesFoot">--</b></div><div class="nd-footbox"><small>ENTRY CLOCK</small><b id="ndClock">SYNC</b></div>';document.querySelector('.app').append(footer);
+    watch.style.display='none';
+    ['broker','market','pair','tf'].forEach(id=>q(id)?.addEventListener('change',sync));setInterval(sync,1000);sync();
+  }
+  function txt(id){return q(id)?.textContent?.trim()||'--'}
+  function sync(){
+    if(q('ndPair'))q('ndPair').textContent=q('pair')?.value||txt('v47Pair'); if(q('ndPairFoot'))q('ndPairFoot').textContent=q('pair')?.value||txt('v47Pair');
+    if(q('ndMarket'))q('ndMarket').textContent=q('market')?.value||'OTC'; if(q('ndTf'))q('ndTf').textContent=(q('tf')?.value||'1m').toUpperCase();
+    if(q('ndQuality'))q('ndQuality').textContent=txt('v47Quality'); if(q('ndTime'))q('ndTime').textContent=new Date().toLocaleTimeString([], {hour12:false});
+    if(q('ndCapture'))q('ndCapture').textContent=txt('captureState'); if(q('ndChart'))q('ndChart').textContent=txt('v47Chart'); if(q('ndCandles'))q('ndCandles').textContent=txt('v47Candles');
+    if(q('ndLatency'))q('ndLatency').textContent=txt('latencyState'); if(q('ndAlerts'))q('ndAlerts').textContent=txt('alertState'); if(q('ndSignalState'))q('ndSignalState').textContent=txt('signalState');
+    if(q('ndCandlesFoot'))q('ndCandlesFoot').textContent=txt('v47Candles'); if(q('ndClock'))q('ndClock').textContent=txt('clockState');
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,60));else setTimeout(init,60);
+})();
+</script>
+
 </body>
 </html>
