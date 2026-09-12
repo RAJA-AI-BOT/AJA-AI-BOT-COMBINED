@@ -541,8 +541,29 @@ class PocketNativeFeed:
         self.api_key = str(os.environ.get("RAJA_POCKET_API_KEY") or "").strip()
         self.api_key_present = bool(self.api_key)
 
-        ssid_is_full = bool(self.raw_ssid.startswith('42["auth",'))
-        api_is_full = bool(self.api_key.startswith('42["auth",'))
+        def _normalize_pocket_auth(value: str) -> str:
+            """Normalize Railway-pasted Pocket Option Socket.IO auth frames."""
+            value = str(value or "").strip()
+            # Accept accidental "RAJA_POCKET_SSID = ..." pasted into the value.
+            value = re.sub(r"^RAJA_POCKET_(?:SSID|API_KEY)\\s*=\\s*", "", value, flags=re.I).strip()
+            # Strip one pair of surrounding quotes added by env editors.
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+                value = value[1:-1].strip()
+            # Some editors escape JSON quotes; undo only this harmless wrapping.
+            value = value.replace('\\\\\"', '"')
+            # Normalize whitespace between Socket.IO packet number and auth array.
+            value = re.sub(r"^42\\s*", "42", value)
+            return value
+
+        self.raw_ssid = _normalize_pocket_auth(self.raw_ssid)
+        self.api_key = _normalize_pocket_auth(self.api_key)
+
+        def _is_full_auth(value: str) -> bool:
+            return bool(re.match(r'^42\\s*\\[\\s*["\\\']auth["\\\']\\s*,', str(value or "")))
+
+        ssid_is_full = _is_full_auth(self.raw_ssid)
+        api_is_full = _is_full_auth(self.api_key)
+
         if ssid_is_full:
             self.ssid = self.raw_ssid
             self.auth_source = "RAJA_POCKET_SSID"
@@ -550,14 +571,24 @@ class PocketNativeFeed:
             self.ssid = self.api_key
             self.auth_source = "RAJA_POCKET_API_KEY"
         else:
-            # Keep the configured SSID value for diagnostics/compatibility.
-            # A short cookie/token may fail with PocketOptionApi; the log will
-            # make that explicit rather than pretending authentication worked.
+            # Keep raw SSID for diagnostics, but the connection may reject it.
             self.ssid = self.raw_ssid
-            self.auth_source = "RAJA_POCKET_SSID" if self.raw_ssid else "none"
+            self.auth_source = "RAJA_POCKET_SSID" if self.raw_ssid else ("RAJA_POCKET_API_KEY" if self.api_key else "none")
 
-        self.auth_looks_like_ws_ssid = bool(self.ssid.startswith('42["auth",'))
-        self.enabled = _env_bool("RAJA_POCKET_NATIVE_ENABLED", bool(self.ssid))
+        self.auth_looks_like_ws_ssid = _is_full_auth(self.ssid)
+
+        # If a Pocket auth value exists, enable the native feed automatically.
+        # An explicit RAJA_POCKET_NATIVE_ENABLED=true/false may still override it,
+        # but a missing variable no longer disables a valid SSID.
+        enabled_raw = os.environ.get("RAJA_POCKET_NATIVE_ENABLED")
+        if enabled_raw is None:
+            self.enabled = bool(self.ssid)
+        else:
+            self.enabled = _env_bool("RAJA_POCKET_NATIVE_ENABLED", bool(self.ssid))
+            # Avoid a stale false flag silently blocking a newly supplied full auth frame.
+            if self.auth_looks_like_ws_ssid and not self.enabled:
+                print("[RAJA POCKET] OVERRIDE: valid full auth present; enabling native feed", flush=True)
+                self.enabled = True
         self.history_offset = max(9000, min(120000, int(os.environ.get("RAJA_POCKET_HISTORY_OFFSET", "45000"))))
         self.cache_seconds = max(2, min(30, int(os.environ.get("RAJA_NATIVE_CACHE_SECONDS", "8"))))
         self.history_refresh_seconds = max(30, min(900, int(os.environ.get("RAJA_NATIVE_HISTORY_REFRESH_SECONDS", "120"))))
@@ -572,6 +603,7 @@ class PocketNativeFeed:
             print(
                 f"[RAJA POCKET] CONFIG READY source={self.auth_source} "
                 f"format={'full_ws_auth' if self.auth_looks_like_ws_ssid else 'raw_token'} "
+                f"enabled={self.enabled} ssid_present={bool(self.raw_ssid)} "
                 f"api_key_present={self.api_key_present}",
                 flush=True,
             )
