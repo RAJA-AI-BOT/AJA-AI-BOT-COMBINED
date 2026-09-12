@@ -4155,3 +4155,67 @@ function esc8(v){return String(v||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'
 
 </body>
 </html>
+
+<!-- RAJA v10: clean advanced settings — remove controls already present on main dashboard -->
+<style id="raja-v10-clean-settings-style">
+#r7Advanced .r7-advanced-note{display:none!important}
+#r7AdvancedHost #scannerIntroCard,
+#r7AdvancedHost #v47CompactWatch,
+#r7AdvancedHost #result{display:none!important}
+#r7AdvancedHost #scannerControlsCard{margin:0!important;padding:14px!important;max-width:none!important}
+#r7AdvancedHost #scannerControlsCard .v10-hide-duplicate{display:none!important}
+#r7AdvancedHost #scannerControlsCard .switchrow{margin-top:8px!important}
+#r7AdvancedHost #scannerControlsCard .v10-settings-title{display:block;color:#eaf6ff;font-weight:900;font-size:16px;margin:0 0 10px}
+#r7AdvancedHost #scannerControlsCard .v10-settings-note{display:block;color:#83a7bd;font-size:11px;margin:0 0 12px}
+#r7Advanced{align-items:flex-start!important;padding-top:70px!important}
+#r7Advanced.show{overflow:auto!important}
+#r7AdvancedHost{max-height:calc(100vh - 145px)!important;overflow:auto!important}
+</style>
+<script id="raja-v10-clean-settings-script">
+(function(){
+  function cleanAdvancedSettings(){
+    const card=document.getElementById('scannerControlsCard');
+    if(!card||card.dataset.v10cleaned==='1')return;
+    card.dataset.v10cleaned='1';
+
+    // Keep only settings that do not already exist on the main dashboard.
+    const grids=[...card.querySelectorAll(':scope > .grid')];
+    if(grids[0])grids[0].classList.add('v10-hide-duplicate'); // Broker + Market
+    if(grids[1])grids[1].classList.add('v10-hide-duplicate'); // Pair + Timeframe
+    // grids[2] = Live watch interval + Capture quality -> KEEP
+
+    const modebar=card.querySelector(':scope > .modebar');
+    if(modebar)modebar.classList.add('v10-hide-duplicate'); // Screen/Camera/Screenshot already on dashboard
+
+    const grid3=[...card.querySelectorAll(':scope > .grid3')];
+    grid3.forEach(g=>g.classList.add('v10-hide-duplicate')); // Auto/manual/confirm already on dashboard
+
+    const stage=card.querySelector(':scope > #stage');
+    if(stage)stage.classList.add('v10-hide-duplicate'); // Live chart already shown in main dashboard
+
+    // Hide auto pair + auto broker because broker/market/pair sync is already surfaced in the new UI.
+    ['autoPair','autoBroker'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&el.closest('.switchrow'))el.closest('.switchrow').classList.add('v10-hide-duplicate');
+    });
+
+    // Keep useful settings: interval, quality, Test Frame, Stop Scanner, autoScan, autoRecal, signalAlerts.
+    const title=document.createElement('div');
+    title.className='v10-settings-title';
+    title.textContent='Scanner Settings';
+    const note=document.createElement('div');
+    note.className='v10-settings-note';
+    note.textContent='Only extra scanner settings are shown here. Main dashboard controls are not duplicated.';
+    card.insertBefore(note,card.firstChild);
+    card.insertBefore(title,card.firstChild);
+
+    const advTitle=document.querySelector('#r7Advanced .r7-advanced-title');
+    if(advTitle)advTitle.textContent='Scanner Settings';
+  }
+
+  const oldInitObserver=new MutationObserver(()=>cleanAdvancedSettings());
+  oldInitObserver.observe(document.documentElement,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',cleanAdvancedSettings);
+  else setTimeout(cleanAdvancedSettings,0);
+})();
+</script>
