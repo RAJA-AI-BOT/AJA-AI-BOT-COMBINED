@@ -1,0 +1,16 @@
+RAJA AI Railway low-usage patch — 2026-09-18
+
+Changed only Live Chart browser polling behavior in index.html:
+- full live-chart refresh: 6s -> 12s
+- live tick polling: 1s -> 3s
+- polling pauses while the browser tab is hidden
+- refresh resumes when the tab becomes visible
+
+NOT changed:
+- signal strategy / qualification logic
+- 1-minute candle timeframe
+- 1-minute expiry
+- Pocket Option / Quotex routing
+- broker authentication variables
+- backend signal calculations
+- UI design and controls
