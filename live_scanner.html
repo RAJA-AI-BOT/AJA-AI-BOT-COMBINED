@@ -369,9 +369,9 @@ function normalizePairOcr(value){
   return String(value||'').toUpperCase().replace(/0TC/g,'OTC').replace(/[|]/g,'I').replace(/[^A-Z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 }
 function compactPairOcr(value){return normalizePairOcr(value).replace(/[^A-Z0-9]/g,'');}
-const FIAT_CURRENCY_CODES=new Set('USD EUR GBP JPY AUD CAD CHF NZD CNY CNH HKD SGD INR BRL MXN ZAR TRY AED BHD QAR SAR KWD OMR EGP PKR BDT IDR PHP MYR THB KRW VND NGN DZD MAD TND KES GHS UGX TZS RWF XOF XAF ARS COP CLP PEN UYU PYG BOB CRC DOP JMD'.split(' '));
+const FIAT_CURRENCY_CODES=new Set('NOK SEK DKK PLN CZK HUF RON ILS XAU XAG BTC ETH SOL LTC XRP ADA DOGE BNB USDT USD EUR GBP JPY AUD CAD CHF NZD CNY CNH HKD SGD INR BRL MXN ZAR TRY AED BHD QAR SAR KWD OMR EGP PKR BDT IDR PHP MYR THB KRW VND NGN DZD MAD TND KES GHS UGX TZS RWF XOF XAF ARS COP CLP PEN UYU PYG BOB CRC DOP JMD'.split(' '));
 function explicitCurrencyPairMatch(text,carriedBrokerHint=''){
-  const raw=String(text||'').toUpperCase().replace(/0TC/g,'OTC'),hits=new Map(),rx=/\b([A-Z]{3})\s*([\/-])\s*([A-Z]{3})\b/g;let m;
+  const raw=String(text||'').toUpperCase().replace(/0TC/g,'OTC'),hits=new Map(),rx=/\b([A-Z]{3,5})\s*([\/-]?)\s*([A-Z]{3,5})\b/g;let m;
   while((m=rx.exec(raw))){
     const left=m[1],right=m[3];if(!FIAT_CURRENCY_CODES.has(left)||!FIAT_CURRENCY_CODES.has(right))continue;
     const base=`${left}/${right}`,near=raw.slice(Math.max(0,m.index-14),Math.min(raw.length,rx.lastIndex+20)),row=hits.get(base)||{base,count:0,otc:false,lastIndex:0};
@@ -416,7 +416,7 @@ function scorePairText(text,pair,market,broker){
   return best;
 }
 function matchPairFromText(text,carriedBrokerHint=''){
-  const hint=detectBrokerHint(text)||carriedBrokerHint,explicit=explicitCurrencyPairMatch(text,hint);
+  const hint=($('autoBroker')?.checked?detectBrokerHint(text)||carriedBrokerHint:'') ,explicit=explicitCurrencyPairMatch(text,hint);
   if(explicit.ambiguous)return null;if(explicit.hit)return explicit.hit;let best=null,second=null;
   for(const item of pairCandidates()){let score=scorePairText(text,item.pair,item.market,item.broker);if(hint)score+=hint===item.broker?35:-40;const hit={...item,score};if(!best||score>best.score){second=best;best=hit;}else if(!second||score>second.score)second=hit;}
   if(!best||best.score<94)return null;
@@ -428,9 +428,21 @@ function matchPairFromText(text,carriedBrokerHint=''){
   }
   return {...best,broker_confidence:hint?'BRAND_OCR':best.broker===currentBroker?'CURRENT_SAFE':'UNIQUE_PAIR'};
 }
+function matchNewScreenAsset(text,region,brokerHint=''){
+  if(region.name!=='main-active-selector')return null;
+  const rows=String(text||'').split(/\n/).map(x=>x.trim()).filter(Boolean),hits=[];
+  for(const row of rows){
+    const m=row.match(/^([A-Za-z][A-Za-z0-9 .&'/-]{1,45}?)\s*\(?O[T7]C\)?(?:\s*[+−-]?\d{1,3}\s*%?)?$/i);
+    if(!m||/balance|deposit|trade|account|payout|profit|demo|real/i.test(m[1]))continue;
+    hits.push(m[1].trim()+' (OTC)');
+  }
+  if(new Set(hits).size!==1)return null;
+  return {pair:hits[0],market:'OTC',broker:$('autoBroker')?.checked&&brokerHint?brokerHint:$('broker').value,score:180,explicit_pair:true};
+}
 function pairDetectRegions(mode=sourceMode,exhaustive=false){
   const rows=[];
   if(mode==='SCREEN'){
+    if(roi)rows.push({x:Math.max(0,roi.x),y:Math.max(0,roi.y-.065),w:Math.min(.30,1-roi.x),h:.065,name:'main-active-selector'});
     // V47: read the ACTIVE chart selector first. Pocket Option can show recent/inactive
     // pair tabs above it; those top tabs must not drive RAJA's selected pair.
     if(roi){
@@ -487,12 +499,12 @@ async function readPairText(region){return readPairTextFromSource($('video'),reg
 async function detectPairFromSource(source,mode=sourceMode,exhaustive=false){
   let brokerHint='',tentative=null;
   for(const region of pairDetectRegions(mode,exhaustive)){
-    const text=await readPairTextFromSource(source,region);brokerHint=detectBrokerHint(text)||brokerHint;const found=matchPairFromText(text,brokerHint);
+    const text=await readPairTextFromSource(source,region);brokerHint=detectBrokerHint(text)||brokerHint;const found=matchPairFromText(text,brokerHint)||matchNewScreenAsset(text,region,brokerHint);
     if(found){
       const hit={...found,region:region.name,text,broker_hint:brokerHint};
       // V47: the selector immediately above the main candle chart is authoritative.
       // This prevents recent/inactive pair cards in the top strip from winning OCR.
-      if(String(region.name||'').startsWith('main-active-pair')) return hit;
+      if(String(region.name||'').startsWith('main-active-')) return hit;
       if(found.broker_confidence==='BRAND_OCR'||found.broker===$('broker').value)return hit;
       if(!tentative)tentative=hit;
     }
@@ -518,7 +530,7 @@ function setBrokerDetectState(text,tone='warn'){setMetric('brokerDetectState',te
 function resetSignalForPairChange(reason='Pair changed.'){
   pairGeneration++;pairChangedAt=Date.now();pairSettlingUntil=Date.now()+PAIR_SETTLE_MS;pendingBoundary=null;resetPairCandidate();
   try{activeController?.abort();}catch(_){}if(entryTimer)clearInterval(entryTimer);entryTimer=null;hideSignalBanner(true);$('entry').style.display='none';$('result').style.display='none';
-  setSignalState('PAIR SYNC','warn');nextCloseMs=boundaryAfter();setEngine('PAIR SYNC',!!stream);setStatus(reason+' Waiting briefly for the new chart to settle.');
+  $('big').textContent='WATCH';setSignalState('PAIR SYNC','warn');nextCloseMs=boundaryAfter();setEngine('PAIR SYNC',!!stream);setStatus(reason+' Waiting briefly for the new chart to settle.');
 }
 function setDetectedPair(next,source='AUTO OCR',detectedMarket=$('market').value,staticSource=false,detectedBroker=$('broker').value){
   const select=$('pair'),old=select.value,oldMarket=$('market').value,oldBroker=$('broker').value,targetMarket=detectedMarket==='LIVE'?'LIVE':'OTC',targetBroker=LIVE_PAIR_DATA[detectedBroker]?detectedBroker:oldBroker;
@@ -528,6 +540,7 @@ function setDetectedPair(next,source='AUTO OCR',detectedMarket=$('market').value
   const changed=next!==old||marketChanged||brokerChanged;pairVerified=true;brokerVerified=targetBroker===detectedBroker;setBrokerDetectState(`${targetBroker} · ${targetMarket}`,brokerVerified?'ok':'warn');updateQualityHud();
   if(!changed){setMetric('pairDetectState','LOCKED · '+targetMarket+' · '+next,'ok');return false;}
   savePrefs();
+  document.dispatchEvent(new CustomEvent('raja-screen-pair-sync',{detail:{pair:next,broker:targetBroker,market:targetMarket}}));
   if(brokerChanged&&stream){invalidateCrop('Broker auto-changed. Recalibrating chart area for the new broker layout…',false);resetPreflightMetrics();}
   if(staticSource&&!stream){pairGeneration++;pairChangedAt=Date.now();pairSettlingUntil=0;pendingBoundary=null;resetPairCandidate();pairVerified=true;brokerVerified=true;hideSignalBanner();setSignalState('WATCH');setEngine('READY');setStatus(`Auto-detected ${targetBroker} · ${targetMarket} · ${next} from ${source}.`);}
   else resetSignalForPairChange(`Auto-detected ${targetBroker} · ${targetMarket} · ${next} from ${source}.`);
@@ -543,9 +556,10 @@ async function runPairDetectCycle(){
     pairDetectFailures=0;const candidateKey=hit.broker+'|'+hit.market+'|'+hit.pair;if(candidateKey===pairCandidate)pairCandidateHits++;else{pairCandidate=candidateKey;pairCandidateHits=1;}
     setBrokerDetectState(`${hit.broker} · ${hit.market}`,pairCandidateHits>=PAIR_STABLE_HITS?'ok':'warn');
     if(hit.pair===$('pair').value&&hit.market===$('market').value&&hit.broker===$('broker').value){pairCandidateHits=Math.max(pairCandidateHits,PAIR_STABLE_HITS);pairVerified=true;brokerVerified=true;setMetric('pairDetectState','LOCKED · '+hit.market+' · '+hit.pair,'ok');setBrokerDetectState(`${hit.broker} · ${hit.market}`,'ok');updateQualityHud();return;}
+    if(pairVerified){resetSignalForPairChange('Broker pair is changing. Verifying the new chart.');pairCandidate=candidateKey;pairCandidateHits=1;document.dispatchEvent(new Event('raja-screen-pair-pending'));}
     setMetric('pairDetectState',`VERIFY ${pairCandidateHits}/${PAIR_STABLE_HITS} · ${hit.market} · ${hit.pair}`,'warn');
     if(pairCandidateHits>=PAIR_STABLE_HITS)setDetectedPair(hit.pair,hit.region,hit.market,false,hit.broker);
-  }catch(e){pairDetectFailures++;setMetric('pairDetectState','MANUAL FALLBACK','block');setBrokerDetectState('MANUAL FALLBACK','block');if(pairDetectFailures===1)setStatus('Auto broker/pair detection unavailable: '+(e.message||e)+'. Manual selectors still work.');}
+  }catch(e){resetPairCandidate();pairDetectFailures++;setMetric('pairDetectState','MANUAL FALLBACK','block');setBrokerDetectState('MANUAL FALLBACK','block');if(pairDetectFailures===1)setStatus('Auto broker/pair detection unavailable: '+(e.message||e)+'. Manual selectors still work.');}
   finally{pairDetectBusy=false;}
 }
 function startPairDetectLoop(){
@@ -4155,6 +4169,19 @@ function esc8(v){return String(v||'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'
    }
  }
  function confidence(){const s=[txt('qualityChip',''),txt('v47Quality',''),txt('qhQuality','')].join(' ');const m=s.match(/(\d{1,3})\s*%/);return m?Math.max(0,Math.min(100,+m[1])):0}
+ document.addEventListener('raja-screen-pair-pending',()=>{
+   r8SignalUntil=0;r8SignalDir='WATCH';r8LastRawSignal='WATCH';
+ });
+ document.addEventListener('raja-screen-pair-sync',e=>{
+   r8SignalUntil=0;r8SignalDir='WATCH';r8LastRawSignal='WATCH';
+   const name=e.detail.pair;
+   r8Category=(isForex(name)?'forex':'crypto')+(isOtc(name)?'-otc':'');r8View='all';
+   if($('r7PairSearch'))$('r7PairSearch').value='';
+   document.querySelectorAll('#r8MarketGrid button').forEach(b=>b.classList.toggle('active',b.dataset.cat===r8Category));
+   document.querySelectorAll('#r8Tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view==='all'));
+   if($('r8FilterLabel'))$('r8FilterLabel').textContent='SHARED CHART';
+   buildPairs('');mirror();
+ });
  function mirror(){
   const broker=$('broker'),market=$('market'),pair=$('pair'),tf=$('tf');
   if(broker)$('r7Broker').textContent=broker.value;if(market)$('r7Market').textContent=market.value;if(tf){$('r7Tf').textContent=tf.value;$('r7Expiry').textContent=tf.value;$('r7TfSelect').value=tf.value;$('r7LeftMeta').textContent='5 strategies • '+tf.value+' timeframe'}
