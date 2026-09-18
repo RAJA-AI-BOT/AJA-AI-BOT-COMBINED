@@ -11,6 +11,7 @@ import hashlib
 import base64
 import threading
 import queue
+import requests
 from pathlib import Path
 from typing import Any
 
@@ -10237,6 +10238,12 @@ _biquote_failed_lock = threading.RLock()
 _biquote_tick_failed_until = {}
 _biquote_tick_failed_reason = {}
 _biquote_tick_failed_lock = threading.RLock()
+_biquote_http = requests.Session()
+_biquote_http.headers.update({"User-Agent": "RAJA-AI-BiQuote/1.0", "Accept": "application/json"})
+_biquote_http_lock = threading.RLock()
+_biquote_tick_cache = {}
+_biquote_tick_cache_lock = threading.RLock()
+BIQUOTE_TICK_CACHE_SECONDS = max(0.5, min(3.0, float(os.environ.get("BIQUOTE_TICK_CACHE_SECONDS", "0.9"))))
 
 
 def _biquote_symbol(pair):
@@ -10253,14 +10260,11 @@ def _biquote_json(path, params=None, timeout=None):
     url = f"{BIQUOTE_API_URL}/{str(path).lstrip('/')}"
     if query:
         url += "?" + query
-    req = UrlRequest(
-        url,
-        headers={"User-Agent": "RAJA-AI-BiQuote/1.0", "Accept": "application/json"},
-        method="GET",
-    )
     request_timeout = BIQUOTE_REQUEST_TIMEOUT_SECONDS if timeout is None else float(timeout)
-    with urlopen(req, timeout=request_timeout) as response:
-        return json.loads(response.read().decode("utf-8", errors="replace"))
+    with _biquote_http_lock:
+        response = _biquote_http.get(url, timeout=(request_timeout, request_timeout))
+        response.raise_for_status()
+        return response.json()
 
 
 def _biquote_market_data(pair, count=300):
@@ -10331,6 +10335,12 @@ def _biquote_tick(pair):
         return None
 
     now = time.time()
+    with _biquote_tick_cache_lock:
+        cached = _biquote_tick_cache.get(symbol)
+        if cached and now - float(cached.get("ts") or 0.0) <= BIQUOTE_TICK_CACHE_SECONDS:
+            payload = dict(cached["payload"])
+            payload["age_ms"] = max(0, int((now - float(cached["ts"])) * 1000))
+            return payload
     with _biquote_tick_failed_lock:
         blocked_until = float(_biquote_tick_failed_until.get(symbol) or 0.0)
         if now < blocked_until:
@@ -10351,6 +10361,10 @@ def _biquote_tick(pair):
     payload["tick_supported"]=True
     payload["source"]="BiQuote"
     payload["source_mode"]="biquote_live_tick"
+    payload.setdefault("time", time.time())
+    payload["age_ms"] = 0
+    with _biquote_tick_cache_lock:
+        _biquote_tick_cache[symbol] = {"ts": time.time(), "payload": dict(payload)}
     with _biquote_tick_failed_lock:
         _biquote_tick_failed_until.pop(symbol, None)
         _biquote_tick_failed_reason.pop(symbol, None)
