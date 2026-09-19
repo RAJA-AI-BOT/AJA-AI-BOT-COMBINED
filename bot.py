@@ -1,4 +1,3 @@
-from __future__ import annotations
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
@@ -17,18 +16,8 @@ import requests
 from pathlib import Path
 from typing import Any
 
-RAJA_SIMPLE_OTC_LOW_USAGE = str(os.environ.get("RAJA_SIMPLE_OTC_LOW_USAGE", "0")).strip().lower() in {"1", "true", "yes", "on"}
-
-# In Simple OTC mode the browser generates the requested Faraz-style signal,
-# so scanner/image-analysis libraries are not loaded into Railway memory.
-if not RAJA_SIMPLE_OTC_LOW_USAGE:
-    import numpy as np
-    from PIL import Image, ImageEnhance, ImageOps, UnidentifiedImageError
-else:
-    np = None
-    Image = ImageEnhance = ImageOps = None
-    class UnidentifiedImageError(Exception):
-        pass
+import numpy as np
+from PIL import Image, ImageEnhance, ImageOps, UnidentifiedImageError
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 from collections import Counter, OrderedDict
 from datetime import datetime, timezone
@@ -5719,14 +5708,9 @@ def home():
                     _RAJA_INDEX_HTML_CACHE = index_path.read_text(encoding="utf-8")
                 html = _RAJA_INDEX_HTML_CACHE.replace(APP_BUILD_TOKEN, APP_BUILD_ID)
             response = app.response_class(html, mimetype="text/html")
-            if RAJA_SIMPLE_OTC_LOW_USAGE:
-                # A short browser cache reduces repeat Railway requests while still
-                # allowing newly deployed builds to appear quickly.
-                response.headers["Cache-Control"] = "public, max-age=300"
-            else:
-                response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-                response.headers["Pragma"] = "no-cache"
-                response.headers["Expires"] = "0"
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
             return response
         except Exception:
             # Safe fallback if the template token cannot be injected for any reason.
@@ -8012,8 +7996,7 @@ def forex_otc_fallback_data():
 # RAJA AI CHART SCANNER · V11 VISUAL SK25 ENGINE
 # Separate camera/screenshot mode inside the same RAJA AI license session.
 # =========================================================
-if Image is not None:
-    Image.MAX_IMAGE_PIXELS = 25_000_000
+Image.MAX_IMAGE_PIXELS = 25_000_000
 RAJA_CHART_SCAN_MAX_UPLOAD = max(2, min(16, int(os.environ.get("RAJA_CHART_SCAN_MAX_MB", "8")))) * 1024 * 1024
 
 def _quality_score(rgb: np.ndarray) -> tuple[float, list[str]]:
@@ -10958,15 +10941,11 @@ def dukascopy_test_pair(pair):
         "source_info": info,
     }), (200 if rows else 503)
 
-RAJA_ENABLE_SIGNAL_OUTCOME_WORKER = str(os.environ.get("RAJA_ENABLE_SIGNAL_OUTCOME_WORKER", "0")).strip().lower() in {"1", "true", "yes", "on"}
-signal_worker_thread = None
-if RAJA_ENABLE_SIGNAL_OUTCOME_WORKER:
-    signal_worker_thread = threading.Thread(
-        target=signal_outcome_worker,
-        name="raja-signal-outcome-worker",
-        daemon=True,
-    )
-    signal_worker_thread.start()
+signal_worker_thread = threading.Thread(
+    target=signal_outcome_worker,
+    daemon=True,
+)
+signal_worker_thread.start()
 
 
 if __name__ == "__main__":
