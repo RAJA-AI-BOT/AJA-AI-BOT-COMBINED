@@ -7202,7 +7202,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         <div class="config-grid">
                             <div class="selection-card">
                                 <div class="config-field"><label>1. SELECT BROKER PLATFORM</label><select id="brokerSelect" onchange="playClickSound(); updateBrokerAssets();"><option value="Quotex">⚡ Quotex (Broker)</option><option value="PocketOption">🔵 Pocket Option (Broker)</option></select></div>
-                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option><option value="CommoditiesOTC">🛢️ Commodities OTC</option><option value="StocksOTC">📊 Stocks OTC</option><option value="IndicesOTC">📈 Indices OTC</option></select></div>
+                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option><option value="CommoditiesLive">🛢️ Commodities Live Market</option><option value="CommoditiesOTC">🛢️ Commodities OTC</option><option value="StocksLive">📊 Stocks Live Market</option><option value="StocksOTC">📊 Stocks OTC</option><option value="IndicesLive">📈 Indices Live Market</option><option value="IndicesOTC">📈 Indices OTC</option></select></div>
                                 <div class="config-field pair-search-field"><label>3. SELECT PAIR / ASSET</label><div class="pair-search-wrap"><span class="pair-search-icon">⌕</span><input id="pairSearchInput" class="pair-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search pair — e.g. EUR/USD, BTC, OTC" aria-label="Search pair or asset"><button id="pairSearchClear" class="pair-search-clear" type="button" aria-label="Clear pair search">✕</button></div><div id="pairSearchCount" class="pair-search-count">Type above to filter the pair list</div><div class="pair-search-count" style="color:#6f91a8;margin:2px 0 6px;">PAIR LIST · swipe inside the list to see more pairs</div><select id="pairSelect" onchange="playClickSound(); syncTargetPairDisplay(); rajaVisualPairSelectionChanged();"></select>
 <div class="raja-visual-pair-tools" id="rajaVisualPairTools">
   <div class="raja-visual-pair-title">AUTO DETECT BROKER / PAIR FROM SCREEN</div>
@@ -9521,11 +9521,18 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "✨ Auto Scan Best Pair (AI) ✨",
                         "BTC-USD",
                         "ETH-USD",
+                        "BNB-USD",
                         "SOL-USD",
-                        "LTC-USD",
                         "XRP-USD",
                         "ADA-USD",
-                        "DOGE-USD"
+                        "DOGE-USD",
+                        "LTC-USD",
+                        "DOT-USD",
+                        "MATIC-USD",
+                        "TRX-USD",
+                        "TON-USD",
+                        "AVAX-USD",
+                        "LINK-USD"
                     ],
                 CryptoOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9559,15 +9566,30 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "EUR/JPY",
                         "GBP/JPY",
                         "AUD/JPY",
-                        "EUR/AUD",
-                        "GBP/AUD",
                         "CAD/JPY",
-                        "EUR/CAD",
-                        "GBP/CAD",
+                        "CHF/JPY",
                         "NZD/JPY",
-                        "AUD/NZD",
                         "EUR/CHF",
+                        "EUR/CAD",
+                        "EUR/AUD",
+                        "EUR/NZD",
+                        "GBP/CAD",
                         "GBP/CHF",
+                        "GBP/AUD",
+                        "GBP/NZD",
+                        "AUD/CAD",
+                        "AUD/CHF",
+                        "AUD/NZD",
+                        "CAD/CHF",
+                        "NZD/CAD",
+                        "NZD/CHF",
+                        "USD/BRL",
+                        "USD/TRY",
+                        "USD/ZAR",
+                        "USD/MXN",
+                        "USD/INR",
+                        "USD/SGD",
+                        "USD/HKD",
                         "XAUUSD"
                     ],
                 ForexOTC: [
@@ -9621,6 +9643,14 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "USD/VND (OTC)",
                         "USD/MYR (OTC)"
                     ],
+                CommoditiesLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Gold",
+                        "Silver",
+                        "Brent Oil",
+                        "WTI Oil",
+                        "Natural Gas"
+                    ],
                 CommoditiesOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
                         "Gold (OTC)",
@@ -9631,6 +9661,21 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "Brent Oil (OTC)",
                         "WTI Oil (OTC)",
                         "Natural Gas (OTC)"
+                    ],
+                StocksLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Apple",
+                        "Amazon",
+                        "Tesla",
+                        "Meta",
+                        "Google",
+                        "Microsoft",
+                        "Netflix",
+                        "Intel",
+                        "AMD",
+                        "NVIDIA",
+                        "Boeing",
+                        "Visa"
                     ],
                 StocksOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9653,6 +9698,16 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "Alibaba (OTC)",
                         "Pfizer (OTC)",
                         "Ford (OTC)"
+                    ],
+                IndicesLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "US 500",
+                        "Nasdaq 100",
+                        "Dow Jones",
+                        "FTSE 100",
+                        "DAX 30",
+                        "Nikkei 225",
+                        "Euro 50"
                     ],
                 IndicesOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9674,11 +9729,18 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "✨ Auto Scan Best Pair (AI) ✨",
                         "BTC-USD",
                         "ETH-USD",
+                        "BNB-USD",
                         "SOL-USD",
-                        "LTC-USD",
                         "XRP-USD",
                         "ADA-USD",
-                        "DOGE-USD"
+                        "DOGE-USD",
+                        "LTC-USD",
+                        "DOT-USD",
+                        "MATIC-USD",
+                        "TRX-USD",
+                        "TON-USD",
+                        "AVAX-USD",
+                        "LINK-USD"
                     ],
                 CryptoOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9712,15 +9774,30 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "EUR/JPY",
                         "GBP/JPY",
                         "AUD/JPY",
-                        "EUR/AUD",
-                        "GBP/AUD",
                         "CAD/JPY",
-                        "EUR/CAD",
-                        "GBP/CAD",
+                        "CHF/JPY",
                         "NZD/JPY",
-                        "AUD/NZD",
                         "EUR/CHF",
+                        "EUR/CAD",
+                        "EUR/AUD",
+                        "EUR/NZD",
+                        "GBP/CAD",
                         "GBP/CHF",
+                        "GBP/AUD",
+                        "GBP/NZD",
+                        "AUD/CAD",
+                        "AUD/CHF",
+                        "AUD/NZD",
+                        "CAD/CHF",
+                        "NZD/CAD",
+                        "NZD/CHF",
+                        "USD/BRL",
+                        "USD/TRY",
+                        "USD/ZAR",
+                        "USD/MXN",
+                        "USD/INR",
+                        "USD/SGD",
+                        "USD/HKD",
                         "XAUUSD"
                     ],
                 ForexOTC: [
@@ -9774,6 +9851,14 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "USD/VND (OTC)",
                         "USD/MYR (OTC)"
                     ],
+                CommoditiesLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Gold",
+                        "Silver",
+                        "Brent Oil",
+                        "WTI Oil",
+                        "Natural Gas"
+                    ],
                 CommoditiesOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
                         "Gold (OTC)",
@@ -9784,6 +9869,21 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "Brent Oil (OTC)",
                         "WTI Oil (OTC)",
                         "Natural Gas (OTC)"
+                    ],
+                StocksLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Apple",
+                        "Amazon",
+                        "Tesla",
+                        "Meta",
+                        "Google",
+                        "Microsoft",
+                        "Netflix",
+                        "Intel",
+                        "AMD",
+                        "NVIDIA",
+                        "Boeing",
+                        "Visa"
                     ],
                 StocksOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9806,6 +9906,16 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         "Alibaba (OTC)",
                         "Pfizer (OTC)",
                         "Ford (OTC)"
+                    ],
+                IndicesLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "US 500",
+                        "Nasdaq 100",
+                        "Dow Jones",
+                        "FTSE 100",
+                        "DAX 30",
+                        "Nikkei 225",
+                        "Euro 50"
                     ],
                 IndicesOTC: [
                         "✨ Auto Scan Best Pair (AI) ✨",
@@ -9857,8 +9967,11 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
                 { value:'ForexOTC', label:'⚡ Forex OTC Market' },
+                { value:'CommoditiesLive', label:'🛢️ Commodities Live Market' },
                 { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
+                { value:'StocksLive', label:'📊 Stocks Live Market' },
                 { value:'StocksOTC', label:'📊 Stocks OTC' },
+                { value:'IndicesLive', label:'📈 Indices Live Market' },
                 { value:'IndicesOTC', label:'📈 Indices OTC' }
             ],
             PocketOption: [
@@ -9866,8 +9979,11 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
                 { value:'ForexOTC', label:'⚡ Forex OTC Market' },
+                { value:'CommoditiesLive', label:'🛢️ Commodities Live Market' },
                 { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
+                { value:'StocksLive', label:'📊 Stocks Live Market' },
                 { value:'StocksOTC', label:'📊 Stocks OTC' },
+                { value:'IndicesLive', label:'📈 Indices Live Market' },
                 { value:'IndicesOTC', label:'📈 Indices OTC' }
             ]
         };
@@ -9921,8 +10037,11 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC: 'Crypto OTC',
                 ForexLive: 'Forex Live',
                 ForexOTC: 'Forex OTC',
+                StocksLive: 'Stocks Live',
                 StocksOTC: 'Stocks OTC',
+                CommoditiesLive: 'Commodities Live',
                 CommoditiesOTC: 'Commodities OTC',
+                IndicesLive: 'Indices Live',
                 IndicesOTC: 'Indices OTC'
             })[market] || 'Selected Market';
         }
@@ -14027,8 +14146,11 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC:'CRYPTO OTC',
                 ForexLive:'FOREX LIVE',
                 ForexOTC:'FOREX OTC',
+                CommoditiesLive:'COMMODITIES LIVE',
                 CommoditiesOTC:'COMMODITIES OTC',
+                StocksLive:'STOCKS LIVE',
                 StocksOTC:'STOCKS OTC',
+                IndicesLive:'INDICES LIVE',
                 IndicesOTC:'INDICES OTC'
             })[value] || 'MARKET READY';
         }
@@ -14442,7 +14564,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     (() => {
         const STORAGE_KEY_BASE = 'raja_all_market_availability_v3';
         const CACHE_MS = 3 * 60 * 1000;
-        const LIVE_PRIORITY = { CryptoLive:7, ForexLive:6, CryptoOTC:5, ForexOTC:4, CommoditiesOTC:3, StocksOTC:2, IndicesOTC:1 };
+        const LIVE_PRIORITY = { CryptoLive:10, ForexLive:9, CommoditiesLive:8, StocksLive:7, IndicesLive:6, CryptoOTC:5, ForexOTC:4, CommoditiesOTC:3, StocksOTC:2, IndicesOTC:1 };
 
         function currentBroker() {
             return String(document.getElementById('brokerSelect')?.value || 'Quotex');
@@ -15461,8 +15583,11 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC:'Crypto OTC',
                 ForexLive:'Forex Live',
                 ForexOTC:'Forex OTC',
+                StocksLive:'Stocks Live',
                 StocksOTC:'Stocks OTC',
+                CommoditiesLive:'Commodities Live',
                 CommoditiesOTC:'Commodities OTC',
+                IndicesLive:'Indices Live',
                 IndicesOTC:'Indices OTC'
             })[market] || market || 'Market';
         }
