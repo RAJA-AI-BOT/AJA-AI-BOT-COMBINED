@@ -4565,6 +4565,163 @@ def _movement_info(df):
     return {"label":label,"percent":round(pct,5)}
 
 
+def _smc_ict_liquidity_context(tf_df):
+    """Closed-candle SMC / ICT / liquidity context using the candles already fetched.
+
+    This layer adds ZERO market-data requests.  It is intentionally informational:
+    the existing five RAJA entry strategies and technical confirmation remain the
+    only trade gate.  The context is exposed in the API/UI so SMC, ICT and liquidity
+    ideas are real candle calculations rather than marketing labels.
+    """
+    empty = {
+        "ready": False,
+        "liquidity": {"bias":"NEUTRAL","event":"NOT READY","equal_highs":False,"equal_lows":False},
+        "smc": {"bias":"NEUTRAL","structure":"NOT READY","bos":"NONE","choch":"NONE","order_block":"NONE"},
+        "ict": {"bias":"NEUTRAL","fvg":"NONE","displacement":"NONE","dealing_range":"MIDPOINT"},
+        "network_requests_added": 0,
+        "signal_gate": False,
+    }
+    try:
+        if tf_df is None or getattr(tf_df, "empty", True) or len(tf_df) < 8:
+            return empty
+        frame = tf_df.tail(min(90, len(tf_df))).copy()
+        rows=[]
+        for _, row in frame.iterrows():
+            o=_f(row.get("Open"),0.0); h=_f(row.get("High"),0.0); l=_f(row.get("Low"),0.0); c=_f(row.get("Close"),0.0)
+            if min(o,h,l,c) <= 0 or h < l:
+                continue
+            rows.append({"open":o,"high":h,"low":l,"close":c,"body":abs(c-o),"range":max(0.0,h-l)})
+        if len(rows) < 8:
+            return empty
+
+        ranges=[x["range"] for x in rows if x["range"]>0]
+        bodies=[x["body"] for x in rows if x["body"]>0]
+        med_range=max(_median(ranges,0.0),1e-12)
+        med_body=max(_median(bodies,0.0),med_range*0.10,1e-12)
+        last=rows[-1]
+        tol=max(med_range*0.16, abs(last["close"])*0.00002, 1e-12)
+
+        # ---- Liquidity: equal highs/lows + stop-run/sweep and reclaim ----
+        pool=rows[-22:-1] if len(rows) >= 22 else rows[:-1]
+        highs=sorted((x["high"] for x in pool), reverse=True)
+        lows=sorted(x["low"] for x in pool)
+        equal_highs=bool(len(highs)>=2 and abs(highs[0]-highs[1]) <= tol)
+        equal_lows=bool(len(lows)>=2 and abs(lows[0]-lows[1]) <= tol)
+        recent=rows[-13:-1] if len(rows)>=13 else rows[:-1]
+        prior_high=max(x["high"] for x in recent)
+        prior_low=min(x["low"] for x in recent)
+        bullish_sweep=bool(last["low"] < prior_low - tol*0.05 and last["close"] > prior_low)
+        bearish_sweep=bool(last["high"] > prior_high + tol*0.05 and last["close"] < prior_high)
+        if bullish_sweep and not bearish_sweep:
+            liq_bias="BULLISH"; liq_event="SELL-SIDE LIQUIDITY SWEEP + RECLAIM"
+        elif bearish_sweep and not bullish_sweep:
+            liq_bias="BEARISH"; liq_event="BUY-SIDE LIQUIDITY SWEEP + REJECT"
+        elif equal_highs and equal_lows:
+            liq_bias="NEUTRAL"; liq_event="LIQUIDITY POOLS BOTH SIDES"
+        elif equal_highs:
+            liq_bias="NEUTRAL"; liq_event="BUY-SIDE LIQUIDITY POOL"
+        elif equal_lows:
+            liq_bias="NEUTRAL"; liq_event="SELL-SIDE LIQUIDITY POOL"
+        else:
+            liq_bias="NEUTRAL"; liq_event="NO FRESH SWEEP"
+
+        # ---- SMC: swing structure, BOS / CHOCH, simple displacement order block ----
+        swing_highs=[]; swing_lows=[]
+        for i in range(2, len(rows)-2):
+            x=rows[i]
+            if x["high"] >= max(rows[i-1]["high"],rows[i-2]["high"],rows[i+1]["high"],rows[i+2]["high"]):
+                swing_highs.append((i,x["high"]))
+            if x["low"] <= min(rows[i-1]["low"],rows[i-2]["low"],rows[i+1]["low"],rows[i+2]["low"]):
+                swing_lows.append((i,x["low"]))
+        structure="RANGE / MIXED"
+        if len(swing_highs)>=2 and len(swing_lows)>=2:
+            hh=swing_highs[-1][1] > swing_highs[-2][1] + tol*0.10
+            hl=swing_lows[-1][1] > swing_lows[-2][1] + tol*0.10
+            lh=swing_highs[-1][1] < swing_highs[-2][1] - tol*0.10
+            ll=swing_lows[-1][1] < swing_lows[-2][1] - tol*0.10
+            if hh and hl: structure="BULLISH HH/HL"
+            elif lh and ll: structure="BEARISH LH/LL"
+        ref_high=swing_highs[-1][1] if swing_highs else prior_high
+        ref_low=swing_lows[-1][1] if swing_lows else prior_low
+        bos_up=last["close"] > ref_high + tol*0.05
+        bos_down=last["close"] < ref_low - tol*0.05
+        bos="BULLISH BOS" if bos_up and not bos_down else ("BEARISH BOS" if bos_down and not bos_up else "NONE")
+        choch="NONE"
+        if structure.startswith("BEARISH") and bos_up: choch="BULLISH CHOCH"
+        elif structure.startswith("BULLISH") and bos_down: choch="BEARISH CHOCH"
+
+        prev=rows[-2]
+        bullish_ob=bool(prev["close"] < prev["open"] and last["close"] > prev["high"] and last["body"] >= med_body*1.10)
+        bearish_ob=bool(prev["close"] > prev["open"] and last["close"] < prev["low"] and last["body"] >= med_body*1.10)
+        order_block="BULLISH ORDER BLOCK DISPLACEMENT" if bullish_ob else ("BEARISH ORDER BLOCK DISPLACEMENT" if bearish_ob else "NONE")
+        if choch.startswith("BULLISH") or bos_up or bullish_ob: smc_bias="BULLISH"
+        elif choch.startswith("BEARISH") or bos_down or bearish_ob: smc_bias="BEARISH"
+        elif structure.startswith("BULLISH"): smc_bias="BULLISH"
+        elif structure.startswith("BEARISH"): smc_bias="BEARISH"
+        else: smc_bias="NEUTRAL"
+
+        # ---- ICT: FVG / imbalance, displacement and premium-discount context ----
+        fvg="NONE"
+        # Prefer the newest imbalance from the last 14 closed candles.
+        start=max(2,len(rows)-14)
+        for i in range(start,len(rows)):
+            a=rows[i-2]; c=rows[i]
+            if c["low"] > a["high"] + tol*0.03:
+                fvg="BULLISH FVG"
+            elif c["high"] < a["low"] - tol*0.03:
+                fvg="BEARISH FVG"
+        displacement="NONE"
+        if last["body"] >= med_body*1.55 and last["range"] >= med_range*1.25:
+            displacement="BULLISH DISPLACEMENT" if last["close"]>last["open"] else "BEARISH DISPLACEMENT"
+        deal=rows[-20:] if len(rows)>=20 else rows
+        deal_high=max(x["high"] for x in deal); deal_low=min(x["low"] for x in deal); midpoint=(deal_high+deal_low)/2.0
+        if last["close"] < midpoint - tol*0.10: dealing="DISCOUNT"
+        elif last["close"] > midpoint + tol*0.10: dealing="PREMIUM"
+        else: dealing="EQUILIBRIUM"
+        ict_bull = int(fvg.startswith("BULLISH")) + int(displacement.startswith("BULLISH")) + int(dealing=="DISCOUNT") + int(bullish_sweep)
+        ict_bear = int(fvg.startswith("BEARISH")) + int(displacement.startswith("BEARISH")) + int(dealing=="PREMIUM") + int(bearish_sweep)
+        ict_bias="BULLISH" if ict_bull>ict_bear else ("BEARISH" if ict_bear>ict_bull else "NEUTRAL")
+
+        return {
+            "ready": True,
+            "liquidity": {
+                "bias": liq_bias, "event": liq_event,
+                "equal_highs": equal_highs, "equal_lows": equal_lows,
+                "bullish_sweep": bullish_sweep, "bearish_sweep": bearish_sweep,
+                "prior_high": round(prior_high,8), "prior_low": round(prior_low,8),
+            },
+            "smc": {
+                "bias": smc_bias, "structure": structure, "bos": bos, "choch": choch,
+                "order_block": order_block,
+            },
+            "ict": {
+                "bias": ict_bias, "fvg": fvg, "displacement": displacement,
+                "dealing_range": dealing, "midpoint": round(midpoint,8),
+            },
+            "network_requests_added": 0,
+            "signal_gate": False,
+        }
+    except Exception as exc:
+        out=dict(empty)
+        out["reason"]=f"Concept context unavailable: {exc}"
+        return out
+
+
+def _concept_alignment_with_signal(concepts, signal):
+    direction="BULLISH" if str(signal).upper()=="CALL" else ("BEARISH" if str(signal).upper()=="PUT" else "")
+    if not direction or not isinstance(concepts,dict) or not concepts.get("ready"):
+        return {"direction":direction or "NONE","aligned":0,"opposed":0,"neutral":3,"label":"INFO ONLY"}
+    biases=[]
+    for key in ("liquidity","smc","ict"):
+        part=concepts.get(key) if isinstance(concepts.get(key),dict) else {}
+        biases.append(str(part.get("bias") or "NEUTRAL").upper())
+    aligned=sum(1 for b in biases if b==direction)
+    opposed=sum(1 for b in biases if b in {"BULLISH","BEARISH"} and b!=direction)
+    neutral=3-aligned-opposed
+    label="3/3 ALIGNED" if aligned==3 else (f"{aligned}/3 ALIGNED" if aligned else ("MIXED" if opposed else "NEUTRAL"))
+    return {"direction":direction,"aligned":aligned,"opposed":opposed,"neutral":neutral,"label":label,"biases":biases}
+
+
 # =========================================================
 # PRE-SCAN MARKET HEALTH TEST
 # Recent closed-candle structure + rolling SK25 replay. This is a market-fitness
@@ -5384,6 +5541,15 @@ def _faraz_style_otc_result(pair, selected_expiry=None, broker=None, bridge_user
         "quality_gate": "SIMULATED_RANDOM",
         "faraz_style_otc": True,
         "faraz_style_signal_ttl_seconds": RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS,
+        "smc_ict_liquidity": {
+            "ready": False,
+            "liquidity": {"bias":"NEUTRAL","event":"N/A — FARAZ RANDOM OTC MODE","equal_highs":False,"equal_lows":False},
+            "smc": {"bias":"NEUTRAL","structure":"N/A — FARAZ RANDOM OTC MODE","bos":"NONE","choch":"NONE","order_block":"NONE"},
+            "ict": {"bias":"NEUTRAL","fvg":"NONE","displacement":"NONE","dealing_range":"N/A"},
+            "network_requests_added": 0,
+            "signal_gate": False,
+        },
+        "concept_alignment": {"direction": direction, "aligned":0, "opposed":0, "neutral":3, "label":"NOT USED IN RANDOM OTC"},
     }
 
 
@@ -5454,6 +5620,8 @@ def calculate_live_strategy_signal(pair, selected_expiry=None, scan_options=None
     strategy=_v46_apply_technical_confirmation(strategy,base_df,tf_df,tf)
     indicator_diag=_v46_indicator_snapshot(tf_df)
     movement=_movement_info(chart_scan_df)
+    smc_ict_liquidity=_smc_ict_liquidity_context(chart_scan_df)
+    concept_alignment=_concept_alignment_with_signal(smc_ict_liquidity,strategy.get("signal"))
     summary={tf:{
         "signal":strategy.get("signal"),"score":strategy.get("score",0),"pattern_type":strategy.get("pattern_type",0),
         "selected_pattern":strategy.get("selected_pattern"),"setup_match":strategy.get("setup_match",0),
@@ -5477,6 +5645,8 @@ def calculate_live_strategy_signal(pair, selected_expiry=None, scan_options=None
         "closed_candle_verified":True,"forming_candle_excluded":True,"chart_includes_forming_candle":bool(forming_snapshot) or bool(len(display_chart_df)>len(tf_df.tail(visible_count))),
         "forming_candle_source":(forming_snapshot or {}).get("source"),"forming_candle_age_ms":(forming_snapshot or {}).get("age_ms"),"base_1m_gap_count":_raja_1m_gap_count(base_df),
         "movement_info":movement,"volatility_pct":movement["percent"],"market_stability_score":100.0 if strategy.get("signal") in {"CALL","PUT"} else 0.0,
+        "smc_ict_liquidity":smc_ict_liquidity,"concept_alignment":concept_alignment,
+        "concept_engine":"RAJA SMC/ICT/LIQUIDITY V1 · CLOSED CANDLES · ZERO EXTRA DATA REQUESTS",
         "market_risk_level":"INFO ONLY","market_regime":strategy.get("selected_pattern") or "NO SETUP",
         "deep_quality_score":float(strategy.get("pattern_priority") or 0),"calibration_status":strategy.get("calibration_status") or "V80 CANDLE-SYNC TECHNICAL FILTER", "calibrated_confidence":float(strategy.get("calibrated_confidence") or strategy.get("model_confidence") or 0.0),
         "no_trade":strategy.get("signal") not in {"CALL","PUT"},"quality_gate":"PASSED" if strategy.get("signal") in {"CALL","PUT"} else "PATTERN_ONLY",
