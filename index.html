@@ -7202,7 +7202,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         <div class="config-grid">
                             <div class="selection-card">
                                 <div class="config-field"><label>1. SELECT BROKER PLATFORM</label><select id="brokerSelect" onchange="playClickSound(); updateBrokerAssets();"><option value="Quotex">⚡ Quotex (Broker)</option><option value="PocketOption">🔵 Pocket Option (Broker)</option></select></div>
-                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option><option value="CommoditiesOTC">🛢️ Commodities OTC</option><option value="StocksOTC">📊 Stocks OTC</option><option value="IndicesOTC">📈 Indices OTC</option></select></div>
+                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option></select></div>
                                 <div class="config-field pair-search-field"><label>3. SELECT PAIR / ASSET</label><div class="pair-search-wrap"><span class="pair-search-icon">⌕</span><input id="pairSearchInput" class="pair-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search pair — e.g. EUR/USD, BTC, OTC" aria-label="Search pair or asset"><button id="pairSearchClear" class="pair-search-clear" type="button" aria-label="Clear pair search">✕</button></div><div id="pairSearchCount" class="pair-search-count">Type above to filter the pair list</div><div class="pair-search-count" style="color:#6f91a8;margin:2px 0 6px;">PAIR LIST · swipe inside the list to see more pairs</div><select id="pairSelect" onchange="playClickSound(); syncTargetPairDisplay(); rajaVisualPairSelectionChanged();"></select>
 <div class="raja-visual-pair-tools" id="rajaVisualPairTools">
   <div class="raja-visual-pair-title">AUTO DETECT BROKER / PAIR FROM SCREEN</div>
@@ -7832,7 +7832,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
         const RAJA_CURRENT_BUILD = String(
             document.querySelector('meta[name="raja-app-build"]')?.content || ''
         ).trim();
-        const RAJA_VERSION_CHECK_MS = 60 * 1000;
+        const RAJA_VERSION_CHECK_MS = 10 * 60 * 1000; // LOW DATA: deployment check every 10 min
         let rajaSwRegistration = null;
         let rajaVersionTimer = null;
         let rajaUpdateReloadStarted = false;
@@ -8035,8 +8035,8 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
         }
 
 
-        const AUTO_RESCAN_INTERVAL_MS = 3 * 60 * 1000;
-        let autoRescanEnabled = localStorage.getItem('raja_auto_rescan_enabled') !== 'false';
+        const AUTO_RESCAN_INTERVAL_MS = 5 * 60 * 1000; // LOW DATA: auto scan every 5 min when explicitly enabled
+        let autoRescanEnabled = localStorage.getItem('raja_auto_rescan_enabled') === 'true'; // LOW DATA: OFF by default
         let autoRescanTimeout = null;
         let autoRescanTicker = null;
         let nextAutoRescanAt = Number(localStorage.getItem('raja_next_auto_rescan_at') || 0);
@@ -8784,8 +8784,8 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             // The current session has already been verified by login/checkRoute.
             // Login/checkRoute already verified this session. A 60s heartbeat is well inside
             // the 5-minute server TTL and halves steady DB authentication traffic.
-            licenseHeartbeatInterval = setInterval(heartbeatLicense, 60000);
-            historyRefreshInterval = setInterval(() => { if (isUserVerified) refreshTrackedHistory(); }, 10000);
+            licenseHeartbeatInterval = setInterval(heartbeatLicense, 5 * 60 * 1000); // LOW DATA: 5 min
+            historyRefreshInterval = null; // LOW DATA: history refreshes only when opened / manually refreshed
         }
 
 
@@ -9518,317 +9518,193 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
         const brokerData = {
             Quotex: {
                 CryptoLive: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "BTC-USD",
-                        "ETH-USD",
-                        "SOL-USD",
-                        "LTC-USD",
-                        "XRP-USD",
-                        "ADA-USD",
-                        "DOGE-USD"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "BTC-USD",
+                    "ETH-USD",
+                    "SOL-USD",
+                    "LTC-USD",
+                    "XRP-USD",
+                    "ADA-USD",
+                    "DOGE-USD"
+                ],
                 CryptoOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "BTC/USD (OTC)",
-                        "ETH/USD (OTC)",
-                        "BNB/USD (OTC)",
-                        "SOL/USD (OTC)",
-                        "XRP/USD (OTC)",
-                        "ADA/USD (OTC)",
-                        "DOGE/USD (OTC)",
-                        "LTC/USD (OTC)",
-                        "DOT/USD (OTC)",
-                        "MATIC/USD (OTC)",
-                        "TRX/USD (OTC)",
-                        "TON/USD (OTC)",
-                        "AVAX/USD (OTC)",
-                        "LINK/USD (OTC)",
-                        "SHIB/USD (OTC)",
-                        "BCH/USD (OTC)"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "Zcash (OTC)",
+                    "Chainlink (OTC)",
+                    "Bitcoin (OTC)",
+                    "Binance Coin (OTC)",
+                    "Ethereum (OTC)",
+                    "Bitcoin Cash (OTC)",
+                    "Cosmos (OTC)",
+                    "Ethereum Classic (OTC)",
+                    "Axie Infinity (OTC)",
+                    "Trump (OTC)",
+                    "Dash (OTC)",
+                    "Solana (OTC)",
+                    "Toncoin (OTC)",
+                    "Litecoin (OTC)",
+                    "Avalanche (OTC)",
+                    "Polkadot (OTC)",
+                    "Ripple (OTC)"
+                ],
                 ForexLive: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "EUR/USD",
-                        "GBP/USD",
-                        "USD/JPY",
-                        "AUD/USD",
-                        "USD/CAD",
-                        "USD/CHF",
-                        "NZD/USD",
-                        "EUR/GBP",
-                        "EUR/JPY",
-                        "GBP/JPY",
-                        "AUD/JPY",
-                        "EUR/AUD",
-                        "GBP/AUD",
-                        "CAD/JPY",
-                        "EUR/CAD",
-                        "GBP/CAD",
-                        "NZD/JPY",
-                        "AUD/NZD",
-                        "EUR/CHF",
-                        "GBP/CHF",
-                        "XAUUSD"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "EUR/USD",
+                    "GBP/USD",
+                    "USD/JPY",
+                    "AUD/USD",
+                    "USD/CAD",
+                    "USD/CHF",
+                    "NZD/USD",
+                    "EUR/GBP",
+                    "EUR/JPY",
+                    "GBP/JPY",
+                    "AUD/JPY",
+                    "EUR/AUD",
+                    "GBP/AUD",
+                    "CAD/JPY",
+                    "EUR/CAD",
+                    "GBP/CAD",
+                    "NZD/JPY",
+                    "AUD/NZD",
+                    "EUR/CHF",
+                    "GBP/CHF",
+                    "XAUUSD"
+                ],
                 ForexOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "EUR/USD (OTC)",
-                        "GBP/USD (OTC)",
-                        "USD/JPY (OTC)",
-                        "AUD/USD (OTC)",
-                        "USD/CAD (OTC)",
-                        "USD/CHF (OTC)",
-                        "NZD/USD (OTC)",
-                        "EUR/GBP (OTC)",
-                        "EUR/JPY (OTC)",
-                        "GBP/JPY (OTC)",
-                        "AUD/JPY (OTC)",
-                        "CAD/JPY (OTC)",
-                        "CHF/JPY (OTC)",
-                        "NZD/JPY (OTC)",
-                        "EUR/CHF (OTC)",
-                        "EUR/CAD (OTC)",
-                        "EUR/AUD (OTC)",
-                        "EUR/NZD (OTC)",
-                        "GBP/CAD (OTC)",
-                        "GBP/CHF (OTC)",
-                        "GBP/AUD (OTC)",
-                        "GBP/NZD (OTC)",
-                        "AUD/CAD (OTC)",
-                        "AUD/CHF (OTC)",
-                        "AUD/NZD (OTC)",
-                        "CAD/CHF (OTC)",
-                        "NZD/CAD (OTC)",
-                        "NZD/CHF (OTC)",
-                        "USD/BRL (OTC)",
-                        "USD/ARS (OTC)",
-                        "USD/EGP (OTC)",
-                        "USD/PKR (OTC)",
-                        "USD/BDT (OTC)",
-                        "USD/INR (OTC)",
-                        "USD/IDR (OTC)",
-                        "USD/NGN (OTC)",
-                        "USD/PHP (OTC)",
-                        "USD/TRY (OTC)",
-                        "USD/ZAR (OTC)",
-                        "USD/MXN (OTC)",
-                        "USD/COP (OTC)",
-                        "USD/DZD (OTC)",
-                        "USD/SAR (OTC)",
-                        "USD/QAR (OTC)",
-                        "USD/KES (OTC)",
-                        "USD/THB (OTC)",
-                        "USD/VND (OTC)",
-                        "USD/MYR (OTC)"
-                    ],
-                CommoditiesOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "Gold (OTC)",
-                        "Silver (OTC)",
-                        "Platinum (OTC)",
-                        "Palladium (OTC)",
-                        "Copper (OTC)",
-                        "Brent Oil (OTC)",
-                        "WTI Oil (OTC)",
-                        "Natural Gas (OTC)"
-                    ],
-                StocksOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "Apple (OTC)",
-                        "Amazon (OTC)",
-                        "Tesla (OTC)",
-                        "Meta (OTC)",
-                        "Google (OTC)",
-                        "Microsoft (OTC)",
-                        "Netflix (OTC)",
-                        "Intel (OTC)",
-                        "AMD (OTC)",
-                        "NVIDIA (OTC)",
-                        "Boeing (OTC)",
-                        "Visa (OTC)",
-                        "JPMorgan (OTC)",
-                        "Nike (OTC)",
-                        "McDonald's (OTC)",
-                        "Coca-Cola (OTC)",
-                        "Alibaba (OTC)",
-                        "Pfizer (OTC)",
-                        "Ford (OTC)"
-                    ],
-                IndicesOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "US 500 (OTC)",
-                        "Nasdaq 100 (OTC)",
-                        "Dow Jones (OTC)",
-                        "S&P 500 (OTC)",
-                        "FTSE 100 (OTC)",
-                        "DAX 30 (OTC)",
-                        "Nikkei 225 (OTC)",
-                        "Euro 50 (OTC)",
-                        "ASX 200 (OTC)",
-                        "CAC 40 (OTC)",
-                        "IBEX 35 (OTC)"
-                    ]
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "USD/BRL (OTC)",
+                    "NZD/CHF (OTC)",
+                    "NZD/JPY (OTC)",
+                    "USD/COP (OTC)",
+                    "USD/MXN (OTC)",
+                    "AUD/NZD (OTC)",
+                    "USD/BDT (OTC)",
+                    "USD/DZD (OTC)",
+                    "USD/NGN (OTC)",
+                    "USD/PHP (OTC)",
+                    "USD/PKR (OTC)",
+                    "USD/ZAR (OTC)",
+                    "USD/INR (OTC)",
+                    "USD/EGP (OTC)",
+                    "USD/IDR (OTC)",
+                    "USD/ARS (OTC)",
+                    "GBP/NZD (OTC)",
+                    "EUR/NZD (OTC)",
+                    "NZD/USD (OTC)",
+                    "NZD/CAD (OTC)",
+                    "CAD/CHF (OTC)"
+                ]
             },
             PocketOption: {
                 CryptoLive: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "BTC-USD",
-                        "ETH-USD",
-                        "SOL-USD",
-                        "LTC-USD",
-                        "XRP-USD",
-                        "ADA-USD",
-                        "DOGE-USD"
-                    ],
-                CryptoOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "BTC/USD (OTC)",
-                        "ETH/USD (OTC)",
-                        "BNB/USD (OTC)",
-                        "SOL/USD (OTC)",
-                        "XRP/USD (OTC)",
-                        "ADA/USD (OTC)",
-                        "DOGE/USD (OTC)",
-                        "LTC/USD (OTC)",
-                        "DOT/USD (OTC)",
-                        "MATIC/USD (OTC)",
-                        "TRX/USD (OTC)",
-                        "TON/USD (OTC)",
-                        "AVAX/USD (OTC)",
-                        "LINK/USD (OTC)",
-                        "SHIB/USD (OTC)",
-                        "BCH/USD (OTC)"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "BTC-USD",
+                    "ETH-USD",
+                    "SOL-USD",
+                    "LTC-USD",
+                    "XRP-USD",
+                    "ADA-USD",
+                    "DOGE-USD"
+                ],
                 ForexLive: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "EUR/USD",
-                        "GBP/USD",
-                        "USD/JPY",
-                        "AUD/USD",
-                        "USD/CAD",
-                        "USD/CHF",
-                        "NZD/USD",
-                        "EUR/GBP",
-                        "EUR/JPY",
-                        "GBP/JPY",
-                        "AUD/JPY",
-                        "EUR/AUD",
-                        "GBP/AUD",
-                        "CAD/JPY",
-                        "EUR/CAD",
-                        "GBP/CAD",
-                        "NZD/JPY",
-                        "AUD/NZD",
-                        "EUR/CHF",
-                        "GBP/CHF",
-                        "XAUUSD"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "EUR/USD",
+                    "GBP/USD",
+                    "USD/JPY",
+                    "AUD/USD",
+                    "USD/CAD",
+                    "USD/CHF",
+                    "NZD/USD",
+                    "EUR/GBP",
+                    "EUR/JPY",
+                    "GBP/JPY",
+                    "AUD/JPY",
+                    "EUR/AUD",
+                    "GBP/AUD",
+                    "CAD/JPY",
+                    "EUR/CAD",
+                    "GBP/CAD",
+                    "NZD/JPY",
+                    "AUD/NZD",
+                    "EUR/CHF",
+                    "GBP/CHF",
+                    "XAUUSD"
+                ],
                 ForexOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "EUR/USD (OTC)",
-                        "GBP/USD (OTC)",
-                        "USD/JPY (OTC)",
-                        "AUD/USD (OTC)",
-                        "USD/CAD (OTC)",
-                        "USD/CHF (OTC)",
-                        "NZD/USD (OTC)",
-                        "EUR/GBP (OTC)",
-                        "EUR/JPY (OTC)",
-                        "GBP/JPY (OTC)",
-                        "AUD/JPY (OTC)",
-                        "CAD/JPY (OTC)",
-                        "CHF/JPY (OTC)",
-                        "NZD/JPY (OTC)",
-                        "EUR/CHF (OTC)",
-                        "EUR/CAD (OTC)",
-                        "EUR/AUD (OTC)",
-                        "EUR/NZD (OTC)",
-                        "GBP/CAD (OTC)",
-                        "GBP/CHF (OTC)",
-                        "GBP/AUD (OTC)",
-                        "GBP/NZD (OTC)",
-                        "AUD/CAD (OTC)",
-                        "AUD/CHF (OTC)",
-                        "AUD/NZD (OTC)",
-                        "CAD/CHF (OTC)",
-                        "NZD/CAD (OTC)",
-                        "NZD/CHF (OTC)",
-                        "USD/BRL (OTC)",
-                        "USD/ARS (OTC)",
-                        "USD/EGP (OTC)",
-                        "USD/PKR (OTC)",
-                        "USD/BDT (OTC)",
-                        "USD/INR (OTC)",
-                        "USD/IDR (OTC)",
-                        "USD/NGN (OTC)",
-                        "USD/PHP (OTC)",
-                        "USD/TRY (OTC)",
-                        "USD/ZAR (OTC)",
-                        "USD/MXN (OTC)",
-                        "USD/COP (OTC)",
-                        "USD/DZD (OTC)",
-                        "USD/SAR (OTC)",
-                        "USD/QAR (OTC)",
-                        "USD/KES (OTC)",
-                        "USD/THB (OTC)",
-                        "USD/VND (OTC)",
-                        "USD/MYR (OTC)"
-                    ],
-                CommoditiesOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "Gold (OTC)",
-                        "Silver (OTC)",
-                        "Platinum (OTC)",
-                        "Palladium (OTC)",
-                        "Copper (OTC)",
-                        "Brent Oil (OTC)",
-                        "WTI Oil (OTC)",
-                        "Natural Gas (OTC)"
-                    ],
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "EUR/USD (OTC)",
+                    "GBP/USD (OTC)",
+                    "USD/JPY (OTC)",
+                    "AUD/USD (OTC)",
+                    "USD/CAD (OTC)",
+                    "USD/CHF (OTC)",
+                    "EUR/JPY (OTC)",
+                    "GBP/JPY (OTC)",
+                    "AUD/JPY (OTC)",
+                    "CAD/JPY (OTC)",
+                    "EUR/CHF (OTC)",
+                    "EUR/GBP (OTC)",
+                    "AUD/CAD (OTC)",
+                    "AUD/CHF (OTC)",
+                    "CAD/CHF (OTC)",
+                    "NZD/JPY (OTC)",
+                    "AUD/NZD (OTC)",
+                    "EUR/NZD (OTC)",
+                    "GBP/AUD (OTC)",
+                    "CHF/JPY (OTC)",
+                    "USD/MXN (OTC)",
+                    "USD/BRL (OTC)",
+                    "USD/INR (OTC)",
+                    "USD/SGD (OTC)",
+                    "USD/CNH (OTC)",
+                    "USD/IDR (OTC)",
+                    "USD/PHP (OTC)",
+                    "USD/MYR (OTC)",
+                    "USD/COP (OTC)",
+                    "EUR/TRY (OTC)"
+                ],
+                CryptoOTC: [
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "BNB (OTC)",
+                    "Polkadot (OTC)",
+                    "Ethereum (OTC)",
+                    "Toncoin (OTC)",
+                    "Cardano (OTC)",
+                    "Polygon (OTC)",
+                    "TRON (OTC)",
+                    "Avalanche (OTC)",
+                    "Bitcoin (OTC)",
+                    "Bitcoin ETF (OTC)",
+                    "Solana (OTC)",
+                    "Chainlink (OTC)",
+                    "Litecoin (OTC)",
+                    "Dogecoin (OTC)"
+                ],
                 StocksOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "Apple (OTC)",
-                        "Amazon (OTC)",
-                        "Tesla (OTC)",
-                        "Meta (OTC)",
-                        "Google (OTC)",
-                        "Microsoft (OTC)",
-                        "Netflix (OTC)",
-                        "Intel (OTC)",
-                        "AMD (OTC)",
-                        "NVIDIA (OTC)",
-                        "Boeing (OTC)",
-                        "Visa (OTC)",
-                        "JPMorgan (OTC)",
-                        "Nike (OTC)",
-                        "McDonald's (OTC)",
-                        "Coca-Cola (OTC)",
-                        "Alibaba (OTC)",
-                        "Pfizer (OTC)",
-                        "Ford (OTC)"
-                    ],
-                IndicesOTC: [
-                        "✨ Auto Scan Best Pair (AI) ✨",
-                        "US 500 (OTC)",
-                        "Nasdaq 100 (OTC)",
-                        "Dow Jones (OTC)",
-                        "S&P 500 (OTC)",
-                        "FTSE 100 (OTC)",
-                        "DAX 30 (OTC)",
-                        "Nikkei 225 (OTC)",
-                        "Euro 50 (OTC)",
-                        "ASX 200 (OTC)",
-                        "CAC 40 (OTC)",
-                        "IBEX 35 (OTC)"
-                    ]
+                    "✨ Auto Scan Best Pair (AI) ✨",
+                    "Apple (OTC)",
+                    "American Express (OTC)",
+                    "Boeing Company (OTC)",
+                    "Cisco (OTC)",
+                    "Facebook Inc (OTC)",
+                    "Intel (OTC)",
+                    "Johnson & Johnson (OTC)",
+                    "McDonald's (OTC)",
+                    "Microsoft (OTC)",
+                    "Pfizer Inc (OTC)",
+                    "Tesla (OTC)",
+                    "ExxonMobil (OTC)",
+                    "Advanced Micro Devices (OTC)"
+                ]
             }
         };
 
 
         // Broker availability guard: do not scan/surface AUD/NZD on Quotex or Pocket Option.
         const rajaBrokerUnavailablePairs = {
-            Quotex: new Set(),
-            PocketOption: new Set()
+            Quotex: new Set(['AUDNZD','AUDNZDOTC']),
+            PocketOption: new Set(['AUDNZD','AUDNZDOTC'])
         };
 
         function rajaBrokerPairKey(pair) {
@@ -9856,19 +9732,13 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 { value:'CryptoLive', label:'🪙 Crypto Live Market' },
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
-                { value:'ForexOTC', label:'⚡ Forex OTC Market' },
-                { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
-                { value:'StocksOTC', label:'📊 Stocks OTC' },
-                { value:'IndicesOTC', label:'📈 Indices OTC' }
+                { value:'ForexOTC', label:'⚡ Forex OTC Market' }
             ],
             PocketOption: [
                 { value:'CryptoLive', label:'🪙 Crypto Live Market' },
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
-                { value:'ForexOTC', label:'⚡ Forex OTC Market' },
-                { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
-                { value:'StocksOTC', label:'📊 Stocks OTC' },
-                { value:'IndicesOTC', label:'📈 Indices OTC' }
+                { value:'ForexOTC', label:'⚡ Forex OTC Market' }
             ]
         };
 
@@ -9921,9 +9791,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC: 'Crypto OTC',
                 ForexLive: 'Forex Live',
                 ForexOTC: 'Forex OTC',
-                StocksOTC: 'Stocks OTC',
-                CommoditiesOTC: 'Commodities OTC',
-                IndicesOTC: 'Indices OTC'
+                StocksOTC: 'Stocks OTC'
             })[market] || 'Selected Market';
         }
 
@@ -10185,9 +10053,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                     const entryGraceMs = Math.max(1000, Number(activeSignalEntryGraceMs || rajaEntryGraceMsForExpiry(selectedExpiry)));
 
                     if (setupClock) {
-                        const isFarazOtcClock = Boolean(activePremiumSignal?.farazStyleOtc || activePremiumSignal?.simulatedOtc);
-                        const setupLabel = isFarazOtcClock ? 'LAST CLOSED CANDLE' : 'SETUP CANDLE';
-                        setupClock.innerText = `${setupLabel}: ${localEntryClock(setupStartMs)} → ${localEntryClock(setupEndMs)} · SCHEDULED TRADE CANDLE: ${localEntryClock(entryMs)} → ${localEntryClock(targetEndMs)}`;
+                        setupClock.innerText = `SETUP CANDLE: ${localEntryClock(setupStartMs)} → ${localEntryClock(setupEndMs)} · SCHEDULED TRADE CANDLE: ${localEntryClock(entryMs)} → ${localEntryClock(targetEndMs)}`;
                     }
 
                     if (deltaMs < 0) {
@@ -13099,7 +12965,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 if (rajaAppControlTimer) clearInterval(rajaAppControlTimer);
                 rajaAppControlTimer = setInterval(() => {
                     if (isUserVerified) refreshRajaAppState(false);
-                }, 30000);
+                }, 5 * 60 * 1000); // LOW DATA: app-control refresh every 5 min
 
                 if (rajaExpiryTimer) clearInterval(rajaExpiryTimer);
                 rajaExpiryTimer = setInterval(() => {
@@ -14026,10 +13892,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoLive:'CRYPTO LIVE',
                 CryptoOTC:'CRYPTO OTC',
                 ForexLive:'FOREX LIVE',
-                ForexOTC:'FOREX OTC',
-                CommoditiesOTC:'COMMODITIES OTC',
-                StocksOTC:'STOCKS OTC',
-                IndicesOTC:'INDICES OTC'
+                ForexOTC:'FOREX OTC'
             })[value] || 'MARKET READY';
         }
 
@@ -14442,7 +14305,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     (() => {
         const STORAGE_KEY_BASE = 'raja_all_market_availability_v3';
         const CACHE_MS = 3 * 60 * 1000;
-        const LIVE_PRIORITY = { CryptoLive:7, ForexLive:6, CryptoOTC:5, ForexOTC:4, CommoditiesOTC:3, StocksOTC:2, IndicesOTC:1 };
+        const LIVE_PRIORITY = { CryptoLive:5, ForexLive:4, CryptoOTC:3, ForexOTC:2, StocksOTC:1 };
 
         function currentBroker() {
             return String(document.getElementById('brokerSelect')?.value || 'Quotex');
@@ -15461,9 +15324,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC:'Crypto OTC',
                 ForexLive:'Forex Live',
                 ForexOTC:'Forex OTC',
-                StocksOTC:'Stocks OTC',
-                CommoditiesOTC:'Commodities OTC',
-                IndicesOTC:'Indices OTC'
+                StocksOTC:'Stocks OTC'
             })[market] || market || 'Market';
         }
 
@@ -16453,7 +16314,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
             setTimeout(refreshBridgeStatus, 80);
         }
     });
-    bridgeStatusTimer = setInterval(refreshBridgeStatus, 12000);
+    bridgeStatusTimer = setInterval(refreshBridgeStatus, 60 * 1000); // LOW DATA: bridge status once/minute
 })();
 </script>
 
@@ -16533,8 +16394,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
       marketRegime:pat, marketRegimeQuality:100, pairTimeframePerformance:{}, lateEntry:{}, calibratedConfidence:0,
       calibrationStatus:'DISABLED', chartPreview:Array.isArray(data.chart_preview)?data.chart_preview:[], scanMode:data.scan_mode||'SK25_BALANCED',
       scanThresholds:{}, source:data.source||'', sourceMode:data.source_mode||'', providerSymbol:data.provider_symbol||data.yahoo_symbol||'',
-      backupUsed:Boolean(data.backup_used), selectedExpiry:tf,
-      simulatedOtc:Boolean(data.simulated_otc), farazStyleOtc:Boolean(data.faraz_style_otc)
+      backupUsed:Boolean(data.backup_used), selectedExpiry:tf
     };
   };
 
@@ -16542,11 +16402,6 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     const box=document.getElementById('tfBreakdown'), line=document.getElementById('tfSummaryLine'); if(!box||!line)return;
     const tf=String(s?.selectedExpiry || window.selectedExpiry || '1m');
     const up=String(s?.dir||'').includes('CALL');
-    if(s?.simulatedOtc || s?.farazStyleOtc){
-      box.innerHTML=`<div class="tf-chip ${up?'tf-call':'tf-put'} tf-selected"><span class="tf-name">${escapeHtml(tf)}</span><span class="tf-dir">${up?'↑ UP':'↓ DOWN'}</span><span class="tf-score">RANDOM OTC</span></div>`;
-      line.innerText=`FARAZ-STYLE RANDOM OTC · 50/50 DIRECTION · DISPLAY SCORE IS NOT VERIFIED ACCURACY`;
-      return;
-    }
     box.innerHTML=`<div class="tf-chip ${up?'tf-call':'tf-put'} tf-selected"><span class="tf-name">${escapeHtml(tf)}</span><span class="tf-dir">${up?'↑ UP':'↓ DOWN'}</span><span class="tf-score">TYPE ${Number(s?.patternType||0)}</span></div>`;
     line.innerText=`${s?.selectedPattern||'Pattern'} · ${s?.rulesMatched||0}/${s?.rulesTotal||0} rules · NEXT ${s?.nextCandleColor||'--'} · CLOSED CANDLE ✓`;
   };
@@ -16584,22 +16439,14 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     const durationMs=Math.max(1,(typeof getExpirySeconds==='function'?getExpirySeconds(expiry):60))*1000;
     const closedEpochMs=Number(s?.closedCandleEpoch||0)*1000;
 
-    // V38 PREP-ENTRY MODE. Faraz-style OTC signal refreshes can happen every
-    // ~30s, but broker 1m candles still open on exact :00 boundaries.  Never
-    // use the random-signal refresh timestamp as the candle timestamp.
+    // V38 PREP-ENTRY MODE: show a future candle-aligned entry immediately so
+    // the user gets a real preparation countdown instead of an instant late warning.
     const nowMs=Date.now();
-    const isFarazOtc=Boolean(s?.simulatedOtc || s?.farazStyleOtc);
-    const currentBoundaryMs=Math.floor(nowMs/durationMs)*durationMs;
-    if(isFarazOtc){
-      activeSignalSetupEpochMs=currentBoundaryMs-durationMs;
-      activeSignalEntryEpochMs=currentBoundaryMs+durationMs;
-    }else{
-      const minNoticeMs=10000;
-      const originalTargetMs=closedEpochMs>0 ? closedEpochMs+durationMs : 0;
-      const noticeAlignedMs=Math.ceil((nowMs+minNoticeMs)/durationMs)*durationMs;
-      activeSignalSetupEpochMs=closedEpochMs>0 ? closedEpochMs : null;
-      activeSignalEntryEpochMs=Math.max(originalTargetMs,noticeAlignedMs);
-    }
+    const minNoticeMs=10000;
+    const originalTargetMs=closedEpochMs>0 ? closedEpochMs+durationMs : 0;
+    const noticeAlignedMs=Math.ceil((nowMs+minNoticeMs)/durationMs)*durationMs;
+    activeSignalSetupEpochMs=closedEpochMs>0 ? closedEpochMs : null;
+    activeSignalEntryEpochMs=Math.max(originalTargetMs,noticeAlignedMs);
     activeSignalEntryGraceMs = (typeof rajaEntryGraceMsForExpiry === 'function') ? rajaEntryGraceMsForExpiry(expiry) : Math.max(10000, Math.min(45000, Math.floor(durationMs * 0.50)));
     activeTrackedSignalId = null;
     if (typeof startTimer==='function') startTimer();
@@ -17499,85 +17346,6 @@ window.RAJA_ENTRY_TIMING_VERSION='V38_PREP_ENTRY_COUNTDOWN';
 })();
 </script>
 
-<style id="raja-strategy-learning-v1-style">
-.raja-learning-card{margin-top:10px;padding:12px;border:1px solid rgba(96,239,255,.20);border-radius:14px;background:linear-gradient(180deg,rgba(5,15,28,.96),rgba(2,8,16,.98));color:#dffbff}
-.raja-learning-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.raja-learning-head b{font-size:11px;color:#60efff}.raja-learning-head span{font-size:8px;color:#8ca4bc}.raja-learning-actions{display:flex;gap:6px;align-items:center}.raja-learning-card.is-collapsed .raja-learning-grid,.raja-learning-card.is-collapsed .raja-learning-foot{display:none}.raja-learning-card.is-collapsed{padding-bottom:10px}.raja-learning-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:9px}.raja-learning-row{border:1px solid rgba(96,239,255,.13);border-radius:9px;padding:7px;background:#030a13;min-width:0}.raja-learning-row small{display:block;color:#7892a8;font-size:7px;font-weight:900}.raja-learning-row strong{display:block;margin-top:3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.raja-learning-row em{display:block;margin-top:3px;font-style:normal;font-size:7px;color:#91a8bc}.raja-learning-row.strong strong{color:#00ff87}.raja-learning-row.normal strong{color:#dffbff}.raja-learning-row.caution strong{color:#f6c85f}.raja-learning-row.weak strong,.raja-learning-row.disabled_pending_review strong{color:#ff426a}.raja-learning-row.learning strong{color:#60efff}.raja-learning-foot{margin-top:7px;font-size:8px;color:#8ca4bc;line-height:1.4}.raja-learning-refresh{border:1px solid rgba(96,239,255,.3);background:#0c1828;color:#d4f8ff;border-radius:7px;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer}
-@media(max-width:760px){.raja-learning-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style>
-<script id="raja-strategy-learning-v1-ui">
-(function(){
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function ensureCard(){
-    if(document.getElementById('rajaStrategyLearningCard'))return document.getElementById('rajaStrategyLearningCard');
-    const host=document.querySelector('#mainAppContent .main-column'); if(!host)return null;
-    const card=document.createElement('section'); card.id='rajaStrategyLearningCard'; card.className='raja-learning-card';
-    card.innerHTML='<div class="raja-learning-head"><div><b>🧠 STRATEGY LEARNING</b><span id="rajaLearningMeta" style="display:block;margin-top:2px">Collecting Type 1–25 outcomes…</span></div><div class="raja-learning-actions"><button type="button" class="raja-learning-refresh" id="rajaLearningToggle">CLOSE</button><button type="button" class="raja-learning-refresh" id="rajaLearningRefresh">REFRESH</button></div></div><div id="rajaLearningGrid" class="raja-learning-grid"></div><div class="raja-learning-foot">Learning starts after 30 decided trades per strategy. Stronger adjustments start at 60. Weak strategies are only paused after multiple safeguards; this is performance adaptation, not a guaranteed win-rate system.</div>';
-    const lowAnchor=document.getElementById('dailyPerformancePanel') || document.getElementById('marketHealthPanel');
-    if(lowAnchor) lowAnchor.insertAdjacentElement('afterend',card); else host.appendChild(card);
-    card.querySelector('#rajaLearningRefresh').onclick=()=>load(true); const toggle=card.querySelector('#rajaLearningToggle'); if(toggle)toggle.onclick=()=>{const hidden=card.classList.toggle('is-collapsed');toggle.textContent=hidden?'OPEN':'CLOSE';try{localStorage.setItem('raja_strategy_learning_collapsed',hidden?'1':'0')}catch(_){}}; try{if(localStorage.getItem('raja_strategy_learning_collapsed')==='1'){card.classList.add('is-collapsed');if(toggle)toggle.textContent='OPEN';}}catch(_){} return card;
-  }
-  async function load(force){
-    const card=ensureCard(); if(!card)return;
-    const grid=card.querySelector('#rajaLearningGrid'),meta=card.querySelector('#rajaLearningMeta');
-    if(!force&&card.dataset.loading==='1')return; card.dataset.loading='1';
-    try{
-      const a=(typeof getAuthPayload==='function')?getAuthPayload():{}; if(!a.key||!a.user||!a.device||!a.session_token){meta.textContent='Login required';return;}
-      const qs=new URLSearchParams(a); const r=await fetch('/signals/strategy-stats?'+qs.toString(),{cache:'no-store'}); const j=await r.json(); if(!r.ok||j.status!=='success')throw new Error(j.message||'stats unavailable');
-      meta.textContent=`${Number(j.decided_strategy_trades||0)} decided strategy trades · auto-ranking active`;
-      const rows=Array.isArray(j.data)?j.data:[];
-      grid.innerHTML=rows.map(x=>{const st=String(x.status||'LEARNING').toLowerCase();const wr=x.raw_win_rate==null?'--':Number(x.raw_win_rate).toFixed(1)+'%';const recent=x.recent_20_win_rate==null?'--':Number(x.recent_20_win_rate).toFixed(1)+'%';return `<div class="raja-learning-row ${esc(st)}"><small>TYPE ${Number(x.pattern_type||0)} · ${esc(x.status||'')}</small><strong>${wr} · ${Number(x.wins||0)}W/${Number(x.losses||0)}L</strong><em>n=${Number(x.sample_size||0)} · recent20 ${recent} · streak ${Number(x.max_losing_streak||0)} · priority ${Number(x.priority_adjustment||0)>=0?'+':''}${Number(x.priority_adjustment||0)}</em></div>`}).join('');
-    }catch(e){meta.textContent='Strategy learning stats unavailable · '+(e.message||e);}finally{card.dataset.loading='0';}
-  }
-  document.addEventListener('DOMContentLoaded',()=>{ensureCard();setTimeout(()=>load(false),1800);setInterval(()=>{if(document.body.classList.contains('raja-authenticated'))load(false)},30000);});
-  window.refreshRajaStrategyLearning=()=>load(true);
-})();
-</script>
-
-<style id="raja-adaptive-context-v2-style">
-.raja-adaptive-card{margin-top:10px;padding:12px;border:1px solid rgba(96,239,255,.20);border-radius:14px;background:#030913;color:#dffbff}.raja-adaptive-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.raja-adaptive-head b{font-size:11px;color:#60efff}.raja-adaptive-head span{display:block;margin-top:2px;font-size:8px;color:#8ca4bc}.raja-adaptive-actions{display:flex;gap:6px;align-items:center}.raja-adaptive-refresh{border:1px solid rgba(96,239,255,.3);background:#0c1828;color:#d4f8ff;border-radius:7px;padding:5px 8px;font-size:8px;font-weight:900;cursor:pointer}.raja-adaptive-card.is-collapsed .raja-adaptive-grid,.raja-adaptive-card.is-collapsed .raja-adaptive-foot{display:none}.raja-adaptive-card.is-collapsed{padding-bottom:10px}.raja-adaptive-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:9px;max-height:310px;overflow:auto}.raja-adaptive-row{border:1px solid rgba(96,239,255,.13);border-radius:9px;padding:7px;background:#020810}.raja-adaptive-row small{display:block;color:#7892a8;font-size:7px;font-weight:900}.raja-adaptive-row strong{display:block;margin-top:3px;font-size:9px}.raja-adaptive-row em{display:block;margin-top:3px;font-style:normal;font-size:7px;color:#91a8bc}.raja-adaptive-row.strong strong{color:#00ff87}.raja-adaptive-row.caution strong,.raja-adaptive-row.cooldown strong{color:#f6c85f}.raja-adaptive-row.weak strong,.raja-adaptive-row.blocked strong{color:#ff426a}.raja-adaptive-row.learning strong{color:#60efff}.raja-adaptive-foot{margin-top:7px;font-size:8px;color:#8ca4bc;line-height:1.4}@media(max-width:760px){.raja-adaptive-grid{grid-template-columns:1fr}}
-</style>
-<script id="raja-adaptive-context-v2-ui">
-(function(){'use strict';
-const esc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-function placeAtBottom(){
-  const c=document.getElementById('rajaAdaptiveContextCard');
-  const host=document.querySelector('#mainAppContent .main-column');
-  if(!c||!host)return;
-  // This panel intentionally stays at the very bottom of the main content column.
-  if(host.lastElementChild!==c) host.appendChild(c);
-}
-function ensure(){
-  let c=document.getElementById('rajaAdaptiveContextCard');
-  if(c){placeAtBottom();return c;}
-  const host=document.querySelector('#mainAppContent .main-column');if(!host)return null;
-  c=document.createElement('section');c.id='rajaAdaptiveContextCard';c.className='raja-adaptive-card';
-  c.innerHTML='<div class="raja-adaptive-head"><div><b>🎯 PAIR + TIMEFRAME ADAPTIVE FILTER</b><span id="rajaAdaptiveMeta">Collecting resolved combinations…</span></div><div class="raja-adaptive-actions"><button class="raja-adaptive-refresh" id="rajaAdaptiveToggle" type="button">CLOSE</button><button class="raja-adaptive-refresh" id="rajaAdaptiveRefresh" type="button">REFRESH</button></div></div><div id="rajaAdaptiveGrid" class="raja-adaptive-grid"></div><div class="raja-adaptive-foot">Tracks each Strategy Type separately for each pair and timeframe. 20+ resolved trades enable context weighting; 3 consecutive resolved losses trigger a temporary cooldown. Pending/unverified rows are ignored.</div>';
-  host.appendChild(c);
-  const refresh=c.querySelector('#rajaAdaptiveRefresh');if(refresh)refresh.onclick=()=>load(true);
-  const toggle=c.querySelector('#rajaAdaptiveToggle');
-  if(toggle)toggle.onclick=()=>{const hidden=c.classList.toggle('is-collapsed');toggle.textContent=hidden?'OPEN':'CLOSE';try{localStorage.setItem('raja_adaptive_collapsed',hidden?'1':'0')}catch(_){}};
-  try{if(localStorage.getItem('raja_adaptive_collapsed')==='1'){c.classList.add('is-collapsed');if(toggle)toggle.textContent='OPEN';}}catch(_){}
-  placeAtBottom();return c;
-}
-async function load(force=false){
-  const c=ensure();if(!c)return;if(!force&&c.dataset.loading==='1')return;c.dataset.loading='1';
-  const meta=document.getElementById('rajaAdaptiveMeta'),grid=document.getElementById('rajaAdaptiveGrid');
-  try{
-    const a=(typeof getAuthPayload==='function')?getAuthPayload():{};
-    if(!a.key||!a.user||!a.device||!a.session_token){meta.textContent='Login required';return;}
-    const r=await fetch('/signals/adaptive-stats?'+new URLSearchParams(a).toString(),{cache:'no-store'}),j=await r.json();
-    if(!r.ok||j.status!=='success')throw new Error(j.message||'stats unavailable');
-    const rows=Array.isArray(j.data)?j.data:[];meta.textContent=`${rows.length} learned pair/timeframe combinations · adaptive filter active`;
-    grid.innerHTML=rows.length?rows.map(x=>{const st=String(x.status||'LEARNING').toLowerCase(),wr=x.smoothed_win_rate==null?'--':Number(x.smoothed_win_rate).toFixed(1)+'%',recent=x.recent_20_win_rate==null?'--':Number(x.recent_20_win_rate).toFixed(1)+'%';return `<div class="raja-adaptive-row ${esc(st)}"><small>TYPE ${Number(x.pattern_type||0)} · ${esc(x.pair||'')} · ${esc(x.timeframe||'')}</small><strong>${esc(x.status||'LEARNING')} · ${wr}</strong><em>${Number(x.wins||0)}W/${Number(x.losses||0)}L · n=${Number(x.sample_size||0)} · recent20 ${recent} · current loss streak ${Number(x.current_loss_streak||0)}</em></div>`}).join(''):'<div class="raja-adaptive-row learning"><strong>LEARNING</strong><em>No resolved pair/timeframe samples yet.</em></div>';
-  }catch(e){meta.textContent='Adaptive stats unavailable · '+(e.message||e);}finally{c.dataset.loading='0';placeAtBottom();}
-}
-document.addEventListener('DOMContentLoaded',()=>{ensure();setTimeout(()=>load(false),2200);setInterval(placeAtBottom,800);setInterval(()=>{if(document.body.classList.contains('raja-authenticated'))load(false)},30000);});
-window.refreshRajaAdaptiveLearning=()=>load(true);
-})();
-</script>
-
-
-
 <style id="raja-v49-live-chart-style">
 .raja-live-open-chart{margin:0 0 12px;padding:12px;border:1px solid rgba(49,211,255,.30);border-radius:15px;background:linear-gradient(180deg,rgba(4,16,29,.98),rgba(2,9,18,.99));box-shadow:0 14px 34px rgba(0,0,0,.24)}
 .raja-live-open-chart.raja-live-inside-scan{margin:12px 0 2px;padding:11px;border-color:rgba(0,255,135,.24);background:linear-gradient(180deg,rgba(3,17,27,.90),rgba(2,10,18,.96));box-shadow:inset 0 0 0 1px rgba(96,239,255,.035),0 10px 26px rgba(0,0,0,.18)}
@@ -17813,7 +17581,7 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
       else tickState('LIVE TICK: reconnecting automatically…',false);
     }catch(e){tickState('LIVE TICK: reconnecting…',false)}finally{tickBusy=false}
   }
-  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st){const pt=Number(data.pattern_type||0);const names={1:'TYPE 1 · WICK REJECTION',2:'TYPE 2 · BOLLINGER REJECTION',3:'TYPE 3 · RSI REVERSAL',4:'TYPE 4 · ORDER BLOCK + S/R',5:'TYPE 5 · BREAKOUT + RETEST'};st.textContent=names[pt]||'--';}const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=data.simulated_otc?'FARAZ-STYLE OTC SIMULATION · Random-style 50/50 direction · 90–100% is a generated display score, not verified accuracy.':(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>refreshLiveTick(),120)}
+  function paint(data){lastData=data;const pair=data.pair||'--',sig=String(data.signal||'NO SIGNAL').toUpperCase(),dir=sig==='CALL'?'CALL':sig==='PUT'?'PUT':'NO TRADE',conf=Number(data.model_confidence??data.calibrated_confidence??data.setup_match??0);const pairEl=document.getElementById('rajaLiveChartPair');if(pairEl)pairEl.textContent=pair;const meta=document.getElementById('rajaLiveChartMeta');if(meta){const fq=data.feed_quality||{};const qg=String(fq.grade||'').toUpperCase();meta.textContent=`${String(data.selected_expiry||'1m').toUpperCase()} · ${data.source||'market feed'} · ${Array.isArray(data.chart_preview)?data.chart_preview.length:0} candles${data.chart_includes_forming_candle?' · LAST CANDLE FORMING':''}${qg?` · FEED ${qg}`:''}`;}const sp=document.getElementById('rajaLiveSignalPair');if(sp)sp.textContent=pair;const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent=dir;d.className='dir '+(sig==='CALL'?'call':sig==='PUT'?'put':'wait')}const why=document.getElementById('rajaLiveSignalWhy');if(why)why.textContent=String(data.reason||data.no_trade_reason||'Waiting for a qualified setup.');const cf=document.getElementById('rajaLiveConfidence');if(cf)cf.textContent=(Number.isFinite(conf)&&conf>0?conf.toFixed(0)+'%':'--');const tf=document.getElementById('rajaLiveTf');if(tf)tf.textContent=String(data.selected_expiry||'1m').toUpperCase();const st=document.getElementById('rajaLiveStrategy');if(st){const pt=Number(data.pattern_type||0);const names={1:'TYPE 1 · WICK REJECTION',2:'TYPE 2 · BOLLINGER REJECTION',3:'TYPE 3 · RSI REVERSAL',4:'TYPE 4 · ORDER BLOCK + S/R',5:'TYPE 5 · BREAKOUT + RETEST'};st.textContent=names[pt]||'--';}const age=document.getElementById('rajaLiveAge');if(age)age.textContent=data.data_age==null?'--':(Number(data.data_age)<60?Math.round(Number(data.data_age))+'s':Math.round(Number(data.data_age)/60)+'m');const status=document.getElementById('rajaLiveStatus');if(status){status.className='raja-live-status '+(sig==='CALL'||sig==='PUT'?'ok':'warn');status.textContent=(data.quality_warning?`${data.quality_warning} `:'')+(sig==='CALL'||sig==='PUT'?`Qualified setup found from the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles. Manual chart indicators are visual only.`:`No qualified entry yet. RAJA is scanning the same ${Number(data.pattern_scan_candles||0)||'visible'} closed chart candles; manual indicators do not change the signal engine.`)}renderChart(data);setTimeout(()=>refreshLiveTick(),120)}
   async function refresh(force=false){if(LIVE_CHART_TEMPORARILY_UNAVAILABLE)return;const card=ensure();if(!card||busy)return;if(!document.body.classList.contains('raja-authenticated')&&typeof isUserVerified!=='undefined'&&!isUserVerified)return;const x=selected();if(!x.pair||/Auto Scan Best Pair/i.test(x.pair)){const d=document.getElementById('rajaLiveSignalDir');if(d){d.textContent='SELECT PAIR';d.className='dir wait'}return}busy=true;try{const payload={pair:x.pair,expiry:x.expiry,broker:x.broker,market:x.market,candle_count:prefs.count,scan_options:(typeof getScanOptions==='function'?getScanOptions():{}),...(typeof getAuthPayload==='function'?getAuthPayload():{})};const r=await fetch('/live-chart-data',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify(payload)});const j=await r.json();if(!r.ok||!j||j.status!=='success')throw new Error(j?.message||'Live chart unavailable');paint(j.data||{});lastPair=x.pair}catch(e){const s=document.getElementById('rajaLiveStatus');if(s){s.className='raja-live-status warn';s.textContent='Live chart: '+String(e.message||e)+' · Forex Live uses Dukascopy JForex; Crypto Live uses Dukascopy then Twelve Data fallback.'}}finally{busy=false}}
   function boot(){
     if(LIVE_CHART_TEMPORARILY_UNAVAILABLE){
@@ -17841,17 +17609,17 @@ window.refreshRajaAdaptiveLearning=()=>load(true);
     const pill = document.querySelector('.premium-live-pill');
     const proc = document.querySelector('.scan-stage-title');
     const sub = document.querySelector('#defaultView .ready-sub');
-    if (title) title.textContent = otc ? 'OTC FARAZ-STYLE SIGNAL MODE' : 'NORMAL LIVE MARKET SCAN';
-    if (pill) pill.textContent = otc ? 'RANDOM 50/50 · DISPLAY 90–100%' : 'SAME CLOSED CHART CANDLES';
-    if (proc) proc.textContent = otc ? 'OTC FARAZ-STYLE SIGNAL PROCESS' : 'NORMAL LIVE SCAN PROCESS';
+    if (title) title.textContent = otc ? 'OTC LIVE SCAN INTENSITY' : 'NORMAL LIVE MARKET SCAN';
+    if (pill) pill.textContent = otc ? 'LIVE SHARED / BROKER DATA' : 'SAME CLOSED CHART CANDLES';
+    if (proc) proc.textContent = otc ? 'OTC LIVE SCAN PROCESS' : 'NORMAL LIVE SCAN PROCESS';
     if (sub) sub.textContent = otc
-      ? 'OTC mode: Faraz-style behavior is enabled for Quotex and Pocket Option. CALL/PUT is random-style 50/50 and the displayed 90–100% score is generated; broker candles are not analyzed in this mode.'
+      ? 'OTC mode: use the live broker/share feed when available. RAJA scans the broker-linked OTC candles and returns CALL / PUT / NO TRADE.'
       : 'Live market mode: RAJA scans the same closed OHLC candles shown in the Live Chart below and returns CALL / PUT / NO TRADE.';
     const status = document.getElementById('rajaLiveStatus');
     if (status && !status.dataset.v51Touched) {
       status.dataset.v51Touched='1';
       status.textContent = otc
-        ? 'OTC FARAZ-STYLE: simulated candles + random-style 50/50 CALL/PUT. The 90–100% display score is not a measured win probability.'
+        ? 'OTC: broker/live-sharing scan remains available. Normal chart feed is not substituted for exact OTC candles.'
         : 'Forex/Crypto Live: signal engine scans the same closed chart candles shown here.';
     }
   }
