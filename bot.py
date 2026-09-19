@@ -334,6 +334,63 @@ YAHOO_SYMBOLS = {
     # Gold live reference uses Yahoo gold futures because the old spot-style symbol returned 404.
     "XAUUSD": "GC=F",
 
+    # ---------------- Faraz Rana Live catalog additions ----------------
+    # Forex Live additions
+    "CHF/JPY": "CHFJPY=X",
+    "EUR/NZD": "EURNZD=X",
+    "GBP/NZD": "GBPNZD=X",
+    "AUD/CAD": "AUDCAD=X",
+    "AUD/CHF": "AUDCHF=X",
+    "CAD/CHF": "CADCHF=X",
+    "NZD/CAD": "NZDCAD=X",
+    "NZD/CHF": "NZDCHF=X",
+    "USD/BRL": "USDBRL=X",
+    "USD/TRY": "USDTRY=X",
+    "USD/ZAR": "USDZAR=X",
+    "USD/MXN": "USDMXN=X",
+    "USD/INR": "USDINR=X",
+    "USD/SGD": "USDSGD=X",
+    "USD/HKD": "USDHKD=X",
+
+    # Crypto Live additions
+    "BNB-USD": "BNB-USD",
+    "DOT-USD": "DOT-USD",
+    "MATIC-USD": "MATIC-USD",
+    "TRX-USD": "TRX-USD",
+    "TON-USD": "TON11419-USD",
+    "AVAX-USD": "AVAX-USD",
+    "LINK-USD": "LINK-USD",
+
+    # Commodities Live
+    "Gold": "GC=F",
+    "Silver": "SI=F",
+    "Brent Oil": "BZ=F",
+    "WTI Oil": "CL=F",
+    "Natural Gas": "NG=F",
+
+    # Stocks Live
+    "Apple": "AAPL",
+    "Amazon": "AMZN",
+    "Tesla": "TSLA",
+    "Meta": "META",
+    "Google": "GOOGL",
+    "Microsoft": "MSFT",
+    "Netflix": "NFLX",
+    "Intel": "INTC",
+    "AMD": "AMD",
+    "NVIDIA": "NVDA",
+    "Boeing": "BA",
+    "Visa": "V",
+
+    # Indices Live
+    "US 500": "^GSPC",
+    "Nasdaq 100": "^NDX",
+    "Dow Jones": "^DJI",
+    "FTSE 100": "^FTSE",
+    "DAX 30": "^GDAXI",
+    "Nikkei 225": "^N225",
+    "Euro 50": "^STOXX50E",
+
     # ---------------- Current Quotex Forex OTC list ----------------
     # These are Yahoo underlying/FX proxies; exact Quotex OTC candles can differ.
     "USD/BRL (OTC)": "USDBRL=X",
@@ -414,6 +471,9 @@ TWELVE_DATA_SYMBOLS = {
     "BTC-USD": "BTC/USD", "ETH-USD": "ETH/USD", "SOL-USD": "SOL/USD",
     "LTC-USD": "LTC/USD", "XRP-USD": "XRP/USD", "ADA-USD": "ADA/USD",
     "DOGE-USD": "DOGE/USD",
+    "BNB-USD": "BNB/USD", "DOT-USD": "DOT/USD", "MATIC-USD": "MATIC/USD",
+    "TRX-USD": "TRX/USD", "TON-USD": "TON/USD", "AVAX-USD": "AVAX/USD",
+    "LINK-USD": "LINK/USD",
 
     # Crypto OTC reference instruments
     "Zcash (OTC)": "ZEC/USD", "Chainlink (OTC)": "LINK/USD",
@@ -453,8 +513,9 @@ for _raja_pair in YAHOO_SYMBOLS:
 # V67 Twelve Data primary markets.
 # Normal slash-format Forex + XAUUSD and Crypto Live use Twelve Data only.
 TWELVE_DATA_CRYPTO_LIVE_PAIRS = {
-    "BTC-USD", "ETH-USD", "SOL-USD", "LTC-USD",
-    "XRP-USD", "ADA-USD", "DOGE-USD",
+    "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "XRP-USD", "ADA-USD",
+    "DOGE-USD", "LTC-USD", "DOT-USD", "MATIC-USD", "TRX-USD",
+    "TON-USD", "AVAX-USD", "LINK-USD",
 }
 TWELVE_DATA_FOREX_LIVE_PAIRS = {
     p for p in YAHOO_SYMBOLS
@@ -6722,6 +6783,13 @@ DUKASCOPY_CRYPTO_CANDIDATES = {
     "XRP-USD": "XRP/USD",
     "ADA-USD": "ADA/USD",
     "DOGE-USD": "DOGE/USD",
+    "BNB-USD": "BNB/USD",
+    "DOT-USD": "DOT/USD",
+    "MATIC-USD": "MATIC/USD",
+    "TRX-USD": "TRX/USD",
+    "TON-USD": "TON/USD",
+    "AVAX-USD": "AVAX/USD",
+    "LINK-USD": "LINK/USD",
 }
 
 _dukascopy_pairs_cache = {"ts": 0.0, "pairs": set()}
