@@ -7202,7 +7202,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                         <div class="config-grid">
                             <div class="selection-card">
                                 <div class="config-field"><label>1. SELECT BROKER PLATFORM</label><select id="brokerSelect" onchange="playClickSound(); updateBrokerAssets();"><option value="Quotex">⚡ Quotex (Broker)</option><option value="PocketOption">🔵 Pocket Option (Broker)</option></select></div>
-                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option></select></div>
+                                <div class="config-field"><label>2. SELECT MARKET TYPE</label><select id="marketType" onchange="playClickSound(); updatePairs();"><option value="CryptoLive">🪙 Crypto Live Market</option><option value="CryptoOTC">🪙 Crypto OTC Market</option><option value="ForexLive">🟢 Forex Live Market</option><option value="ForexOTC">⚡ Forex OTC Market</option><option value="CommoditiesOTC">🛢️ Commodities OTC</option><option value="StocksOTC">📊 Stocks OTC</option><option value="IndicesOTC">📈 Indices OTC</option></select></div>
                                 <div class="config-field pair-search-field"><label>3. SELECT PAIR / ASSET</label><div class="pair-search-wrap"><span class="pair-search-icon">⌕</span><input id="pairSearchInput" class="pair-search-input" type="search" inputmode="search" autocomplete="off" placeholder="Search pair — e.g. EUR/USD, BTC, OTC" aria-label="Search pair or asset"><button id="pairSearchClear" class="pair-search-clear" type="button" aria-label="Clear pair search">✕</button></div><div id="pairSearchCount" class="pair-search-count">Type above to filter the pair list</div><div class="pair-search-count" style="color:#6f91a8;margin:2px 0 6px;">PAIR LIST · swipe inside the list to see more pairs</div><select id="pairSelect" onchange="playClickSound(); syncTargetPairDisplay(); rajaVisualPairSelectionChanged();"></select>
 <div class="raja-visual-pair-tools" id="rajaVisualPairTools">
   <div class="raja-visual-pair-title">AUTO DETECT BROKER / PAIR FROM SCREEN</div>
@@ -9518,193 +9518,317 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
         const brokerData = {
             Quotex: {
                 CryptoLive: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "BTC-USD",
-                    "ETH-USD",
-                    "SOL-USD",
-                    "LTC-USD",
-                    "XRP-USD",
-                    "ADA-USD",
-                    "DOGE-USD"
-                ],
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "BTC-USD",
+                        "ETH-USD",
+                        "SOL-USD",
+                        "LTC-USD",
+                        "XRP-USD",
+                        "ADA-USD",
+                        "DOGE-USD"
+                    ],
                 CryptoOTC: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "Zcash (OTC)",
-                    "Chainlink (OTC)",
-                    "Bitcoin (OTC)",
-                    "Binance Coin (OTC)",
-                    "Ethereum (OTC)",
-                    "Bitcoin Cash (OTC)",
-                    "Cosmos (OTC)",
-                    "Ethereum Classic (OTC)",
-                    "Axie Infinity (OTC)",
-                    "Trump (OTC)",
-                    "Dash (OTC)",
-                    "Solana (OTC)",
-                    "Toncoin (OTC)",
-                    "Litecoin (OTC)",
-                    "Avalanche (OTC)",
-                    "Polkadot (OTC)",
-                    "Ripple (OTC)"
-                ],
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "BTC/USD (OTC)",
+                        "ETH/USD (OTC)",
+                        "BNB/USD (OTC)",
+                        "SOL/USD (OTC)",
+                        "XRP/USD (OTC)",
+                        "ADA/USD (OTC)",
+                        "DOGE/USD (OTC)",
+                        "LTC/USD (OTC)",
+                        "DOT/USD (OTC)",
+                        "MATIC/USD (OTC)",
+                        "TRX/USD (OTC)",
+                        "TON/USD (OTC)",
+                        "AVAX/USD (OTC)",
+                        "LINK/USD (OTC)",
+                        "SHIB/USD (OTC)",
+                        "BCH/USD (OTC)"
+                    ],
                 ForexLive: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "EUR/USD",
-                    "GBP/USD",
-                    "USD/JPY",
-                    "AUD/USD",
-                    "USD/CAD",
-                    "USD/CHF",
-                    "NZD/USD",
-                    "EUR/GBP",
-                    "EUR/JPY",
-                    "GBP/JPY",
-                    "AUD/JPY",
-                    "EUR/AUD",
-                    "GBP/AUD",
-                    "CAD/JPY",
-                    "EUR/CAD",
-                    "GBP/CAD",
-                    "NZD/JPY",
-                    "AUD/NZD",
-                    "EUR/CHF",
-                    "GBP/CHF",
-                    "XAUUSD"
-                ],
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "EUR/USD",
+                        "GBP/USD",
+                        "USD/JPY",
+                        "AUD/USD",
+                        "USD/CAD",
+                        "USD/CHF",
+                        "NZD/USD",
+                        "EUR/GBP",
+                        "EUR/JPY",
+                        "GBP/JPY",
+                        "AUD/JPY",
+                        "EUR/AUD",
+                        "GBP/AUD",
+                        "CAD/JPY",
+                        "EUR/CAD",
+                        "GBP/CAD",
+                        "NZD/JPY",
+                        "AUD/NZD",
+                        "EUR/CHF",
+                        "GBP/CHF",
+                        "XAUUSD"
+                    ],
                 ForexOTC: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "USD/BRL (OTC)",
-                    "NZD/CHF (OTC)",
-                    "NZD/JPY (OTC)",
-                    "USD/COP (OTC)",
-                    "USD/MXN (OTC)",
-                    "AUD/NZD (OTC)",
-                    "USD/BDT (OTC)",
-                    "USD/DZD (OTC)",
-                    "USD/NGN (OTC)",
-                    "USD/PHP (OTC)",
-                    "USD/PKR (OTC)",
-                    "USD/ZAR (OTC)",
-                    "USD/INR (OTC)",
-                    "USD/EGP (OTC)",
-                    "USD/IDR (OTC)",
-                    "USD/ARS (OTC)",
-                    "GBP/NZD (OTC)",
-                    "EUR/NZD (OTC)",
-                    "NZD/USD (OTC)",
-                    "NZD/CAD (OTC)",
-                    "CAD/CHF (OTC)"
-                ]
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "EUR/USD (OTC)",
+                        "GBP/USD (OTC)",
+                        "USD/JPY (OTC)",
+                        "AUD/USD (OTC)",
+                        "USD/CAD (OTC)",
+                        "USD/CHF (OTC)",
+                        "NZD/USD (OTC)",
+                        "EUR/GBP (OTC)",
+                        "EUR/JPY (OTC)",
+                        "GBP/JPY (OTC)",
+                        "AUD/JPY (OTC)",
+                        "CAD/JPY (OTC)",
+                        "CHF/JPY (OTC)",
+                        "NZD/JPY (OTC)",
+                        "EUR/CHF (OTC)",
+                        "EUR/CAD (OTC)",
+                        "EUR/AUD (OTC)",
+                        "EUR/NZD (OTC)",
+                        "GBP/CAD (OTC)",
+                        "GBP/CHF (OTC)",
+                        "GBP/AUD (OTC)",
+                        "GBP/NZD (OTC)",
+                        "AUD/CAD (OTC)",
+                        "AUD/CHF (OTC)",
+                        "AUD/NZD (OTC)",
+                        "CAD/CHF (OTC)",
+                        "NZD/CAD (OTC)",
+                        "NZD/CHF (OTC)",
+                        "USD/BRL (OTC)",
+                        "USD/ARS (OTC)",
+                        "USD/EGP (OTC)",
+                        "USD/PKR (OTC)",
+                        "USD/BDT (OTC)",
+                        "USD/INR (OTC)",
+                        "USD/IDR (OTC)",
+                        "USD/NGN (OTC)",
+                        "USD/PHP (OTC)",
+                        "USD/TRY (OTC)",
+                        "USD/ZAR (OTC)",
+                        "USD/MXN (OTC)",
+                        "USD/COP (OTC)",
+                        "USD/DZD (OTC)",
+                        "USD/SAR (OTC)",
+                        "USD/QAR (OTC)",
+                        "USD/KES (OTC)",
+                        "USD/THB (OTC)",
+                        "USD/VND (OTC)",
+                        "USD/MYR (OTC)"
+                    ],
+                CommoditiesOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Gold (OTC)",
+                        "Silver (OTC)",
+                        "Platinum (OTC)",
+                        "Palladium (OTC)",
+                        "Copper (OTC)",
+                        "Brent Oil (OTC)",
+                        "WTI Oil (OTC)",
+                        "Natural Gas (OTC)"
+                    ],
+                StocksOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Apple (OTC)",
+                        "Amazon (OTC)",
+                        "Tesla (OTC)",
+                        "Meta (OTC)",
+                        "Google (OTC)",
+                        "Microsoft (OTC)",
+                        "Netflix (OTC)",
+                        "Intel (OTC)",
+                        "AMD (OTC)",
+                        "NVIDIA (OTC)",
+                        "Boeing (OTC)",
+                        "Visa (OTC)",
+                        "JPMorgan (OTC)",
+                        "Nike (OTC)",
+                        "McDonald's (OTC)",
+                        "Coca-Cola (OTC)",
+                        "Alibaba (OTC)",
+                        "Pfizer (OTC)",
+                        "Ford (OTC)"
+                    ],
+                IndicesOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "US 500 (OTC)",
+                        "Nasdaq 100 (OTC)",
+                        "Dow Jones (OTC)",
+                        "S&P 500 (OTC)",
+                        "FTSE 100 (OTC)",
+                        "DAX 30 (OTC)",
+                        "Nikkei 225 (OTC)",
+                        "Euro 50 (OTC)",
+                        "ASX 200 (OTC)",
+                        "CAC 40 (OTC)",
+                        "IBEX 35 (OTC)"
+                    ]
             },
             PocketOption: {
                 CryptoLive: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "BTC-USD",
-                    "ETH-USD",
-                    "SOL-USD",
-                    "LTC-USD",
-                    "XRP-USD",
-                    "ADA-USD",
-                    "DOGE-USD"
-                ],
-                ForexLive: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "EUR/USD",
-                    "GBP/USD",
-                    "USD/JPY",
-                    "AUD/USD",
-                    "USD/CAD",
-                    "USD/CHF",
-                    "NZD/USD",
-                    "EUR/GBP",
-                    "EUR/JPY",
-                    "GBP/JPY",
-                    "AUD/JPY",
-                    "EUR/AUD",
-                    "GBP/AUD",
-                    "CAD/JPY",
-                    "EUR/CAD",
-                    "GBP/CAD",
-                    "NZD/JPY",
-                    "AUD/NZD",
-                    "EUR/CHF",
-                    "GBP/CHF",
-                    "XAUUSD"
-                ],
-                ForexOTC: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "EUR/USD (OTC)",
-                    "GBP/USD (OTC)",
-                    "USD/JPY (OTC)",
-                    "AUD/USD (OTC)",
-                    "USD/CAD (OTC)",
-                    "USD/CHF (OTC)",
-                    "EUR/JPY (OTC)",
-                    "GBP/JPY (OTC)",
-                    "AUD/JPY (OTC)",
-                    "CAD/JPY (OTC)",
-                    "EUR/CHF (OTC)",
-                    "EUR/GBP (OTC)",
-                    "AUD/CAD (OTC)",
-                    "AUD/CHF (OTC)",
-                    "CAD/CHF (OTC)",
-                    "NZD/JPY (OTC)",
-                    "AUD/NZD (OTC)",
-                    "EUR/NZD (OTC)",
-                    "GBP/AUD (OTC)",
-                    "CHF/JPY (OTC)",
-                    "USD/MXN (OTC)",
-                    "USD/BRL (OTC)",
-                    "USD/INR (OTC)",
-                    "USD/SGD (OTC)",
-                    "USD/CNH (OTC)",
-                    "USD/IDR (OTC)",
-                    "USD/PHP (OTC)",
-                    "USD/MYR (OTC)",
-                    "USD/COP (OTC)",
-                    "EUR/TRY (OTC)"
-                ],
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "BTC-USD",
+                        "ETH-USD",
+                        "SOL-USD",
+                        "LTC-USD",
+                        "XRP-USD",
+                        "ADA-USD",
+                        "DOGE-USD"
+                    ],
                 CryptoOTC: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "BNB (OTC)",
-                    "Polkadot (OTC)",
-                    "Ethereum (OTC)",
-                    "Toncoin (OTC)",
-                    "Cardano (OTC)",
-                    "Polygon (OTC)",
-                    "TRON (OTC)",
-                    "Avalanche (OTC)",
-                    "Bitcoin (OTC)",
-                    "Bitcoin ETF (OTC)",
-                    "Solana (OTC)",
-                    "Chainlink (OTC)",
-                    "Litecoin (OTC)",
-                    "Dogecoin (OTC)"
-                ],
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "BTC/USD (OTC)",
+                        "ETH/USD (OTC)",
+                        "BNB/USD (OTC)",
+                        "SOL/USD (OTC)",
+                        "XRP/USD (OTC)",
+                        "ADA/USD (OTC)",
+                        "DOGE/USD (OTC)",
+                        "LTC/USD (OTC)",
+                        "DOT/USD (OTC)",
+                        "MATIC/USD (OTC)",
+                        "TRX/USD (OTC)",
+                        "TON/USD (OTC)",
+                        "AVAX/USD (OTC)",
+                        "LINK/USD (OTC)",
+                        "SHIB/USD (OTC)",
+                        "BCH/USD (OTC)"
+                    ],
+                ForexLive: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "EUR/USD",
+                        "GBP/USD",
+                        "USD/JPY",
+                        "AUD/USD",
+                        "USD/CAD",
+                        "USD/CHF",
+                        "NZD/USD",
+                        "EUR/GBP",
+                        "EUR/JPY",
+                        "GBP/JPY",
+                        "AUD/JPY",
+                        "EUR/AUD",
+                        "GBP/AUD",
+                        "CAD/JPY",
+                        "EUR/CAD",
+                        "GBP/CAD",
+                        "NZD/JPY",
+                        "AUD/NZD",
+                        "EUR/CHF",
+                        "GBP/CHF",
+                        "XAUUSD"
+                    ],
+                ForexOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "EUR/USD (OTC)",
+                        "GBP/USD (OTC)",
+                        "USD/JPY (OTC)",
+                        "AUD/USD (OTC)",
+                        "USD/CAD (OTC)",
+                        "USD/CHF (OTC)",
+                        "NZD/USD (OTC)",
+                        "EUR/GBP (OTC)",
+                        "EUR/JPY (OTC)",
+                        "GBP/JPY (OTC)",
+                        "AUD/JPY (OTC)",
+                        "CAD/JPY (OTC)",
+                        "CHF/JPY (OTC)",
+                        "NZD/JPY (OTC)",
+                        "EUR/CHF (OTC)",
+                        "EUR/CAD (OTC)",
+                        "EUR/AUD (OTC)",
+                        "EUR/NZD (OTC)",
+                        "GBP/CAD (OTC)",
+                        "GBP/CHF (OTC)",
+                        "GBP/AUD (OTC)",
+                        "GBP/NZD (OTC)",
+                        "AUD/CAD (OTC)",
+                        "AUD/CHF (OTC)",
+                        "AUD/NZD (OTC)",
+                        "CAD/CHF (OTC)",
+                        "NZD/CAD (OTC)",
+                        "NZD/CHF (OTC)",
+                        "USD/BRL (OTC)",
+                        "USD/ARS (OTC)",
+                        "USD/EGP (OTC)",
+                        "USD/PKR (OTC)",
+                        "USD/BDT (OTC)",
+                        "USD/INR (OTC)",
+                        "USD/IDR (OTC)",
+                        "USD/NGN (OTC)",
+                        "USD/PHP (OTC)",
+                        "USD/TRY (OTC)",
+                        "USD/ZAR (OTC)",
+                        "USD/MXN (OTC)",
+                        "USD/COP (OTC)",
+                        "USD/DZD (OTC)",
+                        "USD/SAR (OTC)",
+                        "USD/QAR (OTC)",
+                        "USD/KES (OTC)",
+                        "USD/THB (OTC)",
+                        "USD/VND (OTC)",
+                        "USD/MYR (OTC)"
+                    ],
+                CommoditiesOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Gold (OTC)",
+                        "Silver (OTC)",
+                        "Platinum (OTC)",
+                        "Palladium (OTC)",
+                        "Copper (OTC)",
+                        "Brent Oil (OTC)",
+                        "WTI Oil (OTC)",
+                        "Natural Gas (OTC)"
+                    ],
                 StocksOTC: [
-                    "✨ Auto Scan Best Pair (AI) ✨",
-                    "Apple (OTC)",
-                    "American Express (OTC)",
-                    "Boeing Company (OTC)",
-                    "Cisco (OTC)",
-                    "Facebook Inc (OTC)",
-                    "Intel (OTC)",
-                    "Johnson & Johnson (OTC)",
-                    "McDonald's (OTC)",
-                    "Microsoft (OTC)",
-                    "Pfizer Inc (OTC)",
-                    "Tesla (OTC)",
-                    "ExxonMobil (OTC)",
-                    "Advanced Micro Devices (OTC)"
-                ]
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "Apple (OTC)",
+                        "Amazon (OTC)",
+                        "Tesla (OTC)",
+                        "Meta (OTC)",
+                        "Google (OTC)",
+                        "Microsoft (OTC)",
+                        "Netflix (OTC)",
+                        "Intel (OTC)",
+                        "AMD (OTC)",
+                        "NVIDIA (OTC)",
+                        "Boeing (OTC)",
+                        "Visa (OTC)",
+                        "JPMorgan (OTC)",
+                        "Nike (OTC)",
+                        "McDonald's (OTC)",
+                        "Coca-Cola (OTC)",
+                        "Alibaba (OTC)",
+                        "Pfizer (OTC)",
+                        "Ford (OTC)"
+                    ],
+                IndicesOTC: [
+                        "✨ Auto Scan Best Pair (AI) ✨",
+                        "US 500 (OTC)",
+                        "Nasdaq 100 (OTC)",
+                        "Dow Jones (OTC)",
+                        "S&P 500 (OTC)",
+                        "FTSE 100 (OTC)",
+                        "DAX 30 (OTC)",
+                        "Nikkei 225 (OTC)",
+                        "Euro 50 (OTC)",
+                        "ASX 200 (OTC)",
+                        "CAC 40 (OTC)",
+                        "IBEX 35 (OTC)"
+                    ]
             }
         };
 
 
         // Broker availability guard: do not scan/surface AUD/NZD on Quotex or Pocket Option.
         const rajaBrokerUnavailablePairs = {
-            Quotex: new Set(['AUDNZD','AUDNZDOTC']),
-            PocketOption: new Set(['AUDNZD','AUDNZDOTC'])
+            Quotex: new Set(),
+            PocketOption: new Set()
         };
 
         function rajaBrokerPairKey(pair) {
@@ -9732,13 +9856,19 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 { value:'CryptoLive', label:'🪙 Crypto Live Market' },
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
-                { value:'ForexOTC', label:'⚡ Forex OTC Market' }
+                { value:'ForexOTC', label:'⚡ Forex OTC Market' },
+                { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
+                { value:'StocksOTC', label:'📊 Stocks OTC' },
+                { value:'IndicesOTC', label:'📈 Indices OTC' }
             ],
             PocketOption: [
                 { value:'CryptoLive', label:'🪙 Crypto Live Market' },
                 { value:'CryptoOTC', label:'🪙 Crypto OTC Market' },
                 { value:'ForexLive', label:'🟢 Forex Live Market' },
-                { value:'ForexOTC', label:'⚡ Forex OTC Market' }
+                { value:'ForexOTC', label:'⚡ Forex OTC Market' },
+                { value:'CommoditiesOTC', label:'🛢️ Commodities OTC' },
+                { value:'StocksOTC', label:'📊 Stocks OTC' },
+                { value:'IndicesOTC', label:'📈 Indices OTC' }
             ]
         };
 
@@ -9791,7 +9921,9 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC: 'Crypto OTC',
                 ForexLive: 'Forex Live',
                 ForexOTC: 'Forex OTC',
-                StocksOTC: 'Stocks OTC'
+                StocksOTC: 'Stocks OTC',
+                CommoditiesOTC: 'Commodities OTC',
+                IndicesOTC: 'Indices OTC'
             })[market] || 'Selected Market';
         }
 
@@ -10053,7 +10185,9 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                     const entryGraceMs = Math.max(1000, Number(activeSignalEntryGraceMs || rajaEntryGraceMsForExpiry(selectedExpiry)));
 
                     if (setupClock) {
-                        setupClock.innerText = `SETUP CANDLE: ${localEntryClock(setupStartMs)} → ${localEntryClock(setupEndMs)} · SCHEDULED TRADE CANDLE: ${localEntryClock(entryMs)} → ${localEntryClock(targetEndMs)}`;
+                        const isFarazOtcClock = Boolean(activePremiumSignal?.farazStyleOtc || activePremiumSignal?.simulatedOtc);
+                        const setupLabel = isFarazOtcClock ? 'LAST CLOSED CANDLE' : 'SETUP CANDLE';
+                        setupClock.innerText = `${setupLabel}: ${localEntryClock(setupStartMs)} → ${localEntryClock(setupEndMs)} · SCHEDULED TRADE CANDLE: ${localEntryClock(entryMs)} → ${localEntryClock(targetEndMs)}`;
                     }
 
                     if (deltaMs < 0) {
@@ -13892,7 +14026,10 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoLive:'CRYPTO LIVE',
                 CryptoOTC:'CRYPTO OTC',
                 ForexLive:'FOREX LIVE',
-                ForexOTC:'FOREX OTC'
+                ForexOTC:'FOREX OTC',
+                CommoditiesOTC:'COMMODITIES OTC',
+                StocksOTC:'STOCKS OTC',
+                IndicesOTC:'INDICES OTC'
             })[value] || 'MARKET READY';
         }
 
@@ -14305,7 +14442,7 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     (() => {
         const STORAGE_KEY_BASE = 'raja_all_market_availability_v3';
         const CACHE_MS = 3 * 60 * 1000;
-        const LIVE_PRIORITY = { CryptoLive:5, ForexLive:4, CryptoOTC:3, ForexOTC:2, StocksOTC:1 };
+        const LIVE_PRIORITY = { CryptoLive:7, ForexLive:6, CryptoOTC:5, ForexOTC:4, CommoditiesOTC:3, StocksOTC:2, IndicesOTC:1 };
 
         function currentBroker() {
             return String(document.getElementById('brokerSelect')?.value || 'Quotex');
@@ -15324,7 +15461,9 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                 CryptoOTC:'Crypto OTC',
                 ForexLive:'Forex Live',
                 ForexOTC:'Forex OTC',
-                StocksOTC:'Stocks OTC'
+                StocksOTC:'Stocks OTC',
+                CommoditiesOTC:'Commodities OTC',
+                IndicesOTC:'Indices OTC'
             })[market] || market || 'Market';
         }
 
@@ -16445,14 +16584,22 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     const durationMs=Math.max(1,(typeof getExpirySeconds==='function'?getExpirySeconds(expiry):60))*1000;
     const closedEpochMs=Number(s?.closedCandleEpoch||0)*1000;
 
-    // V38 PREP-ENTRY MODE: show a future candle-aligned entry immediately so
-    // the user gets a real preparation countdown instead of an instant late warning.
+    // V38 PREP-ENTRY MODE. Faraz-style OTC signal refreshes can happen every
+    // ~30s, but broker 1m candles still open on exact :00 boundaries.  Never
+    // use the random-signal refresh timestamp as the candle timestamp.
     const nowMs=Date.now();
-    const minNoticeMs=10000;
-    const originalTargetMs=closedEpochMs>0 ? closedEpochMs+durationMs : 0;
-    const noticeAlignedMs=Math.ceil((nowMs+minNoticeMs)/durationMs)*durationMs;
-    activeSignalSetupEpochMs=closedEpochMs>0 ? closedEpochMs : null;
-    activeSignalEntryEpochMs=Math.max(originalTargetMs,noticeAlignedMs);
+    const isFarazOtc=Boolean(s?.simulatedOtc || s?.farazStyleOtc);
+    const currentBoundaryMs=Math.floor(nowMs/durationMs)*durationMs;
+    if(isFarazOtc){
+      activeSignalSetupEpochMs=currentBoundaryMs-durationMs;
+      activeSignalEntryEpochMs=currentBoundaryMs+durationMs;
+    }else{
+      const minNoticeMs=10000;
+      const originalTargetMs=closedEpochMs>0 ? closedEpochMs+durationMs : 0;
+      const noticeAlignedMs=Math.ceil((nowMs+minNoticeMs)/durationMs)*durationMs;
+      activeSignalSetupEpochMs=closedEpochMs>0 ? closedEpochMs : null;
+      activeSignalEntryEpochMs=Math.max(originalTargetMs,noticeAlignedMs);
+    }
     activeSignalEntryGraceMs = (typeof rajaEntryGraceMsForExpiry === 'function') ? rajaEntryGraceMsForExpiry(expiry) : Math.max(10000, Math.min(45000, Math.floor(durationMs * 0.50)));
     activeTrackedSignalId = null;
     if (typeof startTimer==='function') startTimer();
