@@ -6,6 +6,7 @@ import io
 import math
 import json
 import secrets
+import random
 import hmac
 import hashlib
 import base64
@@ -80,6 +81,17 @@ except Exception:
 
 app = Flask(__name__, static_folder=".", template_folder=".")
 CORS(app)
+
+# =========================================================
+# FARAZ-STYLE OTC MODE (USER-REQUESTED)
+# =========================================================
+# This mode intentionally mirrors the behavior observed in the user-supplied
+# Faraz Rana bot source: OTC direction is random 50/50 and the displayed
+# confidence/accuracy value is randomly generated from 90..100. It does NOT
+# analyze Quotex or Pocket Option candles and must never be presented as a
+# measured win probability. Non-OTC / Live markets keep the existing RAJA engine.
+RAJA_FARAZ_STYLE_OTC = str(os.environ.get("RAJA_FARAZ_STYLE_OTC", "1")).strip().lower() not in {"0", "false", "no", "off"}
+RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS = max(5, min(300, int(os.environ.get("RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS", "30"))))
 
 # =========================================================
 # RAJA AI MULTI-TIMEFRAME BACKEND
@@ -4649,6 +4661,29 @@ def calculate_market_health(pair, selected_expiry=None, bridge_user=None, broker
         base["reason"] = f"{tf} is not available for live market-health testing."
         return base
 
+    if _raja_is_faraz_style_otc(pair, broker):
+        base.update({
+            "tradeable": True,
+            "grade": "CAUTION",
+            "status": "CAUTION",
+            "headline": "SIMULATED OTC MODE — MARKET HEALTH BYPASSED",
+            "score": 50.0,
+            "source": "Faraz-style OTC simulation",
+            "source_mode": "faraz_style_random_otc",
+            "provider_symbol": pair,
+            "data_age_seconds": 0.0,
+            "closed_candles_tested": 0,
+            "structure": {"score": 50.0, "flip_rate_pct": 0.0, "spike_rate_pct": 0.0},
+            "backtest": {"sample_size": 0, "wins": 0, "losses": 0, "draws": 0, "win_rate": None, "status": "NOT USED", "patterns": {}},
+            "reason": "Faraz-style OTC mode does not use market candles, so the closed-candle health gate is bypassed only to allow the requested random-style signal generator.",
+            "warnings": ["CALL/PUT is not based on Quotex/Pocket Option market analysis in this mode."],
+            "forming_candle_excluded": False,
+            "method": "Faraz-style random OTC simulation — no market-health analysis",
+            "backtest_is_guarantee": False,
+            "simulated_otc": True,
+        })
+        return base
+
     base_df, data_age, symbol, source_info = get_market_data(pair, bridge_user=bridge_user, broker=broker)
     base.update({
         "source": (source_info or {}).get("source") or "Unknown",
@@ -5138,8 +5173,157 @@ def _raja_display_base_with_forming(pair, closed_base_df, source_info=None):
     return out, snap
 
 
+def _raja_is_faraz_style_otc(pair, broker):
+    """True only for Quotex/Pocket Option OTC when the user-requested simulation is enabled."""
+    if not RAJA_FARAZ_STYLE_OTC or "(otc)" not in str(pair or "").casefold():
+        return False
+    key = str(broker or "").strip().casefold().replace(" ", "").replace("_", "")
+    return key in {"quotex", "pocketoption", "pocket"}
+
+
+def _faraz_style_otc_chart(pair, timeframe, broker, user_ref=None, count=46):
+    """Build the same *kind* of synthetic candle animation seen in the supplied Faraz source.
+
+    These candles are deliberately synthetic and are never labeled as broker market data.
+    The seed is stable inside the current signal slot so the chart does not flicker on refresh.
+    """
+    tf = str(timeframe or "1m").strip().lower()
+    step_seconds = max(60, int(TIMEFRAMES.get(tf, 1)) * 60)
+    slot = int(time.time() // RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS)
+    identity = f"{str(user_ref or '')}|{str(broker or '')}|{str(pair or '')}|{tf}|{slot}|chart"
+    seed = int.from_bytes(hashlib.sha256(identity.encode("utf-8")).digest()[:8], "big")
+    rng = random.Random(seed)
+    n = max(25, min(60, int(count or 46)))
+    # Stable pair-specific visual base; this is not a real quote.
+    base_seed = int.from_bytes(hashlib.sha256(str(pair or "OTC").encode("utf-8")).digest()[:4], "big")
+    price = 80.0 + (base_seed % 12000) / 100.0
+    now_bucket = int(time.time() // step_seconds) * step_seconds
+    rows = []
+    for i in range(n):
+        opened = price
+        drift = (rng.random() - 0.5) * max(0.04, price * 0.0065)
+        closed = max(0.000001, opened + drift)
+        wick = max(0.01, price * 0.0028)
+        high = max(opened, closed) + rng.random() * wick
+        low = max(0.000001, min(opened, closed) - rng.random() * wick)
+        ts = now_bucket - (n - 1 - i) * step_seconds
+        rows.append({
+            "t": int(ts),
+            "o": round(opened, 6),
+            "h": round(high, 6),
+            "l": round(low, 6),
+            "c": round(closed, 6),
+        })
+        price = closed
+    return rows
+
+
+def _faraz_style_otc_result(pair, selected_expiry=None, broker=None, bridge_user=None, chart_count=46):
+    """Return a Faraz-style OTC signal without using broker/reference market candles."""
+    tf = str(selected_expiry or "1m").strip().lower()
+    if tf not in TIMEFRAMES:
+        tf = "1m"
+    slot = int(time.time() // RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS)
+    identity = f"{str(bridge_user or '')}|{str(broker or '')}|{str(pair or '')}|{tf}|{slot}|signal"
+    digest = hashlib.sha256(identity.encode("utf-8")).digest()
+    signal = "CALL" if (digest[0] % 2 == 0) else "PUT"
+    direction = "UP" if signal == "CALL" else "DOWN"
+    confidence = 90 + (digest[1] % 11)
+    next_color = "GREEN" if signal == "CALL" else "RED"
+    generated_epoch = slot * RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS
+    chart = _faraz_style_otc_chart(pair, tf, broker, bridge_user, chart_count)
+    reason = (
+        "Faraz-style OTC simulation: CALL/PUT is generated on a 50/50 random-style basis and "
+        f"the displayed score ({confidence}%) is selected from 90–100. No Quotex/Pocket Option candle analysis is used."
+    )
+    rule = {"label": "Faraz-style random OTC generator", "ok": True}
+    summary = {tf: {
+        "signal": signal,
+        "score": float(confidence),
+        "pattern_type": 0,
+        "selected_pattern": "FARAZ-STYLE RANDOM OTC",
+        "setup_match": float(confidence),
+        "next_candle_color": next_color,
+        "closed_candle_epoch": generated_epoch,
+    }}
+    return {
+        "pair": pair,
+        "selected_expiry": tf,
+        "required_expiry_timeframe": tf,
+        "timeframe": tf,
+        "signal": signal,
+        "score": float(confidence),
+        "model_confidence": float(confidence),
+        "calibrated_confidence": float(confidence),
+        "confidence_is_win_probability": False,
+        "accuracy_claim_is_verified": False,
+        "reason": reason,
+        "pattern_type": 0,
+        "selected_pattern": "FARAZ-STYLE RANDOM OTC",
+        "pattern_direction": direction,
+        "next_candle_color": next_color,
+        "setup_match": float(confidence),
+        "rules": [rule],
+        "rules_matched": 1,
+        "rules_total": 1,
+        "pattern_signals": [],
+        "pattern_priority": float(confidence),
+        "conflict_gate": False,
+        "recovery_trade": False,
+        "closed_candle_epoch": generated_epoch,
+        "closed_candle_verified": False,
+        "forming_candle_excluded": False,
+        "timeframe_summary": summary,
+        "timeframes_scanned": [tf],
+        "aligned_timeframes": [tf],
+        "opposing_timeframes": [],
+        "multi_tf_agreement": 100.0,
+        "confirmation_mode": "FARAZ-STYLE RANDOM OTC · NO MARKET ANALYSIS",
+        "scan_mode": "FARAZ_STYLE_OTC",
+        "scan_thresholds": {},
+        "accuracy_mode": "GENERATED_DISPLAY_SCORE_90_100",
+        "data_age": 0.0,
+        "source": "Faraz-style OTC simulation",
+        "source_mode": "faraz_style_random_otc",
+        "provider_symbol": pair,
+        "yahoo_symbol": None,
+        "backup_used": False,
+        "exact_broker_feed": False,
+        "simulated_otc": True,
+        "real_broker_analysis": False,
+        "chart_preview": chart,
+        "engine": "FARAZ_STYLE_RANDOM_OTC_V1",
+        "pattern_library": "None — random OTC simulation",
+        "pattern_library_size": 0,
+        "visible_candles_analyzed": False,
+        "pattern_scan_candles": 0,
+        "requested_chart_candles": len(chart),
+        "technical_warmup_candles": 0,
+        "indicator_usable_candles": 0,
+        "indicator_required_candles": 0,
+        "indicator_ready": False,
+        "indicator_reason": "Disabled in Faraz-style random OTC mode.",
+        "chart_signal_sync": "SIMULATED CHART + RANDOM-STYLE SIGNAL · NOT BROKER CANDLES",
+        "chart_includes_forming_candle": False,
+        "base_1m_gap_count": 0,
+        "movement_info": {"label": "SIMULATED", "percent": 0.0},
+        "volatility_pct": 0.0,
+        "market_stability_score": float(confidence),
+        "market_risk_level": "SIMULATED / RANDOM",
+        "market_regime": "FARAZ-STYLE RANDOM OTC",
+        "deep_quality_score": float(confidence),
+        "calibration_status": "NOT CALIBRATED",
+        "no_trade": False,
+        "quality_gate": "SIMULATED_RANDOM",
+        "faraz_style_otc": True,
+        "faraz_style_signal_ttl_seconds": RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS,
+    }
+
+
 def calculate_live_strategy_signal(pair, selected_expiry=None, scan_options=None, bridge_user=None, broker=None, chart_count=32):
-    """Single-pair scan. V50 scans the same latest closed OHLC candles shown on the live chart."""
+    """Single-pair scan. Live markets keep RAJA analysis; requested broker OTC can use Faraz-style simulation."""
+    if _raja_is_faraz_style_otc(pair, broker):
+        return _faraz_style_otc_result(pair, selected_expiry, broker, bridge_user, chart_count)
     opts=normalize_scan_options(scan_options)
     tf=str(selected_expiry or "1m").strip().lower()
     if tf not in TIMEFRAMES:
@@ -9747,11 +9931,16 @@ def live_chart_data():
             broker,
             chart_count=chart_count,
         )
+        note = (
+            "Faraz-style OTC mode is active: the OTC chart is synthetic and CALL/PUT is random-style 50/50 with a generated 90–100 display score; no broker candle analysis is used."
+            if _raja_is_faraz_style_otc(selected_pair, broker)
+            else "OTC uses the selected broker's exact native/bridge candles only; Yahoo/reference OTC data is blocked. Signals use CLOSED candles only; the chart may include the current forming candle."
+        )
         return jsonify({
             "status":"success",
             "data":result,
             "read_only":True,
-            "note":"OTC uses the selected broker's exact native/bridge candles only; Yahoo/reference OTC data is blocked. Signals use CLOSED candles only; the chart may include the current forming candle.",
+            "note":note,
         })
     except Exception as exc:
         # Always return JSON so the browser never receives Flask's HTML 500 page.
