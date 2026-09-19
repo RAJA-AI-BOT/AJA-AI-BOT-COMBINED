@@ -532,8 +532,8 @@ POCKET_OPTION_STOCKS_OTC_PAIRS = ['Apple (OTC)', 'American Express (OTC)', 'Boei
 # an old browser/client cannot request a signal for a pair unavailable on the
 # selected broker. Auto Scan will simply continue with the remaining pairs.
 RAJA_BROKER_UNAVAILABLE_PAIR_KEYS = {
-    "quotex": {"AUDNZD", "AUDNZDOTC"},
-    "pocketoption": {"AUDNZD", "AUDNZDOTC"},
+    "quotex": set(),
+    "pocketoption": set(),
 }
 
 def _raja_broker_pair_key(pair):
@@ -5230,7 +5230,13 @@ def _faraz_style_otc_result(pair, selected_expiry=None, broker=None, bridge_user
     direction = "UP" if signal == "CALL" else "DOWN"
     confidence = 90 + (digest[1] % 11)
     next_color = "GREEN" if signal == "CALL" else "RED"
-    generated_epoch = slot * RAJA_FARAZ_OTC_SIGNAL_TTL_SECONDS
+    # Keep Faraz-style signal randomness on its own TTL, but report the setup
+    # candle on the broker/timeframe boundary.  Previously this reused the
+    # 30-second signal slot, which could produce times such as 12:15:30 for a
+    # 1-minute candle.  Quotex/Pocket Option 1m candles open on :00 boundaries.
+    timeframe_seconds = max(60, int(TIMEFRAMES.get(tf, 1)) * 60)
+    current_candle_open_epoch = (int(time.time()) // timeframe_seconds) * timeframe_seconds
+    generated_epoch = current_candle_open_epoch - timeframe_seconds
     chart = _faraz_style_otc_chart(pair, tf, broker, bridge_user, chart_count)
     reason = (
         "Faraz-style OTC simulation: CALL/PUT is generated on a 50/50 random-style basis and "
@@ -7662,21 +7668,37 @@ def track_signal():
     except Exception:
         closed_candle_epoch = 0
 
-    # V38 PREP-ENTRY MODE:
-    # Give the trader a real countdown instead of returning an already-expired
-    # entry. The signal is scheduled on the next timeframe-aligned candle that
-    # still provides at least RAJA_MIN_ENTRY_NOTICE_SECONDS of preparation.
-    # Outcome tracking uses this same scheduled entry, so UI and backend stay aligned.
-    original_target_entry_epoch = (closed_candle_epoch + duration) if closed_candle_epoch else ((now // duration) + 1) * duration
-    try:
-        min_entry_notice_seconds = max(10, min(30, int(os.environ.get("RAJA_MIN_ENTRY_NOTICE_SECONDS", "10"))))
-    except Exception:
-        min_entry_notice_seconds = 10
+    # V38 PREP-ENTRY MODE.
+    # Faraz-style OTC must stay exactly on broker candle boundaries.  Its signal
+    # slot may refresh every ~30s, but that refresh time is NOT a candle time.
+    # For OTC simulation we therefore force:
+    #   last closed candle = previous aligned timeframe candle
+    #   entry candle       = next aligned timeframe candle
+    # This keeps the displayed clock in sync with Quotex/Pocket Option.
+    source_mode_value = str(data.get("source_mode") or "").strip().casefold()
+    selected_pattern_value = str(data.get("selected_pattern") or "").strip().upper()
+    faraz_style_tracking = (source_mode_value == "faraz_style_random_otc" or selected_pattern_value == "FARAZ-STYLE RANDOM OTC")
 
-    earliest_entry_epoch = now + min_entry_notice_seconds
-    notice_aligned_entry_epoch = ((earliest_entry_epoch + duration - 1) // duration) * duration
-    entry_epoch = max(original_target_entry_epoch, notice_aligned_entry_epoch)
-    expiry_epoch = entry_epoch + duration
+    if faraz_style_tracking:
+        current_candle_open_epoch = (now // duration) * duration
+        closed_candle_epoch = current_candle_open_epoch - duration
+        original_target_entry_epoch = current_candle_open_epoch
+        entry_epoch = current_candle_open_epoch + duration
+        expiry_epoch = entry_epoch + duration
+        min_entry_notice_seconds = max(0, entry_epoch - now)
+    else:
+        # Give strategy-based signals a real preparation countdown instead of
+        # returning an already-expired entry.
+        original_target_entry_epoch = (closed_candle_epoch + duration) if closed_candle_epoch else ((now // duration) + 1) * duration
+        try:
+            min_entry_notice_seconds = max(10, min(30, int(os.environ.get("RAJA_MIN_ENTRY_NOTICE_SECONDS", "10"))))
+        except Exception:
+            min_entry_notice_seconds = 10
+
+        earliest_entry_epoch = now + min_entry_notice_seconds
+        notice_aligned_entry_epoch = ((earliest_entry_epoch + duration - 1) // duration) * duration
+        entry_epoch = max(original_target_entry_epoch, notice_aligned_entry_epoch)
+        expiry_epoch = entry_epoch + duration
 
     # Keep a small post-open grace as a safety fallback for device/browser latency.
     default_entry_grace = max(10, min(45, int(duration * 0.50)))
@@ -9581,7 +9603,7 @@ def side_auto_signals():
     pairs, seen = [], set()
     broker_key = broker.casefold().replace(" ", "")
     broker_is_native = broker_key in {"quotex", "pocketoption", "pocket_option", "pocket"}
-    for raw in requested_pairs[:40]:
+    for raw in requested_pairs[:120]:
         pair = str(raw).strip()
         supported = pair in YAHOO_SYMBOLS or (broker_is_native and "(otc)" in pair.casefold())
         if supported and pair not in seen:
@@ -9673,7 +9695,7 @@ def market_health_test():
     broker_is_native = broker_key in {"quotex","pocketoption","pocket_option","pocket"}
 
     pairs, seen = [], set()
-    for raw in raw_pairs[:40]:
+    for raw in raw_pairs[:120]:
         pair = str(raw or "").strip()
         supported = pair in YAHOO_SYMBOLS or (broker_is_native and "(otc)" in pair.casefold())
         if pair and supported and raja_pair_allowed_for_broker(broker, pair) and pair not in seen:
@@ -9742,7 +9764,7 @@ def scan_batch():
     pairs, seen = [], set()
     broker_key = broker.casefold().replace(" ", "")
     broker_is_native = broker_key in {"quotex", "pocketoption", "pocket_option", "pocket"}
-    for raw in requested_pairs[:40]:
+    for raw in requested_pairs[:120]:
         pair = str(raw).strip()
         supported = pair in YAHOO_SYMBOLS or (broker_is_native and "(otc)" in pair.casefold())
         broker_allowed = raja_pair_allowed_for_broker(broker, pair)
