@@ -6904,20 +6904,23 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
                                         <b id="v23ResultFreshness">Awaiting signal snapshot</b>
                                     </div>
 <section class="ai-explain-card" id="aiExplainCard">
-                                        <div class="intel-title-row"><div class="intel-title">✦ PATTERN PROOF · WHY THIS SIGNAL</div><div class="intel-caption">14 RAJA + 5 PDF + 5 premium closed-candle strategies</div></div>
+                                        <div class="intel-title-row"><div class="intel-title">✦ PATTERN PROOF · WHY THIS SIGNAL</div><div class="intel-caption">5 active strategies + Liquidity + SMC + ICT closed-candle context</div></div>
                                         <div class="ai-explain-grid">
                                             <div class="ai-factor"><small>Direction</small><strong id="explainTrend">--</strong><span id="explainTrendSub">Pattern direction</span></div>
                                             <div class="ai-factor"><small>Setup</small><strong id="explainMomentum">--</strong><span id="explainMomentumSub">Exact rule match</span></div>
                                             <div class="ai-factor"><small>Pattern Type</small><strong id="explainAgreement">--</strong><span id="explainAgreementSub">Selected timeframe only</span></div>
                                             <div class="ai-factor"><small>Next Candle</small><strong id="explainExpiry">--</strong><span id="explainExpirySub">Next candle target</span></div>
                                             <div class="ai-factor"><small>Movement</small><strong id="explainVolatility">--</strong><span id="explainVolatilitySub">Informational only</span></div>
+                                            <div class="ai-factor"><small>Liquidity</small><strong id="explainLiquidity">--</strong><span id="explainLiquiditySub">Sweep / liquidity pool context</span></div>
+                                            <div class="ai-factor"><small>SMC</small><strong id="explainSmc">--</strong><span id="explainSmcSub">Structure · BOS / CHOCH · OB</span></div>
+                                            <div class="ai-factor"><small>ICT</small><strong id="explainIct">--</strong><span id="explainIctSub">FVG · displacement · premium/discount</span></div>
                                         </div>
                                         <div class="ai-summary"><b>SUMMARY:</b> <span id="aiExplanationSummary">Waiting for a confirmed signal.</span></div>
                                     </section>
 
                                     
 
-                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>5 ACTIVE STRATEGIES:✔</span> | <span>CLOSED CANDLES:✔</span> | <span>CONFLICT GATE:✔</span> | <span>NO INDICATORS:✔</span> | <span>NEXT CANDLE:✔</span></div>
+                                    <div id="advancedFiltersInfo" class="advanced-filters"><span>5 ACTIVE STRATEGIES:✔</span> | <span>LIQUIDITY:✔</span> | <span>SMC:✔</span> | <span>ICT:✔</span> | <span>CLOSED CANDLES:✔</span></div>
                                     <div id="signalConfidenceRing" class="signal3d-confidence"><div><strong>--</strong><span>CONFIDENCE</span></div></div>
                                     <div class="mtf-heading psr-mtf-heading">SK PATTERN TYPE 1-25 · SELECTED TIMEFRAME</div>
                                     <div id="tfBreakdown" class="tf-breakdown"></div>
@@ -16659,6 +16662,8 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
       calibrationStatus:'DISABLED', chartPreview:Array.isArray(data.chart_preview)?data.chart_preview:[], scanMode:data.scan_mode||'SK25_BALANCED',
       scanThresholds:{}, source:data.source||'', sourceMode:data.source_mode||'', providerSymbol:data.provider_symbol||data.yahoo_symbol||'',
       backupUsed:Boolean(data.backup_used), selectedExpiry:tf,
+      concepts:(data.smc_ict_liquidity && typeof data.smc_ict_liquidity==='object')?data.smc_ict_liquidity:{},
+      conceptAlignment:(data.concept_alignment && typeof data.concept_alignment==='object')?data.concept_alignment:{},
       simulatedOtc:Boolean(data.simulated_otc), farazStyleOtc:Boolean(data.faraz_style_otc)
     };
   };
@@ -16689,8 +16694,22 @@ html[data-raja-theme="light"] .raja-unified-scan-shell{background:linear-gradien
     set('explainAgreement','100%'); set('explainAgreementSub','Exact supplied-pattern rule match');
     set('explainExpiry',`TIMED ${s.nextCandleColor||'--'}`); set('explainExpirySub',`${s.selectedExpiry||window.selectedExpiry||'--'} scheduled candle entry`);
     set('explainVolatility',String(s?.movementInfo?.label||'INFO ONLY')); set('explainVolatilitySub',`Raw candle movement ${Number(s?.volatilityPct||0).toFixed(4)}% · not a signal filter`);
+    const cx=(s?.concepts && typeof s.concepts==='object')?s.concepts:{};
+    const liq=(cx.liquidity&&typeof cx.liquidity==='object')?cx.liquidity:{};
+    const smc=(cx.smc&&typeof cx.smc==='object')?cx.smc:{};
+    const ict=(cx.ict&&typeof cx.ict==='object')?cx.ict:{};
+    if(s?.simulatedOtc || s?.farazStyleOtc){
+      set('explainLiquidity','N/A'); set('explainLiquiditySub','Faraz-style random OTC mode · no broker candle analysis');
+      set('explainSmc','N/A'); set('explainSmcSub','Random OTC direction does not use SMC');
+      set('explainIct','N/A'); set('explainIctSub','Random OTC direction does not use ICT');
+    }else{
+      set('explainLiquidity',String(liq.bias||'NEUTRAL')); set('explainLiquiditySub',String(liq.event||'No fresh sweep'));
+      set('explainSmc',String(smc.bias||'NEUTRAL')); set('explainSmcSub',`${smc.structure||'RANGE'} · ${smc.choch&&smc.choch!=='NONE'?smc.choch:(smc.bos||'NO BOS')} · ${smc.order_block||'NO OB'}`);
+      set('explainIct',String(ict.bias||'NEUTRAL')); set('explainIctSub',`${ict.fvg||'NO FVG'} · ${ict.displacement||'NO DISPLACEMENT'} · ${ict.dealing_range||'MID'}`);
+    }
     const ruleText=(s.rules||[]).filter(x=>x&&x.ok).map(x=>'✓ '+x.name).join(' · ');
-    set('aiExplanationSummary',`${s.recoveryTrade?'RECOVERY TRADE · ':''}${s.selectedPattern||'SK25'} exact setup. ${ruleText || s.reason || ''}`);
+    const align=String(s?.conceptAlignment?.label||'INFO ONLY');
+    set('aiExplanationSummary',`${s.recoveryTrade?'RECOVERY TRADE · ':''}${s.selectedPattern||'SK25'} exact setup. ${ruleText || s.reason || ''}${(!s?.simulatedOtc&&!s?.farazStyleOtc)?` · SMC/ICT/Liquidity context: ${align} (context only; no extra data request).`:''}`);
     const ids={v31TechnicalScore:'100%',v31AgreementScore:`TYPE ${s.patternType||'--'}`,v31MarketQuality:'CLOSED ✓',v31EntryState:'PREP ENTRY',v23WinnerScore:'100%',v23WinnerAgreement:`TYPE ${s.patternType||'--'}`,v23WinnerStability:'CLOSED ✓',v23WinnerLead:`${s.rulesMatched||0}/${s.rulesTotal||0}`};
     Object.entries(ids).forEach(([id,v])=>set(id,v));
   };
